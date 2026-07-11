@@ -6,11 +6,11 @@ passed by evidence, not time served.
 ## Phase 0 — Baseline (week 0)
 
 - Run the diagnostic and environment checks.
-- Choose primary/secondary role tracks and a capstone.
-- Write a one-page account of your strongest shipped system and its measurable
-  impact. Missing facts become questions to recover before interviews.
+- Choose primary/secondary learning branches and an applied study.
+- Write a one-page dependency map for one familiar vision system. Missing facts
+  become questions to answer through derivation or experiment.
 
-**Gate:** honest scorecard, working test environment, calendar, target role.
+**Gate:** honest baseline, working test environment, calendar, and study question.
 
 ## Phase 1 — Mathematical and visual foundations (weeks 1-4)
 
@@ -47,7 +47,7 @@ defend a metric choice against product behavior.
 | 11 | Pose, PnP, SLAM, bundle adjustment | Factor/pose graph design memo and toy optimizer |
 | 12 | Camera/LiDAR/IMU fusion and timing | Frame/time-alignment test and fusion design review |
 
-Advance project 03. Run the first full mock loop.
+Advance project 03. Run the first full cross-topic review.
 
 **Gate:** transform points between frames correctly, model temporal uncertainty,
 and identify observability/synchronization/calibration failures.
@@ -66,36 +66,36 @@ Advance project 02.
 **Gate:** present an end-to-end design where data/model/service/monitoring choices
 are internally consistent and costed.
 
-## Phase 5 — Role electives (weeks 17-20)
+## Phase 5 — Topic electives (weeks 17-20)
 
 Choose one primary column and at least one assignment from another.
 
-| Week | Google / ML systems | NVIDIA / performance | 42dot / autonomy |
+| Week | Representation and data | Accelerated systems | 3D spatial perception |
 |---|---|---|---|
 | 17 | Large-scale retrieval/multimodal design | GPU execution and memory hierarchy | HD maps, localization, coordinate frames |
 | 18 | Data quality and weak/self supervision | CUDA kernels, occupancy, memory access | BEV/occupancy/world models |
 | 19 | Distributed training/inference economics | TensorRT, precision, fusion, dynamic shapes | Closed-loop simulation and scenario mining |
 | 20 | Responsible evaluation and launch | Nsight bottleneck report | Safety, redundancy, ODD and fallback |
 
-**Gate:** a 30-minute role-specific technical review with quantitative evidence.
+**Gate:** a 30-minute topic review with derivations, comparisons, and measurements.
 
-## Phase 6 — Senior loop and application sprint (weeks 21-24)
+## Phase 6 — Integration and synthesis (weeks 21-24)
 
 | Week | Focus | Required artifact |
 |---|---|---|
 | 21 | Capstone hardening | Reproduction command, tests, model/data cards, demo |
-| 22 | Coding and CV interview loop | Two timed mocks plus corrected error log |
-| 23 | System design and leadership | Two design mocks and eight evidence-backed stories |
-| 24 | Portfolio/application launch | Targeted resume, project pages, outreach, application batch |
+| 22 | Coding and derivation review | Two timed reviews plus corrected error log |
+| 23 | System design and trade-offs | Two design reviews and eight evidence-backed decisions |
+| 24 | Course synthesis | Project pages, comparison report, source audit, and next-study map |
 
-**Final gate:** complete the rubric in `projects/PORTFOLIO_RUBRIC.md`, run a
-five-part mock loop, and have two qualified reviewers challenge the capstone.
+**Final gate:** complete the project rubric, run a five-part technical review,
+and have two readers challenge the applied study's assumptions and conclusions.
 
 ## Alternative pacing
 
 ### 10 hours/week: 36 weeks
 
-Make each four-week content phase six weeks. Preserve all gates, mocks, and
+Make each four-week content phase six weeks. Preserve all gates, reviews, and
 project artifacts. Do not run more than one large training experiment per week.
 
 ### Experienced practitioner: 12 weeks
@@ -109,8 +109,7 @@ diagnostic for both topics begins at level 3.
 At weeks 4, 8, 12, 16, 20, and 24 ask:
 
 1. What can I now implement or decide that I could not before?
-2. What evidence would persuade a skeptical staff engineer?
+2. What evidence would persuade a skeptical technical reader?
 3. Which failure surprised me, and how did it change the system?
 4. Which score improved? Which score stayed low, and why?
-5. Should the next phase change based on current job descriptions?
-
+5. Should the next phase change based on the failures and dependencies found?

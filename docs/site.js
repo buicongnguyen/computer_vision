@@ -10,7 +10,7 @@
     { id: "modern-cv", label: "Modern computer vision", href: "modern-cv.html" },
     { id: "practice", label: "MCQ practice", href: "practice.html" },
     { id: "coding", label: "Coding drills", href: "coding.html" },
-    { id: "projects", label: "Portfolio projects", href: "projects.html" }
+    { id: "projects", label: "Applied projects", href: "projects.html" }
   ];
 
   function integer(value, fallback) {
@@ -87,7 +87,7 @@
     setText("[data-quiz-score]", state.quiz.total ? state.quiz.correct + " / " + state.quiz.total : "Not started");
     setText("[data-coding-score]", state.coding.solved + " / " + state.coding.total);
     setText("[data-progress-message]", count === MILESTONES.length
-      ? "Core learning path complete. Keep the evidence current."
+      ? "Core learning path complete. Revisit it as methods and assumptions change."
       : "Complete " + (MILESTONES.length - count) + " more checkpoint" + (MILESTONES.length - count === 1 ? "" : "s") + " to close the core path.");
 
     if (orbit) {
@@ -106,7 +106,7 @@
         nextLink.textContent = next.label + " →";
         nextLink.setAttribute("href", next.href);
       } else {
-        nextLink.textContent = "Review portfolio evidence →";
+        nextLink.textContent = "Review applied projects →";
         nextLink.setAttribute("href", "projects.html");
       }
     }

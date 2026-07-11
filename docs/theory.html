@@ -17,7 +17,7 @@
     <div class="header-shell">
       <a class="brand" href="index.html" aria-label="CV Systems Lab home">
         <span class="brand-mark" aria-hidden="true"><span></span></span>
-        <span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span>
+        <span><strong>CV Systems Lab</strong><small>Computer vision study guide</small></span>
       </a>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
         <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
@@ -51,12 +51,12 @@
       <div class="hero-copy">
         <p class="eyebrow">Curriculum spine · start here</p>
         <h1>Computer vision theory is a chain of decisions</h1>
-        <p class="hero-lede">A senior engineer does more than recognize algorithms. They can trace a pixel from a physical measurement to a product decision, name every assumption along the path, and predict how uncertainty and constraints will propagate.</p>
+        <p class="hero-lede">Understanding computer vision means more than recognizing algorithm names. Trace a pixel from physical measurement to system decision, name every assumption along the path, and predict how uncertainty and constraints propagate.</p>
         <div class="tag-row" aria-label="Page topics">
           <span class="tag">Dependency map</span>
           <span class="tag">Theory evolution</span>
           <span class="tag">Worked mathematics</span>
-          <span class="tag">Senior reasoning</span>
+          <span class="tag">System reasoning</span>
         </div>
         <div class="button-row">
           <a class="button button-primary" href="#dependency-flow">Follow the dependency flow</a>
@@ -68,9 +68,9 @@
         <p class="metric-value">8 links</p>
         <p>Explain the full chain without hiding behind model names.</p>
         <dl class="compact-list">
-          <div><dt>Level</dt><dd>Foundation → Senior</dd></div>
+          <div><dt>Level</dt><dd>Foundation → Advanced</dd></div>
           <div><dt>Study</dt><dd>90–120 minutes</dd></div>
-          <div><dt>Evidence</dt><dd>One design trace</dd></div>
+          <div><dt>Output</dt><dd>One design trace</dd></div>
         </dl>
       </aside>
     </section>
@@ -110,7 +110,7 @@
       <div class="section-heading">
         <div>
           <p class="eyebrow">The dependency flow</p>
-          <h2 id="dependency-title">Observe → Model → Estimate → Learn → Represent → Fuse → Deploy → Lead</h2>
+          <h2 id="dependency-title">Observe → Model → Estimate → Learn → Represent → Fuse → Deploy → Validate</h2>
         </div>
         <p>No stage repairs an invalid upstream contract for free.</p>
       </div>
@@ -175,9 +175,9 @@
         <li class="content-card flow-card">
           <span class="flow-number">08</span>
           <div>
-            <h3>Lead</h3>
-            <p>Translate ambiguity into a testable plan, define interfaces and review gates, make trade-offs legible, and own degraded behavior.</p>
-            <p class="flow-question"><strong>Senior signal:</strong> the team learns faster and the system fails more safely.</p>
+            <h3>Validate</h3>
+            <p>Translate ambiguity into a testable plan, define interfaces and review gates, make trade-offs legible, and specify degraded behavior.</p>
+            <p class="flow-question"><strong>Result:</strong> assumptions fail loudly and the next experiment is clear.</p>
           </div>
         </li>
       </ol>
@@ -185,7 +185,7 @@
       <aside class="callout">
         <p class="eyebrow">One-scene trace</p>
         <h3>A distant pedestrian at dusk</h3>
-        <p>The camera observes a low-signal crop; the projection model connects pixels to rays; a detector estimates class and box; learned features supply appearance priors; a track represents temporal state; radar and camera evidence are fused; deployment determines whether the result arrives before the planner deadline; technical leadership defines the low-confidence fallback. A miss cannot be diagnosed from AP alone—you must locate the broken link.</p>
+        <p>The camera observes a low-signal crop; the projection model connects pixels to rays; a detector estimates class and box; learned features supply appearance priors; a track represents temporal state; radar and camera evidence are fused; deployment determines whether the result arrives before the planner deadline; the system contract defines the low-confidence fallback. A miss cannot be diagnosed from AP alone—you must locate the broken link.</p>
       </aside>
     </section>
 
@@ -279,7 +279,7 @@
         </div>
         <p>If depth uncertainty is approximately <strong>0.20 m</strong>, first-order pixel uncertainty is about <strong>1.67 px</strong>. That number becomes meaningful only with its assumptions: intrinsics are fixed, X is treated as known, distortion is corrected, and linearization is valid near 12 m.</p>
         <div class="callout callout-compact">
-          <strong>Senior extension:</strong> now add focal-length uncertainty, correlation between X and Z, rolling shutter, and a 50 ms timestamp offset. Which term dominates for a moving object?
+          <strong>Advanced extension:</strong> now add focal-length uncertainty, correlation between X and Z, rolling shutter, and a 50 ms timestamp offset. Which term dominates for a moving object?
         </div>
       </article>
     </section>
@@ -396,8 +396,8 @@
   <footer class="site-footer">
     <div class="footer-shell">
       <div class="footer-brand">
-        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span></a>
-        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Compare methods. Test assumptions.</small></span></a>
+        <p>Open study material for computer vision, perception, geometry, and ML systems.</p>
       </div>
       <nav class="footer-links" aria-label="Footer"><a href="theory.html">Theory</a><a href="practice.html">MCQ</a><a href="coding.html">Coding</a><a href="projects.html">Projects</a><a href="sources.html">Sources</a><a href="https://github.com/buicongnguyen/computer_vision">GitHub</a></nav>
     </div>

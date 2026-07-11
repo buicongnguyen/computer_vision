@@ -36,7 +36,11 @@ EXPECTED_NAV_LINKS = (
     "projects.html",
     "sources.html",
 )
-REQUIRED_PAGE_NAMES = EXPECTED_NAV_LINKS
+REQUIRED_PAGE_NAMES = (
+    *EXPECTED_NAV_LINKS,
+    "yolo-evolution.html",
+    "current-topics.html",
+)
 
 QUIZ_DATA_FILE = "quiz-data.js"
 QUIZ_GLOBAL = "CV_QUIZ_QUESTIONS"
@@ -230,7 +234,7 @@ def validate_required_pages(
     docs_dir: Path = DOCS_DIR,
     required_pages: Sequence[str] = REQUIRED_PAGE_NAMES,
 ) -> list[ValidationIssue]:
-    """Check that the nine curriculum routes promised by the homepage exist."""
+    """Check that every curriculum route promised by the homepage exists."""
 
     return [
         ValidationIssue(

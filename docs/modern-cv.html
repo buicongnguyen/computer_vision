@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A rigorous senior-engineer guide to modern computer vision: CNNs, vision transformers, DETR, self-supervision, VLMs, diffusion, neural 3D, world models, evaluation, and production tradeoffs.">
+  <meta name="description" content="A rigorous study guide to modern computer vision: CNNs, vision transformers, DETR, self-supervision, VLMs, diffusion, neural 3D, world models, evaluation, and production tradeoffs.">
   <meta name="theme-color" content="#071019">
   <title>Modern computer vision | CV Systems Lab</title>
   <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/modern-cv.html">
@@ -19,7 +19,7 @@
         <span class="brand-mark" aria-hidden="true"><span></span></span>
         <span>
           <strong>CV Systems Lab</strong>
-          <small>Senior engineer study hub</small>
+          <small>Computer vision study guide</small>
         </span>
       </a>
 
@@ -64,7 +64,7 @@
       <h1>From engineered features to visual foundation systems</h1>
       <p>Understand why each major architecture appeared, what mechanism it introduced, which old assumptions it retained, and where it fails when placed inside a real perception product.</p>
       <div>
-        <span class="tag">Senior level</span>
+        <span class="tag">Advanced study</span>
         <span class="tag">Theory + mechanisms</span>
         <span class="tag">Evaluation + production</span>
         <span class="tag">Original practice</span>
@@ -80,7 +80,7 @@
         <p class="eyebrow">Study contract</p>
         <h2 id="study-contract-heading">Reason from mechanism, not model names</h2>
       </div>
-      <p>A senior engineer should be able to derive tensor shapes, state the training signal, identify hidden data assumptions, choose an evaluation protocol, and explain the latency and memory consequences. Treat every architecture below as a bundle of tradeoffs rather than a leaderboard entry.</p>
+      <p>Study each architecture as a bundle of assumptions and tradeoffs rather than a leaderboard entry. Derive tensor shapes, state the training signal, identify hidden data assumptions, choose an evaluation protocol, and explain the latency and memory consequences.</p>
     </aside>
 
     <section class="section" aria-labelledby="outcomes-heading">
@@ -124,7 +124,7 @@
           <li><a href="#embodied">Embodied perception and world models</a></li>
           <li><a href="#limitations">Failure modes and current limitations</a></li>
           <li><a href="#evaluation">Evaluation and production</a></li>
-          <li><a href="#role-lenses">Role overlays</a></li>
+          <li><a href="#role-lenses">Learning branches</a></li>
           <li><a href="#practice">Original practice prompts</a></li>
         </ul>
       </div>
@@ -224,7 +224,7 @@
         <article class="content-card prose">
           <h3>Classical descriptors: invariance by design</h3>
           <p>Classical systems separate the problem into detection, description, matching, geometric verification, and a task head. A descriptor is engineered to suppress nuisance variation while preserving identity. That separation remains valuable for debugging and for geometry-heavy tasks, but the chosen invariance can discard information the downstream task needs.</p>
-          <p><strong>Senior question:</strong> should illumination change be removed, modeled, or used as a cue? The answer differs for place recognition, photometric stereo, and defect inspection.</p>
+          <p><strong>Decision question:</strong> should illumination change be removed, modeled, or used as a cue? The answer differs for place recognition, photometric stereo, and defect inspection.</p>
         </article>
 
         <article class="content-card prose">
@@ -603,48 +603,52 @@ ẑt+1 ~ pθ(zt+1 | zt, at)
     <section class="section" id="role-lenses" aria-labelledby="role-lenses-heading">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Role overlays</p>
-          <h2 id="role-lenses-heading">Translate theory into senior-engineer evidence</h2>
+          <p class="eyebrow">Learning branches</p>
+          <h2 id="role-lenses-heading">Choose the next topic by the unresolved question</h2>
         </div>
-        <span class="tag">Role lenses, not vacancy claims</span>
+        <span class="tag">Three useful directions</span>
       </div>
 
       <div class="card-grid">
         <article class="topic-card">
-          <p class="eyebrow">Google-scale lens</p>
-          <h3>Representation, data, and evaluation</h3>
+          <p class="eyebrow">Branch A · representation</p>
+          <h3>How does supervision shape a reusable visual feature?</h3>
           <ul>
             <li>Design leakage-resistant data splits and long-tail slices.</li>
             <li>Compare frozen, adapted, and task-specific representations.</li>
             <li>Build reproducible distributed experiments and ablations.</li>
             <li>Explain calibration, privacy, fairness, and monitoring choices.</li>
           </ul>
-          <p><strong>Portfolio evidence:</strong> a dataset card, scaling study, error taxonomy, model card, and production launch criteria.</p>
+          <p><strong>Compare:</strong> supervised pretraining, contrastive learning, masked image modeling, and vision-language alignment under the same transfer protocol.</p>
         </article>
 
         <article class="topic-card">
-          <p class="eyebrow">NVIDIA-style systems lens</p>
-          <h3>Accelerated training and inference</h3>
+          <p class="eyebrow">Branch B · computation</p>
+          <h3>Which architectural cost controls deployment?</h3>
           <ul>
             <li>Profile kernels, memory traffic, layout changes, and transfers.</li>
             <li>Use mixed precision, quantization, fusion, and shape constraints deliberately.</li>
             <li>Distinguish throughput optimization from real-time tail latency.</li>
             <li>Validate exported engines numerically and task-wise.</li>
           </ul>
-          <p><strong>Portfolio evidence:</strong> traces, roofline reasoning, accuracy-latency Pareto curves, and a reproducible deployment benchmark.</p>
+          <p><strong>Compare:</strong> convolution, global or windowed attention, precision, compilation, batching, and memory movement on one target runtime.</p>
         </article>
 
         <article class="topic-card">
-          <p class="eyebrow">42dot autonomy lens</p>
-          <h3>Geometry, temporal perception, and safety</h3>
+          <p class="eyebrow">Branch C · 3D and time</p>
+          <h3>Which representation supports spatial reasoning?</h3>
           <ul>
             <li>Connect calibration and coordinate frames to 3D or BEV outputs.</li>
             <li>Handle multi-camera timing, occlusion, motion, and uncertainty.</li>
             <li>Evaluate by range, weather, agent type, map context, and hazard.</li>
             <li>Define closed-loop fallbacks and monitor calibration drift.</li>
           </ul>
-          <p><strong>Portfolio evidence:</strong> geometry tests, sequence metrics, failure replay, uncertainty analysis, and a safety-oriented design review.</p>
+          <p><strong>Compare:</strong> depth maps, point clouds, object tracks, BEV features, occupancy, meshes, radiance fields, and Gaussian primitives.</p>
         </article>
+      </div>
+      <div class="card-grid">
+        <a class="content-card" href="yolo-evolution.html"><span class="eyebrow">Deep dive</span><h3>YOLO evolution and detector choices</h3><p>Follow the branching family tree and connect each named technique to the limitation it tried to solve.</p></a>
+        <a class="content-card" href="current-topics.html"><span class="eyebrow">Current topics</span><h3>Monocular 3D and NVIDIA reconstruction</h3><p>Separate depth, SLAM, 3D detection, reconstruction, view synthesis, and generative completion before comparing recent systems.</p></a>
       </div>
     </section>
 
@@ -652,7 +656,7 @@ ẑt+1 ~ pθ(zt+1 | zt, at)
       <div class="section-heading">
         <div>
           <p class="eyebrow">Original practice</p>
-          <h2 id="practice-heading">Turn mechanisms into interview-ready judgment</h2>
+          <h2 id="practice-heading">Turn mechanisms into testable judgment</h2>
         </div>
       </div>
 
@@ -697,9 +701,9 @@ ẑt+1 ~ pθ(zt+1 | zt, at)
       <div class="callout">
         <div>
           <p class="eyebrow">Completion rubric</p>
-          <h3>For every answer, expose the chain of evidence</h3>
+          <h3>For every answer, expose the reasoning chain</h3>
         </div>
-        <p>State assumptions, tensor shapes, objective, baseline, metric, data slice, system budget, expected failure, and a falsifying experiment. A plausible architecture diagram without this chain is not a senior-level answer.</p>
+        <p>State assumptions, tensor shapes, objective, baseline, metric, data slice, system budget, expected failure, and a falsifying experiment. A plausible architecture diagram without this chain is not a complete technical answer.</p>
       </div>
     </section>
 
@@ -736,9 +740,9 @@ ẑt+1 ~ pθ(zt+1 | zt, at)
       <div class="footer-brand">
         <a class="brand" href="index.html">
           <span class="brand-mark" aria-hidden="true"><span></span></span>
-          <span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span>
+          <span><strong>CV Systems Lab</strong><small>Learn deeply. Compare methods. Test assumptions.</small></span>
         </a>
-        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+        <p>Open study material for computer vision, perception, geometry, and ML systems.</p>
       </div>
       <nav class="footer-links" aria-label="Footer">
         <a href="theory.html">Theory</a>

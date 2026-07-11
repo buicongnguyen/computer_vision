@@ -17,7 +17,7 @@ def status(name: str, available: bool, detail: str = "") -> None:
 
 
 def main() -> int:
-    print("Senior CV preparation environment")
+    print("Computer vision study environment")
     print(f"Python: {sys.version.split()[0]} at {sys.executable}")
     print(f"OS: {platform.platform()}")
     print(f"NumPy: {np.__version__}")
@@ -41,4 +41,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

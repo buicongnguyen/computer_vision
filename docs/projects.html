@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Guided computer vision projects with reproducible artifacts, evidence gates, and Google, NVIDIA, and 42dot role overlays.">
+  <meta name="description" content="Guided computer vision studies with reproducible experiments, comparison gates, and projects spanning calibration, 2D perception, deployment, tracking, and sensor fusion.">
   <meta name="theme-color" content="#071019">
-  <title>Portfolio projects | CV Systems Lab</title>
+  <title>Applied projects | CV Systems Lab</title>
   <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/projects.html">
   <link rel="stylesheet" href="styles.css">
   <script src="theme-toggle.js"></script>
@@ -17,7 +17,7 @@
     <div class="header-shell">
       <a class="brand" href="index.html" aria-label="CV Systems Lab home">
         <span class="brand-mark" aria-hidden="true"><span></span></span>
-        <span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span>
+        <span><strong>CV Systems Lab</strong><small>Computer vision study guide</small></span>
       </a>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
         <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
@@ -41,22 +41,22 @@
   </header>
 
   <main class="page-shell" id="main-content">
-    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Portfolio projects</span></nav>
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Applied projects</span></nav>
 
     <section class="page-hero">
-      <p class="eyebrow">Build · measure · defend</p>
-      <h1>Projects that produce senior-level evidence</h1>
-      <p>A strong portfolio is not a gallery of outputs. It is a record of problem framing, correct implementation, controlled evaluation, failure discovery, systems trade-offs, and technical judgment.</p>
-      <div><span class="tag">2 guided builds</span><span class="tag">4 portfolio projects</span><span class="tag">6 evidence gates</span></div>
+      <p class="eyebrow">Build · compare · measure</p>
+      <h1>Applied projects for learning by experiment</h1>
+      <p>Use each project to connect theory with a controlled system study: frame the question, implement a baseline, compare alternatives, discover failures, and explain what the measurements do and do not support.</p>
+      <div><span class="tag">2 guided builds</span><span class="tag">4 system studies</span><span class="tag">6 experiment gates</span></div>
       <div class="button-row">
         <a class="button button-primary" href="#project-sequence">Choose a project</a>
-        <a class="button button-secondary" href="#evidence-standard">Review the evidence standard</a>
+        <a class="button button-secondary" href="#evidence-standard">Review the experiment standard</a>
       </div>
     </section>
 
     <section class="section" aria-labelledby="outcomes-title">
       <div class="section-heading">
-        <div><p class="eyebrow">Portfolio outcomes</p><h2 id="outcomes-title">What every project should prove</h2></div>
+        <div><p class="eyebrow">Learning outcomes</p><h2 id="outcomes-title">What every project should teach</h2></div>
       </div>
       <div class="card-grid">
         <article class="topic-card"><span class="card-index">01</span><h3>Technical depth</h3><p>Derive or implement a meaningful primitive instead of hiding every decision behind a framework call.</p></article>
@@ -64,14 +64,14 @@
         <article class="topic-card"><span class="card-index">03</span><h3>Systems judgment</h3><p>Measure latency, memory, robustness, data quality, maintainability, and degraded behavior alongside accuracy.</p></article>
         <article class="topic-card"><span class="card-index">04</span><h3>Failure ownership</h3><p>Publish an error taxonomy and show how at least one surprising failure changed the design.</p></article>
         <article class="topic-card"><span class="card-index">05</span><h3>Reproducibility</h3><p>Provide tests, exact commands, versions, seeds, data contracts, and an executable evaluation path.</p></article>
-        <article class="topic-card"><span class="card-index">06</span><h3>Senior communication</h3><p>Defend scope, interfaces, alternatives, risks, results, and next actions in a concise design review.</p></article>
+        <article class="topic-card"><span class="card-index">06</span><h3>Clear explanation</h3><p>Explain scope, interfaces, alternatives, risks, results, and next experiments in a concise technical review.</p></article>
       </div>
     </section>
 
     <section class="section" id="project-sequence" aria-labelledby="sequence-title">
       <div class="section-heading">
         <div><p class="eyebrow">Recommended sequence</p><h2 id="sequence-title">Grow from a correct primitive to an integrated system</h2></div>
-        <p>Complete the guided builds quickly; take the portfolio projects through every gate.</p>
+        <p>Use the guided builds to learn the workflow; take each longer system study through every gate.</p>
       </div>
 
       <div class="card-grid">
@@ -108,9 +108,9 @@
         </article>
 
         <article class="content-card prose" id="perception-benchmark">
-          <div class="card-meta"><span class="tag tag-violet">Portfolio 01</span><span class="tag">2–3 weeks</span></div>
-          <h3>Evidence-first perception benchmark</h3>
-          <p><strong>Question:</strong> can you turn a leaderboard metric into a defensible product decision?</p>
+          <div class="card-meta"><span class="tag tag-violet">System study 01</span><span class="tag">2–3 weeks</span></div>
+          <h3>Perception benchmark</h3>
+          <p><strong>Question:</strong> when does a global leaderboard metric disagree with the behavior needed in a particular operating domain?</p>
           <h4>Build</h4>
           <p>Reproduce a detection or segmentation baseline, validate the evaluator, define critical slices, categorize errors, test one improvement, and quantify accuracy-versus-cost.</p>
           <h4>Required artifacts</h4>
@@ -124,7 +124,7 @@
         </article>
 
         <article class="content-card prose" id="realtime-pipeline">
-          <div class="card-meta"><span class="tag tag-lime">Portfolio 02</span><span class="tag">2–4 weeks</span></div>
+          <div class="card-meta"><span class="tag tag-lime">System study 02</span><span class="tag">2–4 weeks</span></div>
           <h3>Real-time edge perception pipeline</h3>
           <p><strong>Question:</strong> can you meet a device budget without silently changing model behavior?</p>
           <h4>Build</h4>
@@ -140,7 +140,7 @@
         </article>
 
         <article class="content-card prose" id="tracking-system">
-          <div class="card-meta"><span class="tag tag-violet">Portfolio 03</span><span class="tag">3–4 weeks</span></div>
+          <div class="card-meta"><span class="tag tag-violet">System study 03</span><span class="tag">3–4 weeks</span></div>
           <h3>Temporal 3D tracking system</h3>
           <p><strong>Question:</strong> how should uncertain, delayed, and occasionally missing measurements become stable state?</p>
           <h4>Build</h4>
@@ -156,7 +156,7 @@
         </article>
 
         <article class="content-card prose" id="autonomy-capstone">
-          <div class="card-meta"><span class="tag tag-lime">Portfolio 04</span><span class="tag">4–8 weeks</span></div>
+          <div class="card-meta"><span class="tag tag-lime">System study 04</span><span class="tag">4–8 weeks</span></div>
           <h3>Autonomy perception capstone</h3>
           <p><strong>Question:</strong> can a multi-camera or multi-sensor system create a timely, uncertainty-aware spatial representation under realistic faults?</p>
           <h4>Build</h4>
@@ -175,16 +175,16 @@
 
     <section class="section" id="evidence-standard" aria-labelledby="evidence-title">
       <div class="section-heading">
-        <div><p class="eyebrow">Evidence standard</p><h2 id="evidence-title">Six gates before “portfolio-ready”</h2></div>
-        <p>Time spent is not a gate. A reviewer should be able to inspect the evidence.</p>
+        <div><p class="eyebrow">Experiment standard</p><h2 id="evidence-title">Six gates before drawing a conclusion</h2></div>
+        <p>Time spent is not a gate. Another learner should be able to reproduce the result and challenge the interpretation.</p>
       </div>
-      <div class="learning-loop" aria-label="Project evidence gates">
+      <div class="learning-loop" aria-label="Project experiment gates">
         <article class="loop-step"><strong>Gate 01</strong><h3>Frame</h3><p>Problem, consumer, operating domain, metric, budget, risks, and non-goals are explicit.</p></article>
         <article class="loop-step"><strong>Gate 02</strong><h3>Reproduce</h3><p>A known or simple baseline runs from a fresh environment and matches an expected range.</p></article>
         <article class="loop-step"><strong>Gate 03</strong><h3>Verify</h3><p>Core math, transforms, metrics, edge cases, and framework/runtime parity have tests.</p></article>
         <article class="loop-step"><strong>Gate 04</strong><h3>Challenge</h3><p>Slices, counterexamples, perturbations, missing inputs, and failure categories are measured.</p></article>
         <article class="loop-step"><strong>Gate 05</strong><h3>Optimize</h3><p>One hypothesis is tested through a controlled ablation with cost and regression analysis.</p></article>
-        <article class="loop-step"><strong>Gate 06</strong><h3>Defend</h3><p>A concise report, demo, reproducible command, design review, and honest limitations are public.</p></article>
+        <article class="loop-step"><strong>Gate 06</strong><h3>Explain</h3><p>A concise report, demo, reproducible command, comparison decision, and honest limitations are recorded.</p></article>
       </div>
 
       <div class="table-wrap">
@@ -204,49 +204,49 @@
 
     <section class="section" aria-labelledby="roles-title">
       <div class="section-heading">
-        <div><p class="eyebrow">Role overlays</p><h2 id="roles-title">One core project, different senior emphasis</h2></div>
-        <p>Keep the evidence honest; change the depth and presentation for the target role.</p>
+        <div><p class="eyebrow">Project selection</p><h2 id="roles-title">Choose by the question you want to answer</h2></div>
+        <p>All six projects are useful; these three branches identify the shortest route to a specific kind of understanding.</p>
       </div>
       <div class="track-grid">
         <article class="track-card">
-          <p class="eyebrow">Google-oriented</p>
-          <h3>Scale, representation, and product quality</h3>
+          <p class="eyebrow">Question A · model behavior</p>
+          <h3>How do data and representations change quality?</h3>
           <ul>
-            <li>Emphasize data quality, generalization, multimodal or open-vocabulary transfer.</li>
-            <li>Add distributed evaluation/training economics and launch metrics.</li>
-            <li>Show how representation choices serve multiple downstream tasks.</li>
-            <li>Present rigorous ablations and concise research communication.</li>
+            <li>Study data quality, leakage, generalization, long-tail slices, and transfer.</li>
+            <li>Compare frozen, adapted, and task-specific representations.</li>
+            <li>Run controlled ablations with repeated seeds or uncertainty.</li>
+            <li>Use task metrics and failure categories together.</li>
           </ul>
-          <p><strong>Best fit:</strong> perception benchmark or autonomy capstone with a reusable representation.</p>
+          <p><strong>Start with:</strong> the perception benchmark.</p>
         </article>
         <article class="track-card">
-          <p class="eyebrow">NVIDIA-oriented</p>
-          <h3>Performance, 3D, and hardware awareness</h3>
+          <p class="eyebrow">Question B · computation</p>
+          <h3>Where does runtime actually go?</h3>
           <ul>
-            <li>Emphasize C++/CUDA, memory movement, kernel behavior, precision, and TensorRT.</li>
-            <li>Publish profiler evidence and accuracy-latency-memory curves.</li>
-            <li>Include 3D, multi-camera, or video workloads with dynamic-shape stress.</li>
+            <li>Trace preprocessing, transfers, kernels, post-processing, and queueing.</li>
+            <li>Compare precision, layouts, shapes, batching, and operator fusion.</li>
+            <li>Plot accuracy–latency–memory Pareto frontiers.</li>
             <li>Explain numerical differences across runtimes and devices.</li>
           </ul>
-          <p><strong>Best fit:</strong> real-time pipeline or optimized BEV/tracking implementation.</p>
+          <p><strong>Start with:</strong> the real-time edge pipeline.</p>
         </article>
         <article class="track-card">
-          <p class="eyebrow">42dot-oriented</p>
-          <h3>Calibration, BEV, temporal fusion, and autonomy</h3>
+          <p class="eyebrow">Question C · spatial state</p>
+          <h3>How do sensors and time become a 3D belief?</h3>
           <ul>
-            <li>Emphasize coordinate frames, synchronization, sensor characteristics, and observability.</li>
+            <li>Make coordinate frames, synchronization, sensor characteristics, and observability explicit.</li>
             <li>Compare camera, LiDAR, radar, temporal, and BEV fusion strategies.</li>
             <li>Inject realistic faults and specify degraded operation.</li>
-            <li>Connect occupancy or tracks to a planning-facing interface.</li>
+            <li>Compare tracks, occupancy, and object-centric representations.</li>
           </ul>
-          <p><strong>Best fit:</strong> autonomy perception capstone with calibration health monitoring.</p>
+          <p><strong>Start with:</strong> calibration health, then tracking or the sensor-fusion capstone.</p>
         </article>
       </div>
     </section>
 
     <section class="section" aria-labelledby="review-title">
       <div class="section-heading">
-        <div><p class="eyebrow">Senior project review</p><h2 id="review-title">Questions your project must survive</h2></div>
+        <div><p class="eyebrow">Project review</p><h2 id="review-title">Questions every conclusion must survive</h2></div>
       </div>
       <div class="card-grid">
         <article class="content-card prose"><h3>Technical</h3><ul><li>Which assumption is most fragile?</li><li>What is unobservable from the selected inputs?</li><li>Which result did you verify independently?</li><li>What alternative did you reject, and why?</li></ul></article>
@@ -260,9 +260,9 @@
       <div class="card-grid">
         <article class="callout"><p class="eyebrow">MCQ readiness</p><h3>Test the project’s concepts</h3><p>Use targeted questions to expose weak assumptions before an expensive experiment.</p><a class="button button-primary" href="practice.html">Open MCQ practice</a></article>
         <article class="callout"><p class="eyebrow">Coding readiness</p><h3>Pass the primitives first</h3><p>Complete the geometry, metrics, tracking, BEV, and performance drills used by your selected project.</p><a class="button button-secondary" href="coding.html">Open coding practice</a></article>
-        <article class="callout"><p class="eyebrow">Progress evidence</p><h3>Mark the gate, not the hours</h3><p>Record test output, plots, review feedback, decisions, and the next falsifiable hypothesis in your evidence log.</p><a class="button button-secondary" href="index.html#progress-title">Review progress</a></article>
+        <article class="callout"><p class="eyebrow">Learning record</p><h3>Mark the gate, not the hours</h3><p>Record test output, plots, decisions, rejected alternatives, and the next falsifiable hypothesis in your study log.</p><a class="button button-secondary" href="index.html#progress-title">Review progress</a></article>
       </div>
-      <label class="milestone-toggle"><input type="checkbox" data-milestone="projects"> Mark portfolio projects complete on this device</label>
+      <label class="milestone-toggle"><input type="checkbox" data-milestone="projects"> Mark applied projects complete on this device</label>
     </section>
 
     <aside class="callout" aria-labelledby="source-note-title">
@@ -280,8 +280,8 @@
   <footer class="site-footer">
     <div class="footer-shell">
       <div class="footer-brand">
-        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span></a>
-        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Compare methods. Test assumptions.</small></span></a>
+        <p>Open study material for computer vision, perception, geometry, and ML systems.</p>
       </div>
       <nav class="footer-links" aria-label="Footer"><a href="theory.html">Theory</a><a href="practice.html">MCQ</a><a href="coding.html">Coding</a><a href="projects.html">Projects</a><a href="sources.html">Sources</a><a href="https://github.com/buicongnguyen/computer_vision">GitHub</a></nav>
     </div>

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A study-first guide to current 3D computer vision: monocular streaming reconstruction, LingBot-Map, 3D Gaussian Splatting, ArtiFixer, modern NVIDIA methods, sensor selection, and metric hygiene.">
+  <meta name="theme-color" content="#071019">
+  <title>Current topics: monocular 3D and neural reconstruction | CV Systems Lab</title>
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/current-topics.html">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html" aria-label="CV Systems Lab home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>CV Systems Lab</strong><small>Computer vision study guide</small></span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span>
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>MCQ</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a><span aria-hidden="true">/</span><a href="modern-cv.html">Modern CV</a><span aria-hidden="true">/</span><span aria-current="page">Current 3D topics</span>
+    </nav>
+
+    <section class="page-hero">
+      <p class="eyebrow">Current topic · sources checked July 2026</p>
+      <h1>Monocular 3D, Gaussian scenes, and what “better” means</h1>
+      <p>Learn why one RGB camera can produce a LiDAR-like point-cloud visualization without becoming a LiDAR, how streaming reconstruction differs from depth, SLAM, detection, and rendering, and which recent Gaussian method fits each objective.</p>
+      <div class="tag-row" aria-label="Page topics">
+        <span class="tag">LingBot-Map</span><span class="tag">Visual SLAM</span><span class="tag">3DGS</span><span class="tag">ArtiFixer</span><span class="tag">Method selection</span><span class="tag">Evaluation</span>
+      </div>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#lingbot-map">Trace the monocular pipeline</a>
+        <a class="button button-secondary" href="#decision-tree">Choose a sensor and method</a>
+      </div>
+    </section>
+
+    <aside class="callout" aria-labelledby="short-answer-heading">
+      <div><p class="eyebrow">Short answer</p><h2 id="short-answer-heading">3D is a major growth area, not the whole of computer vision</h2></div>
+      <p>Recognition, segmentation, tracking, restoration, medical imaging, document vision, and multimodal understanding remain active. What has changed is that robotics, autonomous systems, AR, simulation, and world models need <em>spatial state</em>, so depth, pose, reconstruction, occupancy, 4D motion, and controllable rendering increasingly meet in the same system.</p>
+    </aside>
+
+    <section class="section" aria-labelledby="contents-heading">
+      <div class="content-card prose">
+        <p class="eyebrow">On this page</p>
+        <h2 id="contents-heading">Study map</h2>
+        <ul class="source-list">
+          <li><a href="#focus">Is modern CV mainly 3D?</a></li>
+          <li><a href="#task-boundaries">Depth, SLAM, reconstruction, detection, and rendering</a></li>
+          <li><a href="#lingbot-map">LingBot-Map: monocular streaming reconstruction</a></li>
+          <li><a href="#decision-tree">Sensor and method decision tree</a></li>
+          <li><a href="#gaussian-baseline">3D Gaussian Splatting baseline</a></li>
+          <li><a href="#artifixer">ArtiFixer and generative completion</a></li>
+          <li><a href="#method-map">Recent Gaussian method map</a></li>
+          <li><a href="#metrics">Metric hygiene</a></li>
+          <li><a href="#primary-sources">Primary sources</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="focus" aria-labelledby="focus-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Field map</p><h2 id="focus-heading">The center of gravity is moving from isolated images to spatial, temporal systems</h2></div>
+        <p>The layers complement one another; a 3D map still needs strong 2D features, semantics, calibration, and temporal reasoning.</p>
+      </div>
+
+      <div class="flow-strip" role="list" aria-label="Progression from image measurements to action">
+        <div role="listitem"><span>1</span><strong>Pixels</strong><small>appearance evidence</small></div>
+        <div role="listitem"><span>2</span><strong>Geometry</strong><small>depth and pose</small></div>
+        <div role="listitem"><span>3</span><strong>Semantics</strong><small>objects and regions</small></div>
+        <div role="listitem"><span>4</span><strong>Time</strong><small>motion and memory</small></div>
+        <div role="listitem"><span>5</span><strong>World state</strong><small>map and occupancy</small></div>
+        <div role="listitem"><span>6</span><strong>Action</strong><small>plan or interact</small></div>
+      </div>
+
+      <div class="card-grid">
+        <article class="topic-card"><p class="eyebrow">2D vision</p><h3>Still foundational</h3><p>Detection, segmentation, tracking, OCR, restoration, and image encoders remain the most direct match for many products and often supply features to 3D systems.</p></article>
+        <article class="topic-card"><p class="eyebrow">3D vision</p><h3>Geometry and common frames</h3><p>Depth, camera pose, point clouds, surfaces, BEV, and occupancy let a system reason about distance, visibility, collision, and viewpoint.</p></article>
+        <article class="topic-card"><p class="eyebrow">4D vision</p><h3>Geometry through time</h3><p>Dynamic reconstruction, scene flow, tracking, and temporal occupancy ask what moves, how geometry changes, and what remains static.</p></article>
+        <article class="topic-card"><p class="eyebrow">World models</p><h3>Prediction and control</h3><p>Generative video and spatial models predict plausible future observations or environments. Plausibility is useful, but it is not the same as measured physical truth.</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="task-boundaries" aria-labelledby="task-boundaries-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Task boundaries</p><h2 id="task-boundaries-heading">A point cloud, a map, and a set of 3D boxes answer different questions</h2></div>
+      </div>
+      <div class="table-wrap table-wrap-wide">
+        <table>
+          <caption>Related 3D tasks, their outputs, and the evidence needed to evaluate them.</caption>
+          <thead><tr><th scope="col">Task</th><th scope="col">Primary output</th><th scope="col">Question answered</th><th scope="col">Typical evidence</th><th scope="col">Not automatically provided</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Monocular depth</th><td>Depth or inverse depth per pixel</td><td>How far is the visible surface along each ray?</td><td>AbsRel, RMSE, δ accuracy, scale-aligned or metric protocol</td><td>Globally consistent camera trajectory or map</td></tr>
+            <tr><th scope="row">Visual odometry / SLAM</th><td>Camera poses plus sparse or dense landmarks</td><td>Where is the camera, and can observations share one frame?</td><td>ATE, RPE, loop consistency, relocalization</td><td>Object classes, boxes, or photoreal novel views</td></tr>
+            <tr><th scope="row">Scene reconstruction</th><td>Point cloud, mesh, implicit field, or Gaussian scene</td><td>What geometry or appearance explains multiple views?</td><td>Depth/surface error, Chamfer/F-score, completeness, render metrics</td><td>Semantic objects or physically measured range</td></tr>
+            <tr><th scope="row">3D object detection</th><td>Classed 3D boxes, scores, sometimes velocity</td><td>Which objects are present and where are they?</td><td>3D/BEV mAP, center/yaw/size error, range slices</td><td>Dense surfaces or a reusable scene model</td></tr>
+            <tr><th scope="row">Novel-view synthesis</th><td>Rendered image from a new camera</td><td>What should another viewpoint look like?</td><td>PSNR, SSIM, LPIPS, perceptual study</td><td>Accurate metric geometry</td></tr>
+            <tr><th scope="row">Occupancy mapping</th><td>Free, occupied, unknown, semantic, or flow cells</td><td>Which space can be traversed, and how may it change?</td><td>IoU, calibration, flow, range/time and closed-loop slices</td><td>Photoreal scene rendering</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">Mapping path</p><h3>Video → geometry → persistent scene</h3>
+          <ol class="step-list"><li>Read an RGB frame with temporal context.</li><li>Estimate dense depth/confidence and camera pose.</li><li>Back-project pixels and transform points into a shared frame.</li><li>Filter and fuse points into a map.</li></ol>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Detection path</p><h3>Sensor input → semantics → oriented boxes</h3>
+          <ol class="step-list"><li>Encode image, BEV, radar, or point-cloud features.</li><li>Predict or query object candidates.</li><li>Output class, score, oriented 3D box, and optionally velocity.</li><li>Suppress, associate, track, and calibrate predictions.</li></ol>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="lingbot-map" aria-labelledby="lingbot-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Interesting item · April 2026</p><h2 id="lingbot-heading">LingBot-Map turns an RGB video stream into estimated pose, depth, and a colored point-cloud map</h2></div>
+        <p><a href="https://arxiv.org/abs/2604.14141" target="_blank" rel="noreferrer">Original paper, submitted April 15, 2026 ↗</a></p>
+      </div>
+
+      <div class="flow-strip wide" role="list" aria-label="LingBot-Map inference pipeline">
+        <div role="listitem"><span>1</span><strong>RGB stream</strong><small>current + past frames</small></div>
+        <div role="listitem"><span>2</span><strong>ViT tokens</strong><small>frame features</small></div>
+        <div role="listitem"><span>3</span><strong>GCA context</strong><small>anchor, local, memory</small></div>
+        <div role="listitem"><span>4</span><strong>Heads</strong><small>pose, intrinsics, depth, confidence</small></div>
+        <div role="listitem"><span>5</span><strong>Back-project</strong><small>pixels into 3D</small></div>
+        <div role="listitem"><span>6</span><strong>Transform</strong><small>camera to world</small></div>
+        <div role="listitem"><span>7</span><strong>Fuse</strong><small>colored point-cloud map</small></div>
+      </div>
+
+      <div class="content-card prose">
+        <h3>The geometric bridge</h3>
+        <p>For pixel <code>(u,v)</code>, predicted depth <code>D(u,v)</code>, intrinsics <code>K</code>, and world-from-camera pose <code>[R|t]</code>:</p>
+        <div class="equation-block">
+          <span>p<sub>camera</sub> = D(u,v) K<sup>−1</sup>[u,v,1]<sup>T</sup></span>
+          <span>p<sub>world</sub> = R p<sub>camera</sub> + t</span>
+        </div>
+        <p>Repeating this for confident pixels and frames creates the familiar 3D dots. The dots resemble a LiDAR display because both are point clouds; the measurement processes are different.</p>
+      </div>
+
+      <div class="algorithm-grid">
+        <article class="algorithm-card"><span>Anchor context</span><h3>Coordinate grounding</h3><p>Preserves a reference frame and helps stabilize coordinate and scale conventions across the stream.</p></article>
+        <article class="algorithm-card"><span>Pose window</span><h3>Dense local geometry</h3><p>Keeps selected nearby reference frames so current depth and pose can use strong local overlap.</p></article>
+        <article class="algorithm-card"><span>Trajectory memory</span><h3>Long-range correction</h3><p>Compresses useful historical context for drift correction without attending to every old frame.</p></article>
+        <article class="algorithm-card"><span>Paged cache</span><h3>Streaming efficiency</h3><p>Keyframes and paged KV attention bound repeated work; the cache policy becomes part of reconstruction quality.</p></article>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">What it is</p>
+          <h3>Learned monocular streaming reconstruction</h3>
+          <ul>
+            <li>One ordinary RGB camera provides a sequence of overlapping views.</li>
+            <li>A feed-forward transformer estimates camera pose, intrinsics, dense depth, and confidence.</li>
+            <li>Multiple frames provide parallax and temporal context that one still image lacks.</li>
+            <li>The authors report about 20 FPS at <code>518×378</code> and sequences beyond 10,000 frames; treat this as author-reported and hardware-dependent. <a href="https://github.com/Robbyant/lingbot-map" target="_blank" rel="noreferrer">Official repository ↗</a></li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">What it is not</p>
+          <h3>Not physical LiDAR and not object detection</h3>
+          <ul>
+            <li>No laser pulse, time-of-flight return, reflectance intensity, or direct range measurement is produced.</li>
+            <li>Depth and absolute scale are inferred from images and learned priors; validate or anchor them when metric accuracy matters.</li>
+            <li>The output is not a list of object classes, 3D boxes, or velocities.</li>
+            <li>A visually dense point cloud is not by itself proof of safe free-space estimation.</li>
+          </ul>
+        </article>
+      </div>
+
+      <aside class="callout warning" aria-labelledby="lingbot-limit-heading">
+        <div><p class="eyebrow">Operational boundary</p><h3 id="lingbot-limit-heading">Memory policy and training range affect long trajectories</h3></div>
+        <p>The official repository notes that cached context beyond the roughly 320-view video-RoPE training range can degrade quality, recommends keyframing for longer streams, and provides overlapping windowed inference for very long sequences. It also warns that travel beyond distances represented in training may require state reset and that pose collapse can occur. Sky points are filtered by a separate sky mask. Because depth and pose are jointly inferred, their errors can correlate: test dynamic actors, low/repeated texture, motion blur, lighting change, and scenes outside the training domain. Unmodeled motion can be fused into ghost geometry rather than a clean static map. <a href="https://github.com/Robbyant/lingbot-map#streaming-with-keyframe-interval" target="_blank" rel="noreferrer">Implementation notes ↗</a></p>
+      </aside>
+    </section>
+
+    <section class="section" id="decision-tree" aria-labelledby="decision-tree-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Explicit selection logic</p><h2 id="decision-tree-heading">Choose the evidence source before choosing the model</h2></div>
+        <p>There is no universally best sensor. The best option is the cheapest system that directly supports the required claim under the expected conditions.</p>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">Decision tree</p>
+          <h3>Start from the output contract</h3>
+          <ol class="step-list">
+            <li><strong>Must range be physically measured under weak texture or difficult light?</strong><br>Yes → prefer LiDAR, RGB-D, or ToF. If passive metric triangulation is sufficient and correspondence is reliable, evaluate a calibrated stereo rig as a separate option. No → continue.</li>
+            <li><strong>Do you need online camera localization and a persistent map?</strong><br>Yes → choose geometric visual SLAM when interpretability and a classical backend matter; choose learned streaming reconstruction such as LingBot-Map when dense geometry and feed-forward long-video inference justify its learned priors and GPU cost. No → continue.</li>
+            <li><strong>Do you need named objects, boxes, or velocities?</strong><br>Yes → use a 2D/3D detector and tracker, optionally with BEV or sensor fusion. A reconstructed point cloud is not a detector. No → continue.</li>
+            <li><strong>Do you need photoreal new viewpoints or measurable surfaces?</strong><br>Photoreal views → radiance fields or 3DGS. Surface/metrology → stereo/MVS, SDF, mesh, structured light, or LiDAR with geometric ground truth.</li>
+          </ol>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Why choose each sensor</p>
+          <h3>Five practical options</h3>
+          <ul>
+            <li><strong>Monocular RGB:</strong> lowest sensor cost and rich appearance; best when learned scale/depth uncertainty is acceptable or can be anchored.</li>
+            <li><strong>Stereo:</strong> metric depth from calibrated baseline and correspondence; best for textured, overlapping views where passive sensing is useful.</li>
+            <li><strong>RGB-D or ToF:</strong> direct active depth at bounded range; best when interference, reflectance, power, and range limits are manageable.</li>
+            <li><strong>LiDAR:</strong> direct sparse range and strong geometry; best when long-range metric structure and adverse-light robustness justify cost, sparsity, and calibration work.</li>
+            <li><strong>Fusion:</strong> camera semantics plus measured range; best for high-consequence systems that can support synchronization, extrinsic calibration, redundancy, and degraded modes.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="evolution-table" role="table" aria-label="Seven sensor and method choices">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Choice</span><span role="columnheader">Use when</span><span role="columnheader">Why it can be better</span><span role="columnheader">Validate</span></div>
+        <div class="evolution-row" role="row"><span role="cell">1 · Relative monocular depth</span><span role="cell">One RGB view needs shape or depth ordering, not absolute scale</span><span role="cell">Simplest dense geometric cue; broad pretrained priors</span><span role="cell">Scale/shift protocol, domain and boundary errors</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2 · Metric monocular depth</span><span role="cell">A dense metric estimate is useful but measured range is not mandatory</span><span role="cell">One low-cost camera; outputs meters when learned priors generalize</span><span role="cell">Absolute scale, camera model, range and domain shift</span></div>
+        <div class="evolution-row" role="row"><span role="cell">3 · Streaming monocular map</span><span role="cell">A long RGB walkthrough needs online pose, depth, and a colored cloud</span><span role="cell">Temporal parallax plus compact learned context</span><span role="cell">Scale, drift, dynamics, texture and memory policy</span></div>
+        <div class="evolution-row" role="row"><span role="cell">4 · Global visual SLAM</span><span role="cell">Persistent localization, relocalization, and loop consistency dominate</span><span role="cell">Explicit geometric backend and global correction</span><span role="cell">ATE/RPE, loop closure, tracking loss and map reuse</span></div>
+        <div class="evolution-row" role="row"><span role="cell">5 · Offline multi-view reconstruction</span><span role="cell">A full image set and processing time are available for a high-quality asset</span><span role="cell">Global optimization can use all views and refine cameras/surfaces</span><span role="cell">Completeness, surface accuracy, capture coverage and runtime</span></div>
+        <div class="evolution-row" role="row"><span role="cell">6 · Anchored or measured depth</span><span role="cell">Metric geometry is part of the contract</span><span role="cell">Stereo triangulates from a calibrated baseline; RGB-D, ToF, or LiDAR provides active range</span><span role="cell">Texture/baseline, range, reflectance, interference, calibration and dropout</span></div>
+        <div class="evolution-row" role="row"><span role="cell">7 · Camera/radar/LiDAR fusion</span><span role="cell">Semantics, motion, redundancy, and measured range all matter</span><span role="cell">Complementary failure modes and degraded-operation options</span><span role="cell">Time/extrinsic alignment, missing sensors and fusion calibration</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="gaussian-baseline" aria-labelledby="gaussian-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Baseline · SIGGRAPH 2023</p><h2 id="gaussian-heading">3D Gaussian Splatting is an explicit radiance representation optimized to reproduce views</h2></div>
+        <p><a href="https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/" target="_blank" rel="noreferrer">Original project and paper ↗</a></p>
+      </div>
+
+      <div class="flow-strip" role="list" aria-label="Original 3D Gaussian Splatting workflow">
+        <div role="listitem"><span>1</span><strong>Images</strong><small>many scene views</small></div>
+        <div role="listitem"><span>2</span><strong>Calibrate</strong><small>poses + sparse points</small></div>
+        <div role="listitem"><span>3</span><strong>Initialize</strong><small>3D Gaussians</small></div>
+        <div role="listitem"><span>4</span><strong>Optimize</strong><small>position, covariance, opacity, color</small></div>
+        <div role="listitem"><span>5</span><strong>Splat</strong><small>sorted alpha blend</small></div>
+        <div role="listitem"><span>6</span><strong>Render</strong><small>novel camera view</small></div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose"><p class="eyebrow">Representation</p><h3>Millions of soft ellipsoids</h3><p>Each anisotropic Gaussian has a 3D mean, covariance/rotation/scale, opacity, and view-dependent color. Rasterization projects and alpha-composites visible splats.</p></article>
+        <article class="content-card prose"><p class="eyebrow">Why it won attention</p><h3>Fast fitting and real-time views</h3><p>It avoids evaluating a large neural field through empty space and maps efficiently to GPU rasterization while retaining high visual fidelity.</p></article>
+        <article class="content-card prose"><p class="eyebrow">Boundary</p><h3>A good image model is not always a good surface</h3><p>Soft, overlapping particles can hide incorrect geometry. Capture gaps, reflective surfaces, moving objects, and camera errors produce floaters or collapse outside observed views.</p></article>
+      </div>
+
+      <aside class="callout">
+        <div><p class="eyebrow">Terminology</p><h3>“Reconstruction” has two meanings here</h3></div>
+        <p>In neural rendering, reconstruction often means a scene representation that reproduces images. In metrology or robotics, it may mean metrically correct surfaces and free space. Always state which claim and metric you mean.</p>
+      </aside>
+    </section>
+
+    <section class="section" id="artifixer" aria-labelledby="artifixer-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Most likely “newer than 3DGS” item · SIGGRAPH 2026</p><h2 id="artifixer-heading">ArtiFixer repairs and extends sparse Gaussian reconstructions with a video-diffusion prior</h2></div>
+        <p><a href="https://research.nvidia.com/labs/sil/projects/artifixer/" target="_blank" rel="noreferrer">NVIDIA project ↗</a> · <a href="https://arxiv.org/abs/2603.00492" target="_blank" rel="noreferrer">paper, February 28, 2026 ↗</a></p>
+      </div>
+
+      <div class="flow-strip wide" role="list" aria-label="ArtiFixer reconstruction repair pipeline">
+        <div role="listitem"><span>1</span><strong>Sparse views</strong><small>observed images</small></div>
+        <div role="listitem"><span>2</span><strong>Base 3DGUT</strong><small>via 3DGRUT toolkit</small></div>
+        <div role="listitem"><span>3</span><strong>Render</strong><small>RGB + opacity path</small></div>
+        <div role="listitem"><span>4</span><strong>Opacity mix</strong><small>anchor seen, free unseen</small></div>
+        <div role="listitem"><span>5</span><strong>AR diffusion</strong><small>hundreds of frames</small></div>
+        <div role="listitem"><span>6</span><strong>Distill</strong><small>pseudo-views back to 3D</small></div>
+        <div role="listitem"><span>7</span><strong>Enhance</strong><small>optional final pass</small></div>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">Why it exists</p>
+          <h3>3DGS interpolates well but extrapolates poorly</h3>
+          <p>If only a few views observe the scene, an orbiting camera exposes holes, stretched splats, and unconstrained content. ArtiFixer uses rendered opacity to distinguish well-supported pixels from gaps, then conditions a video model on camera motion, references, and optional text. The authors report 1–3 dB PSNR over prior state-of-the-art sparse-view baselines on tested datasets—not a universal guarantee for every capture.</p>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Core tradeoff</p>
+          <h3>Plausible completion is not recovered evidence</h3>
+          <p>A surface never observed by any camera has no unique image-based solution. A diffusion prior can invent a coherent answer and improve novel-view metrics, but it cannot prove that the hidden real-world object has that shape, material, or texture. Use it for visual completion; use measured geometry and uncertainty for factual spatial claims.</p>
+        </article>
+      </div>
+
+      <div class="phase-grid">
+        <article class="phase-card"><span>ArtiFixer</span><h3>Direct generated views</h3><p>Sharpest option; the autoregressive model renders the requested trajectory directly.</p><strong>Choose for visual output.</strong></article>
+        <article class="phase-card"><span>ArtiFixer3D</span><h3>Distilled Gaussian scene</h3><p>Generated target views supervise a fresh 3DGUT optimization through the 3DGRUT toolkit; stronger explicit 3D/source consistency, with some blur.</p><strong>Choose for a reusable 3D scaffold.</strong></article>
+        <article class="phase-card"><span>ArtiFixer3D+</span><h3>Distill, then enhance</h3><p>A final autoregressive pass sharpens ArtiFixer3D renders while retaining stronger source anchoring.</p><strong>Choose when both matter.</strong></article>
+      </div>
+    </section>
+
+    <section class="section" id="method-map" aria-labelledby="method-map-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Recent method map · 2024–2026</p><h2 id="method-map-heading">“Better than 3DGS” splits into quality, coverage, cameras, control, and speed</h2></div>
+      </div>
+      <div class="table-wrap table-wrap-wide">
+        <table>
+          <caption>Recent NVIDIA methods compared by the axis they improve rather than one misleading global rank.</caption>
+          <thead><tr><th scope="col">Method</th><th scope="col">Main change</th><th scope="col">Better choice when…</th><th scope="col">Reported evidence</th><th scope="col">Do not infer</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/toronto-ai/difix3d/" target="_blank" rel="noreferrer">Difix3D+ (2025) ↗</a></th><td>Single-step diffusion cleans rendered pseudo-views, distills them into NeRF/3DGS, and optionally post-processes final frames.</td><td>Extreme or underconstrained viewpoints contain rendering artifacts.</td><td>Authors report about 2× average FID improvement over baselines.</td><td>FID improvement proves metric geometry.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/sil/projects/neural-harmonic-textures/" target="_blank" rel="noreferrer">NHT (2026) ↗</a></th><td>Harmonic latent features around each primitive plus one deferred neural decoder increase appearance expressivity.</td><td>High-frequency detail, specular effects, real-time NVS, and primitive efficiency matter.</td><td>Higher PSNR/SSIM and lower LPIPS than 3DGS-MCMC on reported standard benchmarks; strong low-primitive results.</td><td>Sharper appearance means a more accurate mesh.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/toronto-ai/tokengs/" target="_blank" rel="noreferrer">TokenGS (2026) ↗</a></th><td>Learnable Gaussian tokens regress global XYZ rather than tying one primitive to each image ray.</td><td>Feed-forward reconstruction from 2–6 posed views, pose-noise robustness, compact control, or dynamic tokens matter.</td><td>State-of-the-art feed-forward results; authors report a 6-view DL3DV win with 72% fewer Gaussians than the compared baseline.</td><td>It solves every large-scale or fine-detail scene.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/toronto-ai/scube/" target="_blank" rel="noreferrer">SCube (2024) ↗</a></th><td>VoxSplats place Gaussians on a generated sparse-voxel scaffold with geometry, appearance, and semantics.</td><td>Very sparse posed views of large driving scenes and LiDAR simulation are the target.</td><td>Authors report a <code>102.4 m × 102.4 m</code> scene from three low-overlap images in about 20 seconds.</td><td>A Waymo-trained prior is universal or observed truth.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/toronto-ai/3DGUT/" target="_blank" rel="noreferrer">3DGUT (2025) ↗</a></th><td>Unscented-transform sigma points replace EWA linearization for nonlinear projection; secondary rays are supported.</td><td>Fisheye, rolling shutter, distorted cameras, reflections, or refractions must coexist with rasterization speed.</td><td>Strong distorted-camera results; ordinary pinhole NVS is described as comparable to 3DGS.</td><td>It universally improves standard-view quality.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/toronto-ai/3DGRT/" target="_blank" rel="noreferrer">3DGRT (2024) ↗</a></th><td>A BVH and hardware ray tracing replace screen-space splatting for particle scenes.</td><td>Arbitrary, incoherent, or secondary rays; shadows; reflections; depth of field; or complex cameras are required.</td><td>Flexible ray effects at a reported cost close to rasterization.</td><td>A renderer change is a new reconstruction sensor.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/sil/projects/tron/" target="_blank" rel="noreferrer">TRON (2026) ↗</a></th><td>3DGRT with PBR materials and lighting produces guidance for a single-step neural renderer.</td><td>Interactive relighting, material editing, insertion, and visually realistic dynamic shadows matter.</td><td>Better realism than evaluated Gaussian relighting baselines with interactive output.</td><td>It primarily improves recovered surface geometry.</td></tr>
+            <tr><th scope="row"><a href="https://research.nvidia.com/labs/sil/projects/higs/" target="_blank" rel="noreferrer">HiGS (2026) ↗</a></th><td>Coarse macro-tiles handle partition/sort while fine tiles handle rasterization, balancing dense work.</td><td>Raw 3DGS renderer throughput is the bottleneck.</td><td>Authors report 1,937 FPS at 1080p and 1,214 FPS at 4K on tested hardware with comparable ground-truth quality.</td><td>Higher render FPS means faster capture or better reconstruction.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="metrics" aria-labelledby="metrics-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Metric hygiene</p><h2 id="metrics-heading">Match the metric to the claim—and separate three different clocks</h2></div>
+      </div>
+
+      <div class="metric-grid">
+        <article><strong>Depth</strong><span>AbsRel, RMSE, δ thresholds, metric versus scale-aligned protocol, range and material slices</span></article>
+        <article><strong>Pose / SLAM</strong><span>ATE, RPE, drift per distance/time, loop closure, relocalization, failure rate</span></article>
+        <article><strong>Geometry</strong><span>Chamfer or point-to-surface distance, F-score, completeness, normal consistency, occupancy accuracy</span></article>
+        <article><strong>Novel views</strong><span>PSNR, SSIM, LPIPS, FID or user study, with camera-distance and coverage slices</span></article>
+        <article><strong>Semantics</strong><span>3D/BEV mAP, IoU, center/yaw/size/velocity error, class/range/occlusion slices</span></article>
+        <article><strong>System</strong><span>input FPS, reconstruction latency, optimization time, render FPS, p95/p99, memory, bandwidth, power</span></article>
+      </div>
+
+      <div class="flow-strip" role="list" aria-label="Evidence-first evaluation flow">
+        <div role="listitem"><span>1</span><strong>State claim</strong><small>geometry, image, or speed?</small></div>
+        <div role="listitem"><span>2</span><strong>Define truth</strong><small>sensor or held-out view</small></div>
+        <div role="listitem"><span>3</span><strong>Choose metric</strong><small>aligned to claim</small></div>
+        <div role="listitem"><span>4</span><strong>Fix budget</strong><small>data, GPU, time</small></div>
+        <div role="listitem"><span>5</span><strong>Slice failures</strong><small>range, motion, light</small></div>
+        <div role="listitem"><span>6</span><strong>Decide</strong><small>benefit vs boundary</small></div>
+      </div>
+
+      <aside class="callout warning" aria-labelledby="clock-heading">
+        <div><p class="eyebrow">Do not mix clocks</p><h3 id="clock-heading">Streaming FPS, scene reconstruction time, and render FPS are not comparable</h3></div>
+        <p>LingBot-Map’s reported ~20 FPS describes incoming-frame reconstruction; SCube’s ~20 seconds describes generating one large scene; HiGS’s four-digit FPS describes rendering an already reconstructed Gaussian scene. Report capture/estimation, fitting/generation, and rendering separately.</p>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="study-prompts-heading">
+      <div class="section-heading"><div><p class="eyebrow">Study checks</p><h2 id="study-prompts-heading">Test whether the distinctions are operational</h2></div></div>
+      <div class="card-grid">
+        <article class="content-card prose"><h3>Explain</h3><ol><li>Why can monocular video recover more geometry than one image, yet still lack a physical range guarantee?</li><li>Why can PSNR improve while a point cloud becomes less metrically correct?</li><li>Which three context types does LingBot-Map retain, and what failure does each target?</li></ol></article>
+        <article class="content-card prose"><h3>Choose</h3><ol><li>Select a sensor/method for indoor visualization, warehouse collision avoidance, street-scene relighting, and a dense metric scan.</li><li>Choose between 3DGUT and 3DGRT for fisheye-only NVS versus recursive mirror reflections.</li><li>Choose ArtiFixer, NHT, TokenGS, SCube, TRON, or HiGS for five stated bottlenecks.</li></ol></article>
+        <article class="content-card prose"><h3>Verify</h3><ol><li>Design a scale-and-drift test for a monocular streaming map using known distances.</li><li>Separate reconstruction time from renderer throughput in a reproducible benchmark.</li><li>Create one example where diffusion completion looks convincing but is factually wrong.</li></ol></article>
+      </div>
+    </section>
+
+    <section class="section content-card prose" id="primary-sources" aria-labelledby="primary-sources-heading">
+      <p class="eyebrow">Primary sources</p>
+      <h2 id="primary-sources-heading">Papers, official project pages, and official code</h2>
+      <p>Dates below are first arXiv submissions unless a venue is stated. Performance numbers above are the authors’ reported results under their stated datasets and hardware.</p>
+      <ul class="source-list">
+        <li><strong>LingBot-Map / Geometric Context Transformer</strong> — April 15, 2026: <a href="https://arxiv.org/abs/2604.14141" target="_blank" rel="noreferrer">paper</a>, <a href="https://technology.robbyant.com/lingbot-map" target="_blank" rel="noreferrer">official project</a>, <a href="https://github.com/Robbyant/lingbot-map" target="_blank" rel="noreferrer">official code</a>.</li>
+        <li><strong>3D Gaussian Splatting for Real-Time Radiance Field Rendering</strong> — SIGGRAPH 2023: <a href="https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/" target="_blank" rel="noreferrer">official project and paper</a>, <a href="https://github.com/graphdeco-inria/gaussian-splatting" target="_blank" rel="noreferrer">reference implementation</a>.</li>
+        <li><strong>3D Gaussian Ray Tracing (3DGRT)</strong> — July 9, 2024; SIGGRAPH Asia 2024: <a href="https://arxiv.org/abs/2407.07090" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/toronto-ai/3DGRT/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/3dgrut" target="_blank" rel="noreferrer">official shared code</a>.</li>
+        <li><strong>SCube: Instant Large-Scale Scene Reconstruction using VoxSplats</strong> — October 26, 2024; NeurIPS 2024: <a href="https://arxiv.org/abs/2410.20030" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/toronto-ai/scube/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/SCube" target="_blank" rel="noreferrer">official code</a>.</li>
+        <li><strong>3DGUT: Enabling Distorted Cameras and Secondary Rays</strong> — December 17, 2024; CVPR 2025 Oral: <a href="https://arxiv.org/abs/2412.12507" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/toronto-ai/3DGUT/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/3dgrut" target="_blank" rel="noreferrer">official shared code</a>.</li>
+        <li><strong>Difix3D+</strong> — March 3, 2025; CVPR 2025 Oral: <a href="https://arxiv.org/abs/2503.01774" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/toronto-ai/difix3d/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/Difix3D" target="_blank" rel="noreferrer">official code</a>.</li>
+        <li><strong>ArtiFixer</strong> — February 28, 2026; SIGGRAPH 2026: <a href="https://arxiv.org/abs/2603.00492" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/sil/projects/artifixer/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/ArtiFixer" target="_blank" rel="noreferrer">official code</a>.</li>
+        <li><strong>Neural Harmonic Textures</strong> — April 1, 2026; ECCV 2026: <a href="https://arxiv.org/abs/2604.01204" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/sil/projects/neural-harmonic-textures/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/neural-harmonic-textures" target="_blank" rel="noreferrer">official code</a>.</li>
+        <li><strong>TokenGS</strong> — April 16, 2026; CVPR 2026 Highlight: <a href="https://arxiv.org/abs/2604.15239" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/toronto-ai/tokengs/" target="_blank" rel="noreferrer">NVIDIA project</a>, <a href="https://github.com/nv-tlabs/TokenGS" target="_blank" rel="noreferrer">official code</a>.</li>
+        <li><strong>HiGS</strong> — May 29, 2026: <a href="https://arxiv.org/abs/2606.00352" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/sil/projects/higs/" target="_blank" rel="noreferrer">NVIDIA project</a>.</li>
+        <li><strong>TRON</strong> — June 9, 2026: <a href="https://arxiv.org/abs/2606.11314" target="_blank" rel="noreferrer">paper</a>, <a href="https://research.nvidia.com/labs/sil/projects/tron/" target="_blank" rel="noreferrer">NVIDIA project</a>.</li>
+      </ul>
+    </section>
+
+    <nav class="page-pagination" aria-label="Lesson navigation">
+      <a href="modern-cv.html"><span>Previous</span><strong>Modern computer vision</strong></a>
+      <a href="sources.html"><span>Next</span><strong>Course source map</strong></a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-brand">
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Compare methods. Test assumptions.</small></span></a>
+        <p>Open study material for computer vision, perception, and machine-learning systems.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="theory.html">Theory</a><a href="modern-cv.html">Modern CV</a><a href="practice.html">MCQ</a><a href="coding.html">Coding</a><a href="sources.html">Sources</a><a href="https://github.com/buicongnguyen/computer_vision">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>

@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A theory-to-production study and practice lab for senior computer vision, perception, calibration, BEV, and modern vision engineering.">
+  <meta name="description" content="A structured computer vision study guide covering theory, perception, calibration, BEV, modern models, coding practice, and applied experiments.">
   <meta name="theme-color" content="#071019">
-  <title>CV Systems Lab | Senior Computer Vision Study Hub</title>
+  <title>CV Systems Lab | Computer Vision Study Guide</title>
   <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/">
   <link rel="stylesheet" href="styles.css">
   <script src="theme-toggle.js"></script>
@@ -19,7 +19,7 @@
         <span class="brand-mark" aria-hidden="true"><span></span></span>
         <span>
           <strong>CV Systems Lab</strong>
-          <small>Senior engineer study hub</small>
+          <small>Computer vision study guide</small>
         </span>
       </a>
 
@@ -55,13 +55,13 @@
   <main class="page-shell" id="main-content">
     <section class="hero" aria-labelledby="hero-title">
       <div>
-        <p class="eyebrow">Theory → implementation → evidence</p>
-        <h1 id="hero-title">See the system.<br><span class="text-gradient">Build the evidence.</span></h1>
+        <p class="eyebrow">Theory → intuition → implementation</p>
+        <h1 id="hero-title">Understand the system.<br><span class="text-gradient">Practice the reasoning.</span></h1>
         <p class="hero-lede">
-          A 24-week study and practice lab for senior computer vision roles at Google,
-          NVIDIA, 42dot, and other teams building production perception systems.
-          Derive the theory, implement the core ideas, measure failure modes, and ship
-          portfolio proof.
+          A structured 24-week guide from image formation and geometry to 3D
+          perception, reconstruction, modern detectors, and deployment. Derive each
+          idea, compare the available methods, implement a baseline, and test where
+          its assumptions fail.
         </p>
         <div class="hero-actions">
           <a class="button button-primary" href="theory.html">Start the theory path <span aria-hidden="true">→</span></a>
@@ -69,8 +69,8 @@
         </div>
         <ul class="hero-meta" aria-label="Program summary">
           <li><strong>24</strong><span>weeks</span></li>
-          <li><strong>9</strong><span>study areas</span></li>
-          <li><strong>4</strong><span>portfolio builds</span></li>
+          <li><strong>11</strong><span>study areas</span></li>
+          <li><strong>4</strong><span>applied projects</span></li>
         </ul>
       </div>
 
@@ -131,7 +131,7 @@
           </div>
 
           <div class="milestone-heading">
-            <h3>Evidence checkpoints</h3>
+            <h3>Learning checkpoints</h3>
             <button class="reset-progress" type="button" data-reset-progress>Reset progress</button>
           </div>
           <div class="milestone-grid">
@@ -142,7 +142,7 @@
             <label class="milestone-toggle"><input type="checkbox" data-milestone="modern-cv"><span>Modern computer vision</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="practice"><span>MCQ practice</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="coding"><span>Coding drills</span></label>
-            <label class="milestone-toggle"><input type="checkbox" data-milestone="projects"><span>Portfolio projects</span></label>
+            <label class="milestone-toggle"><input type="checkbox" data-milestone="projects"><span>Applied projects</span></label>
           </div>
           <div class="next-step">
             <span>Recommended next</span>
@@ -202,7 +202,7 @@
         <div>
           <p class="eyebrow">Structured curriculum</p>
           <h2 id="curriculum-title">Move from pixels to production</h2>
-          <p>Each area connects compact theory with failure analysis, interview questions, coding drills, and a portfolio artifact.</p>
+          <p>Each area connects compact theory with visual intuition, alternatives, decision rules, failure analysis, coding drills, and controlled experiments.</p>
         </div>
       </div>
 
@@ -251,12 +251,24 @@
         </a>
         <a class="topic-card" href="projects.html">
           <span class="card-index">08</span>
-          <h3>Portfolio projects</h3>
-          <p>Four senior-level builds: 2D benchmark, GPU deployment, 3D tracking, and an autonomy capstone.</p>
-          <div class="card-meta"><span class="tag tag-violet">ship</span><span class="tag">evidence</span></div>
+          <h3>Applied projects</h3>
+          <p>Four system studies: a 2D benchmark, GPU deployment, 3D tracking, and a multi-sensor perception capstone.</p>
+          <div class="card-meta"><span class="tag tag-violet">experiment</span><span class="tag">report</span></div>
+        </a>
+        <a class="topic-card" href="yolo-evolution.html">
+          <span class="card-index">09</span>
+          <h3>YOLO evolution</h3>
+          <p>Trace the branching YOLO family, the mechanism added at each stage, and when a different detector is the better choice.</p>
+          <div class="card-meta"><span class="tag tag-lime">detection</span><span class="tag">compare</span></div>
+        </a>
+        <a class="topic-card" href="current-topics.html">
+          <span class="card-index">10</span>
+          <h3>Current 3D topics</h3>
+          <p>Monocular reconstruction, LingBot-Map, 3D detection, 3DGS, NVIDIA ArtiFixer, 3DGRUT, and emerging reconstruction methods.</p>
+          <div class="card-meta"><span class="tag tag-violet">3D</span><span class="tag">recent</span></div>
         </a>
         <a class="topic-card" href="sources.html">
-          <span class="card-index">09</span>
+          <span class="card-index">11</span>
           <h3>Courses &amp; sources</h3>
           <p>Curated course and paper references from Stanford, Berkeley, Michigan, CMU, MIT, NVIDIA, and primary research.</p>
           <div class="card-meta"><span class="tag tag-cyan">primary</span><span class="tag">reference</span></div>
@@ -267,9 +279,9 @@
     <section class="section" aria-labelledby="loop-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">The senior learning loop</p>
+          <p class="eyebrow">The study loop</p>
           <h2 id="loop-title">Do not stop at familiarity</h2>
-          <p>A topic becomes interview- and production-ready only after it survives implementation, measurement, and critique.</p>
+          <p>A topic becomes usable knowledge only after it survives derivation, comparison, implementation, measurement, and critique.</p>
         </div>
       </div>
 
@@ -279,46 +291,50 @@
         <article class="loop-step"><strong>03</strong><h3>Implement</h3><p>Build the smallest correct version with explicit tests.</p></article>
         <article class="loop-step"><strong>04</strong><h3>Measure</h3><p>Choose metrics and slices before comparing solutions.</p></article>
         <article class="loop-step"><strong>05</strong><h3>Break</h3><p>Create edge cases and name the real failure mechanism.</p></article>
-        <article class="loop-step"><strong>06</strong><h3>Ship</h3><p>Profile, document, teach, and package reproducible evidence.</p></article>
+        <article class="loop-step"><strong>06</strong><h3>Explain</h3><p>Document the choice, rejected alternatives, results, and remaining uncertainty.</p></article>
       </div>
     </section>
 
     <section class="section" aria-labelledby="tracks-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Role-focused depth</p>
-          <h2 id="tracks-title">One core, three senior signals</h2>
-          <p>Build the same foundations, then bias your evidence toward the system decisions your target team values most.</p>
+          <p class="eyebrow">Choose by problem constraints</p>
+          <h2 id="tracks-title">There is no universally best vision method</h2>
+          <p>Start with the output you need, then narrow the choices using geometry, sensors, latency, supervision, and failure cost.</p>
         </div>
       </div>
 
       <div class="track-grid">
         <article class="track-card">
-          <span class="tag tag-cyan">Google / DeepMind</span>
-          <h3>ML depth at scale</h3>
-          <p>Show rigorous experiments and a scalable vision system, not only model familiarity.</p>
-          <ul><li>Data engines and evaluation</li><li>Representation and multimodal learning</li><li>Distributed training and inference</li></ul>
+          <span class="tag tag-cyan">2D image output</span>
+          <h3>Detection or segmentation?</h3>
+          <p>Choose detection for object identity and extent; segmentation when boundary or occupied pixels change the decision.</p>
+          <ul><li>YOLO: strong real-time baseline</li><li>DETR family: set prediction and global matching</li><li>Mask models: contours, parts, and free space</li></ul>
         </article>
         <article class="track-card">
-          <span class="tag tag-lime">NVIDIA</span>
-          <h3>Measured performance</h3>
-          <p>Connect architecture choices to GPU behavior and defend accuracy-latency trade-offs.</p>
-          <ul><li>CUDA and memory hierarchy</li><li>TensorRT and numerical precision</li><li>Nsight-guided optimization</li></ul>
+          <span class="tag tag-lime">Metric 3D output</span>
+          <h3>Which source of depth?</h3>
+          <p>Use monocular depth for low sensor cost, multi-view geometry for measured parallax, or LiDAR fusion when reliable range is worth the hardware.</p>
+          <ul><li>Single camera: ambiguous scale and occlusion</li><li>Multi-camera/temporal: more geometry, more calibration</li><li>LiDAR: direct range, sparse samples and added cost</li></ul>
         </article>
         <article class="track-card">
-          <span class="tag tag-violet">42dot / Autonomy</span>
-          <h3>Robust 3D perception</h3>
-          <p>Reason across sensors, time, scenarios, safety, and closed-loop behavior.</p>
-          <ul><li>Calibration and synchronization</li><li>BEV, tracking, fusion, occupancy</li><li>Scenario mining and safety evidence</li></ul>
+          <span class="tag tag-violet">Novel-view output</span>
+          <h3>Geometry or appearance?</h3>
+          <p>Use meshes when editable surfaces matter, NeRF for continuous radiance fields, and Gaussian methods for fast high-quality view synthesis.</p>
+          <ul><li>Mesh: explicit and editable, harder reconstruction</li><li>NeRF: compact continuity, slower rendering/training</li><li>3DGS/3DGRUT: fast rendering or flexible ray effects</li></ul>
         </article>
+      </div>
+      <div class="callout">
+        <div><p class="eyebrow">Decision flow</p><h3>Output → constraints → candidates → falsifying test</h3></div>
+        <p>Define the coordinate frame and required uncertainty first. Remove methods that cannot meet sensor, latency, memory, or supervision constraints. Compare the survivors at one operating point, then choose the simplest method that passes the failure slices that matter.</p>
       </div>
     </section>
 
     <section class="section" aria-labelledby="cta-title">
       <div class="cta-panel">
-        <p class="eyebrow">Begin with the truth</p>
-        <h2 id="cta-title">Take the baseline, then build what your score cannot prove.</h2>
-        <p>Use the MCQ bank to expose recall gaps, the coding lab to expose implementation gaps, and the projects to turn improvement into senior-level evidence.</p>
+        <p class="eyebrow">Close the weakest dependency</p>
+        <h2 id="cta-title">Check understanding, then revisit the first broken assumption.</h2>
+        <p>Use the MCQ bank for conceptual gaps, the coding lab for implementation gaps, and the applied projects for experiment design and system-level reasoning.</p>
         <div class="button-row">
           <a class="button button-primary" href="practice.html">Open MCQ practice</a>
           <a class="button button-secondary" href="coding.html">Open coding lab</a>
@@ -333,9 +349,9 @@
       <div class="footer-brand">
         <a class="brand" href="index.html">
           <span class="brand-mark" aria-hidden="true"><span></span></span>
-          <span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span>
+          <span><strong>CV Systems Lab</strong><small>Learn deeply. Compare methods. Test assumptions.</small></span>
         </a>
-        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+        <p>Open study material for computer vision, perception, geometry, and ML systems.</p>
       </div>
       <nav class="footer-links" aria-label="Footer">
         <a href="theory.html">Theory</a>

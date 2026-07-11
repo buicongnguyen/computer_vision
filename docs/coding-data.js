@@ -46,7 +46,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "img-histogram", title: "Contrast-Limited Histogram Mapping",
-    track: "Image Ops", difficulty: "Senior", minutes: 90, language: "Python/NumPy",
+    track: "Image Ops", difficulty: "Advanced", minutes: 90, language: "Python/NumPy",
     prompt: "Implement global histogram equalization, then design a tiled contrast-limited extension and analyze seams/noise amplification.",
     contract: ["Define integer and float input policy", "Preserve monotonic mapping", "Handle constant images", "Limit local histogram peaks before redistribution"],
     tests: ["Constant and bimodal images", "Monotonicity", "Range preservation", "Tile-boundary interpolation"],
@@ -74,7 +74,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "geo-ransac", title: "Adaptive RANSAC",
-    track: "Geometry & Calibration", difficulty: "Senior", minutes: 100, language: "Python/NumPy",
+    track: "Geometry & Calibration", difficulty: "Advanced", minutes: 100, language: "Python/NumPy",
     prompt: "Wrap a line or homography estimator in seeded RANSAC with adaptive iteration count and model refinement.",
     contract: ["Inject an RNG/seed", "Reject degenerate samples", "Use an explicit residual and threshold", "Refit from consensus", "Stop from target confidence/inlier estimate"],
     tests: ["Known outlier ratio", "All outliers", "Degenerate minimal samples", "Deterministic repeated run"],
@@ -92,7 +92,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "cal-audit", title: "Calibration Residual Auditor",
-    track: "Geometry & Calibration", difficulty: "Senior", minutes: 90, language: "Python",
+    track: "Geometry & Calibration", difficulty: "Advanced", minutes: 90, language: "Python",
     prompt: "Build a report that goes beyond mean reprojection error: residual vector maps, radial trend, per-view statistics, coverage, and held-out checks.",
     contract: ["Preserve point/view identity", "Report robust and percentile statistics", "Visualize spatial structure", "Flag poor pose/image coverage"],
     tests: ["Injected focal error", "Injected radial distortion", "One bad view", "Accurate low-noise calibration"],
@@ -101,7 +101,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "geo-triangulate", title: "Linear and Nonlinear Triangulation",
-    track: "Geometry & Calibration", difficulty: "Senior", minutes: 100, language: "Python/NumPy",
+    track: "Geometry & Calibration", difficulty: "Advanced", minutes: 100, language: "Python/NumPy",
     prompt: "Triangulate a point from two calibrated views, test cheirality, then refine by reprojection minimization.",
     contract: ["Use consistent camera matrices", "Normalize homogeneous result", "Reject points at infinity/behind cameras", "Return uncertainty or conditioning signal"],
     tests: ["Exact synthetic point", "Noisy pixels", "Small baseline/distant point", "Mismatched correspondence"],
@@ -120,7 +120,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "det-ap", title: "Detection Matching and Average Precision",
-    track: "Detection & Tracking", difficulty: "Senior", minutes: 120, language: "Python/NumPy",
+    track: "Detection & Tracking", difficulty: "Advanced", minutes: 120, language: "Python/NumPy",
     prompt: "Match scored predictions one-to-one to ground truth and compute a documented all-points AP.",
     contract: ["Process predictions by descending score", "Match within class and image", "Handle ignore/crowd explicitly", "Prevent one ground truth from matching twice"],
     tests: ["Perfect, duplicate, false-positive, and missed cases", "Score ties", "Empty prediction/ground truth", "Hand-integrated PR curve"],
@@ -138,7 +138,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "trk-assignment", title: "Gated One-to-One Association",
-    track: "Detection & Tracking", difficulty: "Senior", minutes: 100, language: "Python or C++",
+    track: "Detection & Tracking", difficulty: "Advanced", minutes: 100, language: "Python or C++",
     prompt: "Associate tracks and detections using motion and optional appearance cost, gating invalid pairs before one-to-one assignment.",
     contract: ["Handle unmatched tracks/detections", "Prevent invalid pairs from becoming cheap", "Return deterministic mapping", "Separate cost construction from solver"],
     tests: ["Crossing objects", "No detections", "More tracks than detections", "All pairs gated", "Tied costs"],
@@ -147,7 +147,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "trk-manager", title: "Track Lifecycle Manager",
-    track: "Detection & Tracking", difficulty: "Senior", minutes: 90, language: "Python or C++",
+    track: "Detection & Tracking", difficulty: "Advanced", minutes: 90, language: "Python or C++",
     prompt: "Implement tentative/confirmed/deleted tracks with hit, miss, output, and ID-allocation policies.",
     contract: ["Separate internal and published state", "Handle dropped frames/variable dt", "Never reuse an active ID", "Make thresholds configurable"],
     tests: ["Single detection blip", "Long occlusion", "Dropped frame", "Duplicate detections", "End-of-stream cleanup"],
@@ -156,7 +156,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "trk-metrics", title: "Tracking Failure Slice Report",
-    track: "Detection & Tracking", difficulty: "Senior", minutes: 90, language: "Python",
+    track: "Detection & Tracking", difficulty: "Advanced", minutes: 90, language: "Python",
     prompt: "Produce detection and identity metrics plus slices by range, occlusion, density, speed, and track age.",
     contract: ["Keep sequence boundaries", "Use an official metric implementation where possible", "Separate detector and association errors", "Report counts with rates"],
     tests: ["Hand-worked ID switch", "Track fragmentation", "Perfect sequence", "Empty frame and empty sequence"],
@@ -184,7 +184,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "bev-lift-splat", title: "Frustum Lift and BEV Splat",
-    track: "BEV & 3D", difficulty: "Senior", minutes: 150, language: "PyTorch",
+    track: "BEV & 3D", difficulty: "Advanced", minutes: 150, language: "PyTorch",
     prompt: "Lift image features over discrete depth bins, transform frustum points to ego coordinates, and pool features into a BEV grid.",
     contract: ["Vectorize camera/batch/depth dimensions", "Define depth-bin parameterization", "Mask outside-grid points", "Use deterministic sum or mean pooling"],
     tests: ["One camera/one depth bin", "Known synthetic projection", "Two cameras hitting one cell", "Calibration perturbation"],
@@ -202,7 +202,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "bev-temporal", title: "Temporal BEV Ego-Motion Warp",
-    track: "BEV & 3D", difficulty: "Senior", minutes: 100, language: "Python/PyTorch",
+    track: "BEV & 3D", difficulty: "Advanced", minutes: 100, language: "Python/PyTorch",
     prompt: "Warp a previous metric BEV feature map into the current ego frame using timestamped SE(2)/SE(3) motion.",
     contract: ["Name transform direction", "Convert metric coordinates to grid sampling coordinates", "Return validity mask", "Define interpolation/alignment"],
     tests: ["Zero motion identity", "Known translation/rotation", "Round trip", "Out-of-bounds region"],
@@ -211,7 +211,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "bev-fusion-audit", title: "Multi-Sensor Alignment Auditor",
-    track: "BEV & 3D", difficulty: "Senior", minutes: 100, language: "Python",
+    track: "BEV & 3D", difficulty: "Advanced", minutes: 100, language: "Python",
     prompt: "Project LiDAR or radar points into camera views and BEV, then quantify alignment versus range, image region, motion, and timestamp.",
     contract: ["Preserve sensor time/frame metadata", "Deskew or declare no deskew", "Report visibility/occlusion limitations", "Support injected calibration/time faults"],
     tests: ["Static target", "Moving ego", "Known extrinsic offset", "Known time offset"],
@@ -221,7 +221,7 @@ window.CV_CODING_TASKS = [
 
   {
     id: "sys-bounded-queue", title: "Bounded Video Pipeline",
-    track: "Production & GPU", difficulty: "Senior", minutes: 120, language: "C++ or Python",
+    track: "Production & GPU", difficulty: "Advanced", minutes: 120, language: "C++ or Python",
     prompt: "Build capture, inference, and sink stages connected by bounded queues with explicit overload and shutdown behavior.",
     contract: ["No unbounded growth", "Carry frame/stream/event timestamps", "Define block/drop/coalesce policy", "Propagate errors and cleanly stop"],
     tests: ["Slow sink", "Corrupt frame", "Producer burst", "Shutdown with queued work", "Multiple streams"],
@@ -239,7 +239,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "sys-parity", title: "Training-to-Serving Parity Test",
-    track: "Production & GPU", difficulty: "Senior", minutes: 90, language: "Python",
+    track: "Production & GPU", difficulty: "Advanced", minutes: 90, language: "Python",
     prompt: "Run golden raw inputs through training and exported-serving preprocessing/model/postprocessing, then bound differences stage by stage.",
     contract: ["Version golden inputs and artifacts", "Compare intermediate tensors", "Handle dynamic shapes", "Use task-aware output matching"],
     tests: ["Color-order mismatch", "Resize-coordinate mismatch", "FP16 tolerance", "Class-map or NMS mismatch"],
@@ -248,7 +248,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "sys-int8", title: "INT8 Calibration and Slice Audit",
-    track: "Production & GPU", difficulty: "Senior", minutes: 120, language: "Python/TensorRT",
+    track: "Production & GPU", difficulty: "Advanced", minutes: 120, language: "Python/TensorRT",
     prompt: "Quantize a small vision model, compare layer/output drift, and audit quality by class and scenario slice.",
     contract: ["Representative calibration manifest", "Exact FP baseline", "Critical-slice quality gates", "Named hardware/runtime"],
     tests: ["Narrow calibration distribution", "Outlier activation", "Mixed-precision sensitive layer", "Repeatable engine build where possible"],
@@ -257,7 +257,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "gpu-normalize", title: "Fused CUDA Image Preprocessing",
-    track: "Production & GPU", difficulty: "Senior", minutes: 150, language: "CUDA C++",
+    track: "Production & GPU", difficulty: "Advanced", minutes: 150, language: "CUDA C++",
     prompt: "Fuse uint8 layout conversion, normalization, and optional resize into a CUDA kernel with a CPU oracle.",
     contract: ["Bounds-safe arbitrary image sizes", "Declared layout/color/coordinate convention", "Asynchronous stream parameter", "Error checking outside timed region"],
     tests: ["Odd dimensions", "Channel-order sentinel", "Border sampling", "FP16/FP32 tolerance"],
@@ -266,7 +266,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "sys-monitor", title: "Perception Monitoring Simulator",
-    track: "Production & GPU", difficulty: "Senior", minutes: 100, language: "Python",
+    track: "Production & GPU", difficulty: "Advanced", minutes: 100, language: "Python",
     prompt: "Simulate service, input, prediction, and delayed-quality signals for a model rollout; implement alerts with windows and actions.",
     contract: ["Separate event and ingestion time", "Define SLO population/window", "Avoid alerting on drift as proof of quality loss", "Include rollback/canary state"],
     tests: ["Latency spike", "Camera schema change", "Prediction shift without quality loss", "Delayed critical-slice regression"],

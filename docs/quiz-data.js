@@ -29,7 +29,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "A large derivative with respect to x means intensity changes while moving horizontally; the corresponding edge is oriented approximately vertically."
   },
   {
-    id: "sig-05", topic: "Image & Signals", difficulty: "Senior",
+    id: "sig-05", topic: "Image & Signals", difficulty: "Advanced",
     question: "A training pipeline decodes JPEG images in sRGB and averages pixel values as if they were linear light. What is the main conceptual problem?",
     choices: ["sRGB values are gamma encoded, so arithmetic does not correspond to radiance", "JPEG has no color channels", "Averages require integer pixels", "Linear light cannot be represented by floating point"],
     answer: 0,
@@ -43,7 +43,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "A Gaussian pyramid repeatedly smooths and downsamples an image, creating a multi-scale representation useful for detection, matching, and coarse-to-fine estimation."
   },
   {
-    id: "sig-07", topic: "Image & Signals", difficulty: "Senior",
+    id: "sig-07", topic: "Image & Signals", difficulty: "Advanced",
     question: "Which boundary policy is most likely to introduce a strong artificial edge when convolving a bright image near its border?",
     choices: ["Reflect padding", "Replicate padding", "Zero padding", "Circular padding on a truly periodic image"],
     answer: 2,
@@ -80,7 +80,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Centering points and scaling their mean distance to a standard value reduces scale imbalance in the design matrix and makes the SVD solution more stable."
   },
   {
-    id: "geo-04", topic: "Geometry", difficulty: "Senior",
+    id: "geo-04", topic: "Geometry", difficulty: "Advanced",
     question: "Four point correspondences used for homography estimation are all collinear. What should a robust implementation do?",
     choices: ["Return the identity", "Add random noise and continue", "Reject the configuration as degenerate", "Estimate a fundamental matrix instead"],
     answer: 2,
@@ -94,7 +94,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "The fundamental matrix maps a point in one image to its epipolar line in the other. A correct correspondence lies on that line."
   },
   {
-    id: "geo-06", topic: "Geometry", difficulty: "Senior",
+    id: "geo-06", topic: "Geometry", difficulty: "Advanced",
     question: "Why is absolute translation scale unavailable from a calibrated monocular two-view essential matrix alone?",
     choices: ["Rotation consumes all degrees of freedom", "The same images are consistent with proportionally scaled scene depth and translation", "Essential matrices ignore focal length", "Triangulation always returns zero depth"],
     answer: 1,
@@ -108,7 +108,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Depth is approximately fB/disparity. A larger baseline B produces more disparity for the same depth, improving sensitivity, though it can make correspondence and overlap harder."
   },
   {
-    id: "geo-08", topic: "Geometry", difficulty: "Senior",
+    id: "geo-08", topic: "Geometry", difficulty: "Advanced",
     question: "Bundle adjustment jointly refines which quantities?",
     choices: ["Only image brightness and contrast", "Camera parameters/poses and 3D structure by minimizing reprojection error", "Only class labels", "GPU kernels and memory layout"],
     answer: 1,
@@ -145,14 +145,14 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Diverse tilts, distances, and positions excite different parts of the projection and distortion model. Frontoparallel, centered images alone poorly constrain several parameters."
   },
   {
-    id: "cal-05", topic: "Calibration", difficulty: "Senior",
+    id: "cal-05", topic: "Calibration", difficulty: "Advanced",
     question: "A calibration reports very low mean reprojection error, but lane overlays drift near image edges. What is the best next step?",
     choices: ["Declare calibration perfect", "Inspect spatial residuals, model choice, board coverage, and held-out geometric checks", "Increase the detector threshold", "Average the camera pose with zero"],
     answer: 1,
     explanation: "A single mean can hide structured edge residuals or overfitting. Residual maps, coverage, independent measurements, and model adequacy are more diagnostic."
   },
   {
-    id: "cal-06", topic: "Calibration", difficulty: "Senior",
+    id: "cal-06", topic: "Calibration", difficulty: "Advanced",
     question: "Why can a 30 ms camera-LiDAR timestamp offset look like an extrinsic calibration error?",
     choices: ["Timestamps change focal length", "Ego or object motion moves measurements between capture times, creating a systematic spatial offset", "LiDAR has no coordinate frame", "Time offsets only affect color"],
     answer: 1,
@@ -166,7 +166,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Rectification transforms epipolar lines to horizontal scanlines, reducing the correspondence search largely to one dimension."
   },
   {
-    id: "cal-08", topic: "Calibration", difficulty: "Senior",
+    id: "cal-08", topic: "Calibration", difficulty: "Advanced",
     question: "What is the safest public API convention for rigid transforms in a multi-sensor system?",
     choices: ["Pass anonymous 4x4 arrays everywhere", "Name source and destination frames, units, timestamp, and calibration version", "Assume every matrix maps to world coordinates", "Store only Euler angles"],
     answer: 1,
@@ -196,7 +196,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "RANSAC repeatedly proposes a model from a minimal sample and scores its consensus. It is useful when a meaningful residual separates many inliers from outliers."
   },
   {
-    id: "cls-04", topic: "Classical & Motion", difficulty: "Senior",
+    id: "cls-04", topic: "Classical & Motion", difficulty: "Advanced",
     question: "For a RANSAC minimal sample size s, why does required iteration count grow rapidly as the inlier rate falls?",
     choices: ["The chance that all s sampled points are inliers falls as w^s", "SVD becomes impossible", "The image gains more channels", "Every outlier increases focal length"],
     answer: 0,
@@ -210,7 +210,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Lucas-Kanade assumes approximately constant motion in a local window, contributing multiple gradient constraints. It still fails when the window lacks two-dimensional texture."
   },
   {
-    id: "cls-06", topic: "Classical & Motion", difficulty: "Senior",
+    id: "cls-06", topic: "Classical & Motion", difficulty: "Advanced",
     question: "Why does coarse-to-fine optical flow help with large displacement?",
     choices: ["Downsampling makes the apparent displacement smaller, allowing local linearization before refinement", "It creates exact ground truth", "It removes all occlusions", "It changes camera intrinsics to identity"],
     answer: 0,
@@ -224,7 +224,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Image points vote for compatible model parameters. Peaks tolerate broken edges and noise, but discretization and accumulator cost introduce trade-offs."
   },
   {
-    id: "cls-08", topic: "Classical & Motion", difficulty: "Senior",
+    id: "cls-08", topic: "Classical & Motion", difficulty: "Advanced",
     question: "A feature matcher passes a ratio test but produces repeated-structure mismatches on a building facade. Which addition most directly tests geometric consistency?",
     choices: ["RANSAC with an appropriate geometric model", "A higher JPEG quality", "Global histogram equalization only", "Randomly permuting descriptors"],
     answer: 0,
@@ -254,7 +254,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Residual blocks can represent an identity mapping easily and provide a direct route across layers, improving optimization of deep networks without guaranteeing an optimum."
   },
   {
-    id: "dl-04", topic: "Deep Learning", difficulty: "Senior",
+    id: "dl-04", topic: "Deep Learning", difficulty: "Advanced",
     question: "A model cannot overfit a clean set of 32 training examples. What is the highest-value first interpretation?",
     choices: ["The model is definitely too small", "There may be a correctness problem in data, labels, loss, optimization, or evaluation", "More regularization is required", "The validation set is too large"],
     answer: 1,
@@ -268,7 +268,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Inference normally uses stored running mean and variance. Small or shifted batches and incorrect train/eval mode can therefore cause production discrepancies."
   },
   {
-    id: "dl-06", topic: "Deep Learning", difficulty: "Senior",
+    id: "dl-06", topic: "Deep Learning", difficulty: "Advanced",
     question: "What is the important distinction between decoupled weight decay and adding an L2 penalty when using adaptive optimizers?",
     choices: ["They are always numerically identical", "Decoupled decay shrinks parameters separately from the gradient-scaled loss update", "L2 cannot be differentiated", "Weight decay changes labels"],
     answer: 1,
@@ -282,7 +282,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Augmentation encodes invariance or equivariance. A transformation that changes the true label or geometry without updating the target injects label noise."
   },
   {
-    id: "dl-08", topic: "Deep Learning", difficulty: "Senior",
+    id: "dl-08", topic: "Deep Learning", difficulty: "Advanced",
     question: "When using mixed precision, why may some reductions and accumulations remain in higher precision?",
     choices: ["To reduce overflow/rounding error while retaining faster low-precision operands", "Because GPUs cannot multiply low-precision values", "To make the model larger", "To eliminate validation"],
     answer: 0,
@@ -298,7 +298,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Dense detectors often emit several boxes around the same object. NMS keeps a high-score box and suppresses sufficiently overlapping alternatives."
   },
   {
-    id: "det-02", topic: "Detection & Segmentation", difficulty: "Senior",
+    id: "det-02", topic: "Detection & Segmentation", difficulty: "Advanced",
     question: "Why can hard NMS reduce recall in a crowded pedestrian scene?",
     choices: ["Different true objects can overlap enough that one suppresses another", "NMS changes image exposure", "NMS cannot compare scores", "Pedestrians have no bounding boxes"],
     answer: 0,
@@ -312,7 +312,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "AP integrates an interpolated precision-recall curve. Its meaning depends on class, matching rules, IoU thresholds, ignore policy, and averaging scheme."
   },
   {
-    id: "det-04", topic: "Detection & Segmentation", difficulty: "Senior",
+    id: "det-04", topic: "Detection & Segmentation", difficulty: "Advanced",
     question: "Model B has higher overall mAP than Model A. Which missing information is most important before a safety-related launch decision?",
     choices: ["Critical scenario slices, operating threshold, uncertainty, latency, and error costs", "The alphabetic order of model names", "The training file size alone", "The number of dashboard colors"],
     answer: 0,
@@ -333,14 +333,14 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Focal loss multiplies cross-entropy by a factor that reduces the contribution of well-classified examples, focusing optimization on hard examples."
   },
   {
-    id: "det-07", topic: "Detection & Segmentation", difficulty: "Senior",
+    id: "det-07", topic: "Detection & Segmentation", difficulty: "Advanced",
     question: "Why can IoU-based box losses be preferable to coordinate-wise L1 alone?",
     choices: ["They better align optimization with overlap geometry and scale", "They make boxes rotation invariant automatically", "They remove ground truth", "They always have nonzero gradient for every formulation"],
     answer: 0,
     explanation: "IoU-family losses directly reflect spatial overlap and normalize some scale effects. Variants such as GIoU address the zero-overlap gradient limitation of plain IoU."
   },
   {
-    id: "det-08", topic: "Detection & Segmentation", difficulty: "Senior",
+    id: "det-08", topic: "Detection & Segmentation", difficulty: "Advanced",
     question: "A segmentation model improves mean IoU but damages thin lane boundaries. What is the best evaluation response?",
     choices: ["Add boundary/tolerance and lane-specific metrics plus qualitative failure slices", "Ignore the change because mean IoU rose", "Measure only training loss", "Increase image compression"],
     answer: 0,
@@ -363,7 +363,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Innovation covariance combines projected state uncertainty and measurement noise. It scales the Kalman gain and supports Mahalanobis association gates."
   },
   {
-    id: "trk-03", topic: "Tracking & Fusion", difficulty: "Senior",
+    id: "trk-03", topic: "Tracking & Fusion", difficulty: "Advanced",
     question: "Why is the Joseph form useful for covariance update?",
     choices: ["It better preserves symmetry and positive semidefiniteness under finite precision", "It makes every motion linear", "It removes measurement noise", "It sets velocity to zero"],
     answer: 0,
@@ -377,7 +377,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Mahalanobis distance normalizes the residual by its covariance, allowing a larger gate along uncertain directions and a tighter gate along confident ones."
   },
   {
-    id: "trk-05", topic: "Tracking & Fusion", difficulty: "Senior",
+    id: "trk-05", topic: "Tracking & Fusion", difficulty: "Advanced",
     question: "Which metric best exposes identity continuity when detections are reasonably accurate?",
     choices: ["IDF1 or association components of HOTA", "Image PSNR only", "Top-1 classification accuracy", "Calibration mean error only"],
     answer: 0,
@@ -391,14 +391,14 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Combining object- or decision-level outputs creates modular boundaries and can simplify sensor dropout, though it discards some fine cross-sensor information."
   },
   {
-    id: "trk-07", topic: "Tracking & Fusion", difficulty: "Senior",
+    id: "trk-07", topic: "Tracking & Fusion", difficulty: "Advanced",
     question: "A tracker has many ID switches during crossings but good per-frame detection AP. Which component should be investigated first?",
     choices: ["Association cost, gating, motion/appearance uncertainty, and one-to-one assignment", "JPEG metadata", "Classifier vocabulary size only", "Camera white balance only"],
     answer: 0,
     explanation: "Crossings stress the association model. Inspect ambiguous costs, covariance/gates, temporal state, appearance embeddings, and assignment behavior while keeping detector inputs fixed."
   },
   {
-    id: "trk-08", topic: "Tracking & Fusion", difficulty: "Senior",
+    id: "trk-08", topic: "Tracking & Fusion", difficulty: "Advanced",
     question: "What is the main danger of evaluating a temporal model on randomly shuffled video frames?",
     choices: ["It can destroy temporal semantics or leak near-duplicate context across splits", "It makes matrix multiplication impossible", "It forces all boxes to overlap", "It removes timestamps from the file system"],
     answer: 0,
@@ -421,7 +421,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "A plane plus calibrated camera pose induces a homography between image and ground plane. Elevated objects violate the model and become stretched or misplaced."
   },
   {
-    id: "bev-03", topic: "BEV & 3D", difficulty: "Senior",
+    id: "bev-03", topic: "BEV & 3D", difficulty: "Advanced",
     question: "Why do tall objects appear distorted in ground-plane IPM?",
     choices: ["Pixels from off-plane surfaces are projected as if they lay on the ground", "IPM changes exposure", "Tall objects have no depth", "Homographies require grayscale"],
     answer: 0,
@@ -435,14 +435,14 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "The model predicts or weights depth for image features, forming 3D frustum features. Splatting aggregates those features into BEV cells."
   },
   {
-    id: "bev-05", topic: "BEV & 3D", difficulty: "Senior",
+    id: "bev-05", topic: "BEV & 3D", difficulty: "Advanced",
     question: "Why is camera calibration error especially dangerous for multi-camera BEV fusion?",
     choices: ["Features from different views are written to inconsistent spatial cells", "It only changes class names", "It makes GPU clocks slower", "Calibration affects images but never geometry"],
     answer: 0,
     explanation: "BEV fusion assumes a shared geometric frame. Small pose or intrinsic errors can create duplicated, blurred, shifted, or temporally unstable features and objects."
   },
   {
-    id: "bev-06", topic: "BEV & 3D", difficulty: "Senior",
+    id: "bev-06", topic: "BEV & 3D", difficulty: "Advanced",
     question: "What must be done before fusing a previous BEV state with the current frame on a moving platform?",
     choices: ["Warp or align the previous state using ego motion and timestamps", "Randomly crop both states", "Set all velocities to zero", "Convert both states to JPEG"],
     answer: 0,
@@ -456,7 +456,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Smaller cells retain more spatial detail but increase the number of BEV tokens/cells, memory traffic, and downstream compute."
   },
   {
-    id: "bev-08", topic: "BEV & 3D", difficulty: "Senior",
+    id: "bev-08", topic: "BEV & 3D", difficulty: "Advanced",
     question: "Why can occupancy prediction complement object detection?",
     choices: ["It represents occupied/free/unknown space without requiring every structure to fit a known object class", "It guarantees object identity across time", "It removes all sensor noise", "It needs no coordinate frame"],
     answer: 0,
@@ -472,7 +472,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Self-attention permits content-dependent interactions among tokens. Positional encodings or related mechanisms are needed because attention alone does not know spatial order."
   },
   {
-    id: "mod-02", topic: "Modern & Production", difficulty: "Senior",
+    id: "mod-02", topic: "Modern & Production", difficulty: "Advanced",
     question: "What is a common failure mode of contrastive self-supervised learning if positive and negative definitions are poorly chosen?",
     choices: ["The objective can enforce harmful invariances or treat semantically similar samples as negatives", "It calibrates every camera automatically", "It eliminates representation collapse under all conditions", "It requires object boxes"],
     answer: 0,
@@ -486,7 +486,7 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "A subset of patches or tokens is hidden, and the model learns structure needed to reconstruct pixels, features, or discrete targets from visible context."
   },
   {
-    id: "mod-04", topic: "Modern & Production", difficulty: "Senior",
+    id: "mod-04", topic: "Modern & Production", difficulty: "Advanced",
     question: "An open-vocabulary detector recognizes a rare class by text prompt but produces poorly localized boxes. What does this reveal?",
     choices: ["Semantic transfer and spatial localization are separate capabilities that need separate evaluation", "Text prompts guarantee box quality", "Localization has no metric", "The image has no pixels"],
     answer: 0,
@@ -500,21 +500,21 @@ window.CV_QUIZ_QUESTIONS = [
     explanation: "Neural radiance fields represent a scene continuously and render views by integrating density and radiance along camera rays, assuming known or optimized camera poses."
   },
   {
-    id: "mod-06", topic: "Modern & Production", difficulty: "Senior",
+    id: "mod-06", topic: "Modern & Production", difficulty: "Advanced",
     question: "A quantized model preserves overall accuracy but sharply regresses one safety-critical class. What is the right decision?",
     choices: ["Block or constrain release and diagnose calibration data, sensitive operations, and per-class numerical drift", "Launch because the average passed", "Delete the class", "Raise every threshold blindly"],
     answer: 0,
     explanation: "Quality gates should protect critical slices. Inspect activation ranges, representative calibration samples, layer/operator sensitivity, mixed precision, or quantization-aware training."
   },
   {
-    id: "mod-07", topic: "Modern & Production", difficulty: "Senior",
+    id: "mod-07", topic: "Modern & Production", difficulty: "Advanced",
     question: "Which latency report is sufficiently specified to support an engineering comparison?",
     choices: ["12 ms", "12 ms p95 end-to-end after warm-up on named hardware, workload, batch/concurrency, synchronization, and software versions", "Fast on my machine", "100 FPS calculated as 1 divided by one kernel time"],
     answer: 1,
     explanation: "A meaningful claim defines the measured boundary, percentile, hardware/software, workload, warm-up, synchronization, and concurrency. Throughput is not generally reciprocal percentile latency."
   },
   {
-    id: "mod-08", topic: "Modern & Production", difficulty: "Senior",
+    id: "mod-08", topic: "Modern & Production", difficulty: "Advanced",
     question: "Input-feature drift is detected in production. What can be concluded immediately?",
     choices: ["The input distribution changed under the chosen detector, but quality impact still needs evidence", "The model is certainly wrong", "Retraining will certainly fix it", "The service is unavailable"],
     answer: 0,

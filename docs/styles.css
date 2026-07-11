@@ -1425,6 +1425,10 @@ table {
   border-collapse: collapse;
 }
 
+.table-wrap-wide table {
+  min-width: 1000px;
+}
+
 th,
 td {
   border-bottom: 1px solid var(--line);
@@ -2589,12 +2593,17 @@ input[type="search"] {
   }
 
   .timeline-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(145px, 1fr));
+    overflow-x: auto;
   }
 
-  .flow-strip,
+  .flow-strip {
+    grid-template-columns: repeat(6, minmax(145px, 1fr));
+    overflow-x: auto;
+  }
+
   .flow-strip.wide {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(145px, 1fr));
   }
 
   .practice-layout {

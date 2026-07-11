@@ -129,7 +129,7 @@
     const evidence = document.createElement("p");
     evidence.className = "evidence-callout";
     const evidenceLabel = document.createElement("strong");
-    evidenceLabel.textContent = "Senior evidence: ";
+    evidenceLabel.textContent = "Study output: ";
     evidence.append(evidenceLabel, document.createTextNode(task.evidence));
 
     const completion = document.createElement("label");
@@ -146,7 +146,7 @@
       renderProgress();
     });
     const completionText = document.createElement("span");
-    completionText.textContent = "Implementation, tests, and evidence complete";
+    completionText.textContent = "Implementation, tests, and study output complete";
     completion.append(checkbox, completionText);
 
     article.append(meta, title, prompt, details, evidence, completion);

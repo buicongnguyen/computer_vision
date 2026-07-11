@@ -1,45 +1,76 @@
-# Senior Computer Vision Engineer Preparation Lab
+# Computer Vision Systems Study Lab
 
-An applied, evidence-driven program for preparing for senior computer vision,
-perception, and ML systems roles at companies such as Google, NVIDIA, and
-42dot. The goal is not to collect notes. The goal is to produce the evidence a
-senior hiring loop looks for: sound fundamentals, production-quality code,
-measured trade-offs, system judgment, and clear technical leadership stories.
+A structured, source-linked course for learning computer vision from image
+formation to modern 3D perception and deployment. The material is organized as
+a study guide: theory, visual reasoning flows, method comparisons, MCQs, coding
+practice, and reproducible experiments.
 
 **Interactive course:** [CV Systems Lab](https://buicongnguyen.github.io/computer_vision/)
 
-The site provides an organized theory-development flow, perception and
-calibration lessons, camera-to-BEV methods, modern computer vision, 72 explained
-MCQs, 30 coding exercises, progress tracking, and portfolio project gates.
+The public course is subject-focused. It contains no personal profile, résumé,
+skills self-assessment, or private information.
 
-## What you will build
+## What is included
 
-- A reproducible 2D perception benchmark with slice-based error analysis.
-- A real-time inference pipeline with latency, throughput, and memory evidence.
-- A calibrated 3D multi-object tracking system with sensor-fusion experiments.
-- An autonomy capstone with a design review, safety cases, and failure analysis.
-- A portfolio packet: concise project pages, architecture diagrams, demo clips,
-  engineering reports, resume bullets, and interview stories.
+- Theory development from camera physics and signals to geometry, learning,
+  temporal fusion, and production systems.
+- Perception, calibration, coordinate frames, BEV conversion, occupancy,
+  tracking, and multi-sensor reasoning.
+- Modern CNNs, transformers, self-supervision, diffusion, vision-language
+  models, neural rendering, world models, and efficient inference.
+- A detailed YOLO family tree that separates the original lineage,
+  Ultralytics releases, and independent research branches.
+- A current-topics lesson on LingBot-Map, monocular streaming reconstruction,
+  3D detection, 3D Gaussian Splatting, and recent NVIDIA reconstruction work.
+- 72 explained multiple-choice questions and 30 progressive coding exercises.
+- Six applied projects with baselines, comparison gates, failure tests, and
+  reproducibility requirements.
+- Official university course references and primary research sources.
 
-## Choose your emphasis
+## How the material is organized
 
-| Target | Emphasize | Portfolio signal |
-|---|---|---|
-| Google / Google DeepMind | ML depth, large-scale data/evaluation, clean coding, system design | Strong experiment design and a scalable vision system |
-| NVIDIA | CUDA/TensorRT, GPU architecture, profiling, numerical precision, deployment | A measured optimization report with Nsight/TensorRT evidence |
-| 42dot / autonomous driving | 3D geometry, tracking, camera-LiDAR-IMU fusion, SLAM, safety and closed-loop evaluation | A reproducible perception/tracking stack with scenario failures |
+The theory follows a dependency chain:
 
-The common core is the same. Use the role-specific electives in weeks 17-20.
+```text
+physical scene
+  → sensing and image formation
+  → signal processing and features
+  → projective and multi-view geometry
+  → estimation and uncertainty
+  → learned representations
+  → spatial and temporal fusion
+  → deployment and validation
+```
+
+Every important method choice uses the same reasoning flow:
+
+```text
+required output
+  → observability and sensors
+  → accuracy / latency / memory constraints
+  → viable method families
+  → common operating point
+  → failure-slice experiment
+  → simplest method that passes
+```
+
+Each module asks:
+
+1. What problem does the method solve?
+2. What assumptions make the output observable?
+3. Which alternatives exist, and what does each trade away?
+4. Which metric actually tests the required behavior?
+5. What counterexample would falsify the conclusion?
 
 ## Start here
 
-1. Read [START_HERE.md](START_HERE.md).
-2. Run the baseline assessment in [curriculum/00_diagnostic.md](curriculum/00_diagnostic.md).
-3. Select a weekly time budget in [ROADMAP.md](ROADMAP.md).
-4. Record the baseline in [progress/scorecard.md](progress/scorecard.md).
-5. Begin the first lab and commit work in small, reviewable changes.
+1. Open the [interactive study guide](https://buicongnguyen.github.io/computer_vision/).
+2. Read [START_HERE.md](START_HERE.md).
+3. Follow the schedule in [ROADMAP.md](ROADMAP.md).
+4. Use [curriculum/00_diagnostic.md](curriculum/00_diagnostic.md) as a baseline.
+5. Work through MCQs, coding tasks, and one applied project per topic cluster.
 
-### Local setup (PowerShell)
+## Local setup on Windows
 
 ```powershell
 cd C:\Users\n\source\repos\computer_vision
@@ -51,78 +82,35 @@ python tools/check_env.py
 pytest -q
 ```
 
-The core exercises use NumPy and pytest. Install the optional stacks only when a
-project needs them; see [SETUP.md](SETUP.md). This keeps the first day fast and
-makes dependency choices explicit.
-
-For a one-command Windows setup and validation, run:
+For one-command setup and validation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\bootstrap.ps1
 ```
 
+The core exercises use NumPy and pytest. Optional stacks are installed only
+when a project needs them; see [SETUP.md](SETUP.md).
+
 ## Repository map
 
 ```text
-curriculum/   Senior-level lessons, outcomes, drills, and assessments
+curriculum/   Lessons, derivations, drills, and assessments
 docs/         Dependency-free interactive GitHub Pages course
-labs/         Implement-from-scratch exercises plus reference implementations
-projects/     Four portfolio projects with milestones and acceptance criteria
-interview/    Coding, ML/CV, system design, behavioral, and mock-loop material
-application/  Role selection, resume, portfolio, networking, and tracking tools
-resources/    Official sources, papers, datasets, courses, and reading workflow
-progress/     Scorecard, weekly log, and evidence ledger
-tools/        Environment and repository validation scripts
-tests/        Tests for the reference implementations
+labs/         Implement-from-scratch exercises and reference implementations
+projects/     Applied perception and systems studies
+resources/    Official courses, papers, datasets, and reading workflow
+progress/     Optional local study log and scorecard
+tools/        Environment and site validation scripts
+tests/        Tests for implementations and site content
 ```
 
-## Definition of “senior-ready”
+## Source and reuse policy
 
-You are ready to start serious applications when you can do all of the
-following without hand-waving:
-
-- Derive and implement core geometry, metrics, filtering, and optimization
-  ideas, then explain their assumptions and failure modes.
-- Turn a vague product objective into measurable offline and online criteria.
-- Profile a pipeline and defend accuracy/latency/cost trade-offs with data.
-- Design data, training, evaluation, deployment, monitoring, and rollback as one
-  system rather than isolated model code.
-- Lead a technical review, identify risks early, and communicate a decision to
-  researchers, platform engineers, and product/safety partners.
-- Solve representative coding problems in 35-45 minutes while narrating tests,
-  complexity, and edge cases.
-
-Use the rubric in [SKILL_MATRIX.md](SKILL_MATRIX.md) to make that judgment.
-
-## Recommended cadence
-
-The default program is 24 weeks at 15-20 focused hours per week. A working
-engineer can use the 36-week schedule; an experienced CV engineer can use the
-12-week compression rules. Do not compress by skipping artifacts or reviews.
-
-Every week should produce at least one durable artifact: code, an experiment,
-an engineering memo, a design document, a talk, or a mock-interview recording.
-
-## Interactive course structure
-
-The theory is taught as an evolving dependency chain:
-
-```text
-image physics → signal processing → geometric invariants → projective geometry
-→ 3D and motion → statistical recognition → CNNs → transformers/foundation models
-→ neural 3D → BEV/autonomous perception → production systems
-```
-
-Each module follows:
-
-```text
-problem → idea → assumptions → failure → improvement → modern production form
-```
-
-University course topic selection and attribution are documented in
+University course topic selection is documented in
 [resources/university_course_sources.md](resources/university_course_sources.md).
-All site explanations, MCQs, diagrams, labs, and solutions are original; active
-university course assignments and solutions are not reproduced.
+The site links to official course pages and primary papers instead of copying
+their slides, assignments, recordings, or solutions. Site explanations, MCQs,
+diagrams, labs, and solution code are original unless a file states otherwise.
 
 ## GitHub Pages
 
@@ -132,10 +120,3 @@ The static site is served from `docs/` on the `main` branch:
 - Course: <https://buicongnguyen.github.io/computer_vision/>
 - Local preview: `python -m http.server 8942 --directory docs`
 - Site validation: `python tools/validate_site.py`
-
-## Important note
-
-Job descriptions and interview loops change. The role notes in this repository
-are snapshots with source links and verification dates. Re-check a specific job
-before applying, and never include confidential employer code or data in a
-portfolio.

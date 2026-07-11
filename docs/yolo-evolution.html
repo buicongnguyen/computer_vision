@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A study-first guide to YOLO evolution: version lineages, anchors, assignment, NMS-free detection, DFL, feature flow, reparameterization, PGI, attention, hypergraphs, STAL, benchmarking, MCQs, and coding practice.">
+  <meta name="theme-color" content="#071019">
+  <title>YOLO evolution and design choices | CV Systems Lab</title>
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/yolo-evolution.html">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html" aria-label="CV Systems Lab home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>
+          <strong>CV Systems Lab</strong>
+          <small>Computer vision study guide</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>MCQ</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <button class="theme-toggle" type="button" data-theme-toggle>
+          <span class="theme-icon" aria-hidden="true"></span>
+          <span class="theme-label">Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="modern-cv.html">Modern computer vision</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">YOLO evolution</span>
+    </nav>
+
+    <section class="page-hero">
+      <p class="eyebrow">Deep dive · YOLO evolution</p>
+      <h1>From grid regression to NMS-free real-time vision</h1>
+      <p>Trace why each YOLO design appeared, separate the post-v3 lineages, and learn to choose a detector by assignment, deployment, data, and failure-mode constraints—not by version number.</p>
+      <div>
+        <span class="tag">Theory flow</span>
+        <span class="tag">Decision logic</span>
+        <span class="tag">MCQ + coding</span>
+        <span class="tag">Primary sources</span>
+      </div>
+      <div>
+        <a class="button button-primary" href="#lineage">Start with the lineage</a>
+        <a class="button button-secondary" href="#selection">Choose by constraint</a>
+      </div>
+    </section>
+
+    <aside class="callout" aria-labelledby="study-contract-heading">
+      <div>
+        <p class="eyebrow">Study contract</p>
+        <h2 id="study-contract-heading">A version name is not an experiment</h2>
+      </div>
+      <p>For every model, identify the changed mechanism, its training signal, its inference graph, and the bottleneck it targets. Then compare exported pipelines on the same data and hardware. A higher number alone proves none of those things.</p>
+    </aside>
+
+    <section class="section" aria-labelledby="outcomes-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Learning outcomes</p>
+          <h2 id="outcomes-heading">What this module should make explainable</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="topic-card">
+          <p class="eyebrow">Trace</p>
+          <h3>Lineage and mechanisms</h3>
+          <p>Explain which releases share authors or code, which ideas crossed branches, and why post-v3 numbering is not one official sequence.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Derive</p>
+          <h3>Prediction and training</h3>
+          <p>Reason through anchors, assignment cardinality, NMS, DFL, feature aggregation, reparameterization, PGI, attention, hypergraphs, and STAL.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Decide</p>
+          <h3>Evidence under constraints</h3>
+          <p>Select candidates by vocabulary, target size, runtime, output contract, and maintenance needs; then run a fair benchmark that can falsify the choice.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="contents-heading">
+      <div class="content-card prose">
+        <p class="eyebrow">On this page</p>
+        <h2 id="contents-heading">Study path</h2>
+        <ul class="source-list">
+          <li><a href="#lineage">1. The post-v3 lineage map</a></li>
+          <li><a href="#versions">2. Version-by-version evolution</a></li>
+          <li><a href="#prediction">3. Anchors, assignment, NMS, and DFL</a></li>
+          <li><a href="#feature-flow">4. BoF/BoS, reparameterization, feature flow, and PGI</a></li>
+          <li><a href="#recent-mechanisms">5. Area attention, hypergraphs, and STAL</a></li>
+          <li><a href="#selection">6. Method-selection decision tree</a></li>
+          <li><a href="#benchmarking">7. Fair benchmarking</a></li>
+          <li><a href="#study-checks">8. Misconceptions, MCQs, and coding practice</a></li>
+          <li><a href="#primary-sources">9. Primary sources</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="lineage" aria-labelledby="lineage-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">01 · Naming truth</p>
+          <h2 id="lineage-heading">After YOLOv3, the number line branches</h2>
+          <p>The first three papers form a clear author lineage. Later releases come from different research groups and repositories, often borrowing ideas from one another without forming a single governed series.</p>
+        </div>
+      </div>
+
+      <div class="flow-strip wide" role="list" aria-label="Accessible YOLO lineage overview">
+        <div role="listitem"><span>2016</span><strong>YOLOv1</strong><small>one network, one pass</small></div>
+        <div role="listitem"><span>2017</span><strong>YOLOv2</strong><small>anchors + multi-scale</small></div>
+        <div role="listitem"><span>2018</span><strong>YOLOv3</strong><small>three-scale prediction</small></div>
+        <div role="listitem"><span>2020</span><strong>Branch point</strong><small>different teams continue</small></div>
+        <div role="listitem"><span>2020–25</span><strong>Parallel lines</strong><small>v4–v13 + named work</small></div>
+        <div role="listitem"><span>2026</span><strong>YOLO26</strong><small>Ultralytics release name</small></div>
+        <div role="listitem"><span>Always</span><strong>Compare evidence</strong><small>not adjacent numbers</small></div>
+      </div>
+
+      <div class="algorithm-grid" aria-label="Major YOLO lineages">
+        <article class="algorithm-card">
+          <span>Original papers</span>
+          <h3>Redmon / Farhadi</h3>
+          <p><strong>v1 → v2 / YOLO9000 → v3.</strong> This is the clearest direct paper lineage and establishes unified regression, anchors, and multi-scale prediction.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Darknet research line</span>
+          <h3>v4 → v7 → v9</h3>
+          <p>Overlapping Academia Sinica authors connect v4, Scaled-YOLOv4, YOLOR, v7, and v9 through CSP scaling, feature-flow design, reparameterization, GELAN, and PGI.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Ultralytics product line</span>
+          <h3>v5 → v8 → 11 → 26</h3>
+          <p>A deployment-oriented repository lineage. “YOLO11” intentionally omits the letter v; YOLO26 is its 2026 end-to-end family, not the twenty-sixth paper in one chain.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Independent releases</span>
+          <h3>v6, v10, v12, v13</h3>
+          <p>Meituan, Tsinghua-affiliated, and other teams publish separate systems: efficient industrial design, NMS-free dual assignment, area attention, and hypergraph feature fusion.</p>
+        </article>
+      </div>
+
+      <aside class="callout warning">
+        <p><strong>Missing numbers are not missing lessons.</strong> As of July 2026, no broadly recognized primary release establishes YOLOv14 or YOLOv15. Jumping from YOLO13 to YOLO26 reflects naming by different teams, not twelve undocumented upgrades.</p>
+      </aside>
+    </section>
+
+    <section class="section" id="versions" aria-labelledby="versions-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">02 · Evolution matrix</p>
+          <h2 id="versions-heading">Read each release as problem → mechanism → consequence</h2>
+          <p>The tables are a study index, not a universal ranking. “Dense + NMS” means many spatial predictions are decoded and duplicate boxes are removed after the network.</p>
+        </div>
+      </div>
+
+      <h3>Foundations: v1 to v4</h3>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only">YOLOv1 through YOLOv4 evolution</caption>
+          <thead>
+            <tr>
+              <th scope="col">Release</th>
+              <th scope="col">Problem being attacked</th>
+              <th scope="col">Important upgrade</th>
+              <th scope="col">Study consequence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/1506.02640" target="_blank" rel="noreferrer">YOLOv1 · 2016 ↗</a></th>
+              <td>Region-proposal pipelines repeat computation and are difficult to run in real time.</td>
+              <td>A single CNN regresses grid-cell boxes, objectness, and class probabilities as one global problem.</td>
+              <td>No anchor priors. Extremely fast, but coarse cells struggle with localization, small objects, and crowded groups.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/1612.08242" target="_blank" rel="noreferrer">YOLOv2 / YOLO9000 · 2017 ↗</a></th>
+              <td>v1 recall, localization, resolution, and fixed-category limitations.</td>
+              <td>Batch normalization, anchor boxes, k-means dimension clusters, direct location prediction, passthrough features, multi-scale training, and WordTree joint training.</td>
+              <td>Anchors improve recall and specialization but add priors, matching choices, and duplicate predictions that still require NMS.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/1804.02767" target="_blank" rel="noreferrer">YOLOv3 · 2018 ↗</a></th>
+              <td>Single-scale prediction misses objects whose size does not match the final feature map.</td>
+              <td>Darknet-53 residual backbone, three-scale FPN-style prediction, objectness, and independent logistic class scores.</td>
+              <td>Strong multi-scale template, still anchor-based and NMS-dependent. Independent class logits allow multi-label predictions.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2004.10934" target="_blank" rel="noreferrer">YOLOv4 · 2020 ↗</a></th>
+              <td>Improve the accuracy–speed frontier while remaining trainable on common GPUs.</td>
+              <td>CSPDarknet53, SPP, PAN, Mish, Mosaic, CIoU, and a systematic Bag of Freebies / Bag of Specials study.</td>
+              <td>Shows that architecture, augmentation, loss, and serving cost must be studied together. The detector remains anchor-based, dense, and NMS-dependent.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Parallel engineering: v5 to v10</h3>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only">YOLOv5 through YOLOv10 evolution</caption>
+          <thead>
+            <tr>
+              <th scope="col">Release</th>
+              <th scope="col">Problem being attacked</th>
+              <th scope="col">Important upgrade</th>
+              <th scope="col">Study consequence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><a href="https://github.com/ultralytics/yolov5" target="_blank" rel="noreferrer">Ultralytics YOLOv5 · 2020 ↗</a></th>
+              <td>Make training, transfer, export, and deployment accessible in a maintained PyTorch stack.</td>
+              <td>CSP/C3-era blocks, PAN/FPN neck, SPPF, AutoAnchor, strong augmentation, model scaling, and broad export support; details evolved across repository releases.</td>
+              <td>An influential repository release rather than an original version paper. Record the exact tag and weights when reproducing results.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2209.02976" target="_blank" rel="noreferrer">Meituan YOLOv6 · 2022–23 ↗</a></th>
+              <td>Industrial throughput across model sizes and deployment engines.</td>
+              <td>EfficientRep / Rep-PAN, efficient decoupled heads, distillation, anchor-free prediction with anchor-aided training; v3.0 adds BiC and SimCSPSPPF.</td>
+              <td>Train-time branches can collapse into efficient deploy blocks. Exported latency matters more than raw PyTorch timing.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2207.02696" target="_blank" rel="noreferrer">YOLOv7 · 2022 ↗</a></th>
+              <td>Preserve useful gradient paths while scaling real-time networks.</td>
+              <td>E-ELAN, compound scaling for concatenation networks, planned reparameterized convolution, auxiliary heads, and trainable bags of freebies.</td>
+              <td>Training graph and inference graph can differ. Fuse reparameterized blocks before measuring deployment.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://docs.ultralytics.com/models/yolov8/" target="_blank" rel="noreferrer">Ultralytics YOLOv8 · 2023 ↗</a></th>
+              <td>Remove anchor-prior tuning and unify detection, segmentation, pose, classification, and OBB workflows.</td>
+              <td>C2f feature blocks, decoupled anchor-free head, Task-Aligned Assignment, IoU loss plus Distribution Focal Loss.</td>
+              <td><strong>Anchor-free is not NMS-free.</strong> Dense locations still produce duplicate boxes and use NMS.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2402.13616" target="_blank" rel="noreferrer">YOLOv9 · 2024 ↗</a></th>
+              <td>Deep networks can discard information needed to form reliable gradients.</td>
+              <td>Programmable Gradient Information (PGI) and Generalized ELAN (GELAN) coordinate training supervision with efficient feature aggregation.</td>
+              <td>The reversible auxiliary branch is training-only; the main branch serves at inference. Dense outputs still use NMS.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2405.14458" target="_blank" rel="noreferrer">Tsinghua YOLOv10 · 2024 ↗</a></th>
+              <td>NMS adds latency, thresholds, and integration complexity; dense heads also contain redundant computation.</td>
+              <td>Consistent dual assignments: one-to-many supervision helps training while a one-to-one branch learns unique predictions; holistic efficiency changes reduce head and backbone cost.</td>
+              <td>The one-to-one branch is deployed without NMS. Benchmark the exported model because an unfused framework graph may execute branches that export removes.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Recent branches: YOLO11, v12, v13, and YOLO26</h3>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only">YOLO11 through YOLO26 evolution</caption>
+          <thead>
+            <tr>
+              <th scope="col">Release</th>
+              <th scope="col">Problem being attacked</th>
+              <th scope="col">Important upgrade</th>
+              <th scope="col">Study consequence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><a href="https://docs.ultralytics.com/models/yolo11/" target="_blank" rel="noreferrer">Ultralytics YOLO11 · 2024 ↗</a></th>
+              <td>Improve the efficiency and task coverage of the v8 product line.</td>
+              <td>C3k2 blocks, C2PSA spatial attention, revised neck/head components, and unified task variants.</td>
+              <td>Standard detection remains anchor-free, dense, DFL-based, and NMS-dependent. C3k2 is a block name—not a 2×2 convolution claim.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2502.12524" target="_blank" rel="noreferrer">YOLOv12 · 2025 ↗</a></th>
+              <td>Use attention's receptive field without losing real-time throughput.</td>
+              <td>Area Attention partitions features into simple horizontal or vertical areas; R-ELAN adds scaled residuals and stable aggregation; FlashAttention reduces memory traffic.</td>
+              <td>Attention speed depends on kernels and hardware support. The published family retains dense detection and NMS.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2506.17733" target="_blank" rel="noreferrer">YOLOv13 · 2025 ↗</a></th>
+              <td>Pairwise/local aggregation cannot directly express global many-to-many, cross-scale relations.</td>
+              <td>HyperACE learns hyperedges over multi-scale pixels; FullPAD redistributes enhanced features through backbone, neck, and head; depthwise-separable blocks limit cost.</td>
+              <td>An arXiv preprint with N/S/L/X variants. The official YAML ends in a standard dense Detect head, so “full pipeline” does not mean NMS-free.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2606.03748" target="_blank" rel="noreferrer">Ultralytics YOLO26 · 2026 ↗</a></th>
+              <td>Simplify end-to-end deployment, lighten DFL-heavy heads, reduce training cost, and rescue tiny objects with zero positive candidates.</td>
+              <td>Default one-to-one NMS-free head plus optional one-to-many NMS head, direct DFL-free regression, MuSGD, Progressive Loss, and STAL; task-specific segmentation, pose, and OBB changes.</td>
+              <td>Two inference contracts expose a real speed–accuracy choice. Official COCO checkpoints use Objects365-v1 pretraining and tuned schedules, so compare training recipes as well as architecture.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Important named branches</h3>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only">Important non-numbered YOLO branches</caption>
+          <thead>
+            <tr>
+              <th scope="col">Branch</th>
+              <th scope="col">Main idea</th>
+              <th scope="col">Why it matters</th>
+              <th scope="col">Do not confuse it with</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2011.08036" target="_blank" rel="noreferrer">Scaled-YOLOv4 ↗</a></th>
+              <td>Scale CSP-based networks systematically across width, depth, resolution, and stage structure.</td>
+              <td>Scaling rules change the computation path; “make every layer wider” is not a reliable compound strategy.</td>
+              <td>A new numbered official successor.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2105.04206" target="_blank" rel="noreferrer">YOLOR ↗</a></th>
+              <td>Unify explicit features with implicit knowledge learned by the network.</td>
+              <td>Influences how auxiliary and implicit representations can help many tasks without duplicating the serving graph.</td>
+              <td>Open-vocabulary language prompting.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2107.08430" target="_blank" rel="noreferrer">YOLOX ↗</a></th>
+              <td>Anchor-free decoupled head with SimOTA dynamic assignment and a strong recipe.</td>
+              <td>A major bridge from anchor-based YOLO designs to modern anchor-free dense detectors.</td>
+              <td>NMS-free inference; YOLOX still uses NMS.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2401.17270" target="_blank" rel="noreferrer">YOLO-World ↗</a></th>
+              <td>Real-time open-vocabulary detection with vision-language pretraining and a reparameterizable vision-language path.</td>
+              <td>Class vocabulary becomes an inference input rather than a fixed final classifier matrix.</td>
+              <td>Guaranteed detection of every unseen concept.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2503.07465" target="_blank" rel="noreferrer">YOLOE ↗</a></th>
+              <td>Text-prompted, visual-prompted, and prompt-free real-time detection and segmentation in one family.</td>
+              <td>Choice of prompt mode becomes part of the system contract; YOLOE-26 moves the design onto YOLO26.</td>
+              <td>A replacement for domain data and unknown-object evaluation.</td>
+            </tr>
+            <tr>
+              <th scope="row"><a href="https://arxiv.org/abs/2512.23273" target="_blank" rel="noreferrer">YOLO-Master · preprint 2025 / CVPR 2026 ↗</a></th>
+              <td>Expert-specialized mixture-of-experts with dynamic routing for efficient specialization.</td>
+              <td>Represents a current non-numbered direction: conditional computation rather than another dense block stack.</td>
+              <td>Evidence that v14 or v15 exists.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="prediction" aria-labelledby="prediction-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">03 · Prediction logic</p>
+          <h2 id="prediction-heading">Anchors, assignment, and duplicate removal are separate choices</h2>
+          <p>Three questions define the head: how a box is parameterized, how targets are assigned during training, and how duplicate predictions are handled during inference.</p>
+        </div>
+      </div>
+
+      <div class="flow-strip" role="list" aria-label="Detection-head evolution">
+        <div role="listitem"><span>1</span><strong>Anchor prior</strong><small>offset from preset shape</small></div>
+        <div role="listitem"><span>2</span><strong>Anchor-free point</strong><small>distances from location</small></div>
+        <div role="listitem"><span>3</span><strong>Assignment</strong><small>which outputs learn object</small></div>
+        <div role="listitem"><span>4</span><strong>Dense duplicates</strong><small>many boxes per object</small></div>
+        <div role="listitem"><span>5</span><strong>NMS or unique match</strong><small>remove or prevent copies</small></div>
+        <div role="listitem"><span>6</span><strong>Output contract</strong><small>variable or fixed top-k</small></div>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">Box parameterization</p>
+          <h3>Anchor-based</h3>
+          <p>Each feature location owns several prior shapes. The head predicts center offsets and width/height transforms relative to a selected prior. Good priors can specialize learning, but the number, scale, aspect ratios, matching thresholds, and dataset shift all become configuration.</p>
+          <div class="equation-block" aria-label="Simplified anchor box decoding equations">
+            <span>x = cell_x + sigmoid(t_x)</span>
+            <span>y = cell_y + sigmoid(t_y)</span>
+            <span>w = prior_w × exp(t_w), &nbsp; h = prior_h × exp(t_h)</span>
+          </div>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Box parameterization</p>
+          <h3>Anchor-free</h3>
+          <p>A feature point predicts a center or distances to the four box sides. This removes the bank of preset shapes and often simplifies transfer across datasets. It does <em>not</em> guarantee unique predictions: nearby points may all predict the same object.</p>
+          <div class="equation-block" aria-label="Simplified anchor-free box decoding equations">
+            <span>box = (x_p − l, y_p − t, x_p + r, y_p + b)</span>
+            <span>location p + four learned distances → one candidate box</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="table-wrap table-wrap-wide">
+        <table>
+          <caption>Assignment cardinality determines the supervision–duplication trade-off.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Choice</th>
+              <th scope="col">Training signal</th>
+              <th scope="col">Inference behavior</th>
+              <th scope="col">Why choose it</th>
+              <th scope="col">Main cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">One-to-many</th>
+              <td>Several locations or anchors become positive for one ground-truth object.</td>
+              <td>Dense candidates usually contain duplicates; thresholding and NMS select survivors.</td>
+              <td>Rich positive supervision, strong early optimization, and often slightly higher AP.</td>
+              <td>NMS latency, threshold sensitivity, variable output count, and crowded-scene suppression errors.</td>
+            </tr>
+            <tr>
+              <th scope="row">One-to-one</th>
+              <td>One prediction is selected for each ground-truth object under a matching cost.</td>
+              <td>Predictions are trained to be unique, enabling direct NMS-free decoding.</td>
+              <td>Simpler end-to-end graph, stable fixed top-k contract, and lower post-processing cost.</td>
+              <td>Sparser supervision can be harder to optimize and may trail a dense path in accuracy.</td>
+            </tr>
+            <tr>
+              <th scope="row">Dual assignment</th>
+              <td>A dense one-to-many path teaches features while a one-to-one path learns the deploy contract.</td>
+              <td>Deploy the one-to-one path; some families retain an optional dense path with NMS.</td>
+              <td>Combines training signal with NMS-free inference. YOLOv10 and YOLO26 use related but not identical designs.</td>
+              <td>Training complexity and branch-balancing choices; verify which branch the exporter actually emits.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">One-to-many flow</p>
+          <h3>Learn broadly, suppress later</h3>
+          <ol class="step-list">
+            <li>Generate candidate points or anchors across feature levels.</li>
+            <li>Assign several aligned candidates to each object.</li>
+            <li>Optimize class, objectness, and box losses on those positives.</li>
+            <li>Decode many overlapping boxes, then apply score filtering and NMS.</li>
+          </ol>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">One-to-one flow</p>
+          <h3>Learn uniqueness before deployment</h3>
+          <ol class="step-list">
+            <li>Build a candidate set and a classification/localization matching cost.</li>
+            <li>Select a unique prediction for each object.</li>
+            <li>Teach unmatched predictions to represent no object.</li>
+            <li>Decode the ranked set directly without class-wise NMS.</li>
+          </ol>
+        </article>
+      </div>
+
+      <aside class="callout">
+        <p><strong>Critical distinction:</strong> anchor-free answers “how is a box represented?” NMS-free answers “how are duplicate boxes prevented?” A detector can be anchor-free and still need NMS, as in standard YOLOv8 and YOLO11 detection.</p>
+      </aside>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">Localization representation</p>
+          <h3>Distribution Focal Loss versus direct regression</h3>
+        </div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>DFL: predict a distribution</h3>
+          <p>For each side of the box, the head predicts logits over discrete distance bins. Softmax gives probabilities; the expected bin becomes the decoded distance. A non-integer target supervises its two neighboring bins with linear weights.</p>
+          <div class="equation-block" aria-label="Distribution Focal Loss decoding">
+            <span>p_i = softmax(z)_i</span>
+            <span>d_hat = Σ i × p_i, &nbsp; i = 0 … reg_max</span>
+            <span>target y → weighted supervision at floor(y) and ceil(y)</span>
+          </div>
+          <p><strong>Why use it:</strong> it represents ambiguity near boundaries and gives fine-grained localization gradients. <strong>Cost:</strong> four distributions replace four scalars, add decoding, and impose finite bin support.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Direct regression: predict a scalar</h3>
+          <p>YOLO26 sets the regression design to a direct four-distance output, removing the DFL decoder and its bin channels. The paper compensates with Progressive Loss and STAL rather than claiming direct regression is free accuracy.</p>
+          <div class="equation-block" aria-label="Direct box regression">
+            <span>(l, t, r, b) = f(feature)</span>
+            <span>four continuous values → decoded box</span>
+          </div>
+          <p><strong>Why use it:</strong> lighter heads, unconstrained range, simpler export, and broader accelerator compatibility. <strong>Cost:</strong> less explicit distribution modeling, so the complete loss and assignment recipe matters.</p>
+        </article>
+      </div>
+      <p class="section-note"><strong>Terminology check:</strong> DFL is the localization term from Generalized Focal Loss. It is not the same mechanism as the original classification Focal Loss used to address foreground–background imbalance.</p>
+    </section>
+
+    <section class="section" id="feature-flow" aria-labelledby="feature-flow-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">04 · Efficient learning and serving</p>
+          <h2 id="feature-flow-heading">What helps only training, what changes inference, and what moves information</h2>
+        </div>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">YOLOv4 vocabulary</p>
+          <h3>Bag of Freebies</h3>
+          <p>Methods that improve training or generalization without intentionally increasing the deployed model graph: data augmentation, label smoothing, better box losses, regularization, or offline data processing.</p>
+          <p><strong>Choose when:</strong> training budget and data realism can increase but serving cost cannot. <strong>Validate:</strong> the final export really has the same operators and latency.</p>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">YOLOv4 vocabulary</p>
+          <h3>Bag of Specials</h3>
+          <p>Modules or post-processing that improve accuracy for a modest inference cost: receptive-field blocks, attention, feature fusion, activation choices, or NMS variants.</p>
+          <p><strong>Choose when:</strong> measured accuracy gain justifies the runtime and integration overhead. The labels are contextual; a train-time branch that fuses away can become effectively “free” at deployment.</p>
+        </article>
+      </div>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">Structural reparameterization</p>
+          <h3>Train with branches; deploy one convolution</h3>
+        </div>
+      </div>
+      <div class="flow-strip" role="list" aria-label="Structural reparameterization flow">
+        <div role="listitem"><span>Train</span><strong>3×3 branch</strong><small>convolution + BN</small></div>
+        <div role="listitem"><span>Train</span><strong>1×1 branch</strong><small>convolution + BN</small></div>
+        <div role="listitem"><span>Train</span><strong>Identity branch</strong><small>BN if shapes match</small></div>
+        <div role="listitem"><span>Fuse</span><strong>Fold each BN</strong><small>scale weights + bias</small></div>
+        <div role="listitem"><span>Fuse</span><strong>Pad and sum</strong><small>align kernels</small></div>
+        <div role="listitem"><span>Deploy</span><strong>One 3×3 conv</strong><small>same linear result</small></div>
+      </div>
+      <div class="equation-block" aria-label="Simplified structural reparameterization equation">
+        <span>Conv(BN) fusion: W′ = γW / sqrt(variance + ε), &nbsp; b′ = β + γ(b − mean) / sqrt(variance + ε)</span>
+        <span>Equivalent deploy kernel: W_deploy = Σ pad(W′_branch), &nbsp; b_deploy = Σ b′_branch</span>
+      </div>
+      <p class="section-note">Equivalence requires compatible stride, padding, groups, and channel shapes, with nonlinear activation applied after branch summation. Test fused and unfused outputs numerically before timing.</p>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">Feature-flow progression</p>
+          <h3>Why neck and block design keep changing</h3>
+        </div>
+      </div>
+      <div class="flow-strip wide" role="list" aria-label="YOLO feature-flow evolution">
+        <div role="listitem"><span>v3</span><strong>FPN</strong><small>semantic top-down fusion</small></div>
+        <div role="listitem"><span>v4/5</span><strong>PAN</strong><small>add bottom-up localization</small></div>
+        <div role="listitem"><span>v7</span><strong>E-ELAN</strong><small>control gradient paths</small></div>
+        <div role="listitem"><span>v8</span><strong>C2f</strong><small>split + repeated fusion</small></div>
+        <div role="listitem"><span>v9</span><strong>GELAN</strong><small>generalized aggregation</small></div>
+        <div role="listitem"><span>v12</span><strong>R-ELAN</strong><small>residual stability for attention</small></div>
+        <div role="listitem"><span>v13</span><strong>FullPAD</strong><small>redistribute enhanced context</small></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>Feature-flow designs answer different bottlenecks.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Design</th>
+              <th scope="col">Information path</th>
+              <th scope="col">Why choose it</th>
+              <th scope="col">What to measure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">FPN / PAN</th><td>Fuse deep semantics with high-resolution localization in one or two directions.</td><td>Reliable multi-scale baseline with common operators.</td><td>Small-object AP, feature memory, and neck latency.</td></tr>
+            <tr><th scope="row">ELAN family</th><td>Controls shortest/longest gradient paths and aggregates multiple transformation depths.</td><td>Increase representational capacity without blindly deepening a chain.</td><td>Convergence stability, activation memory, and fused latency.</td></tr>
+            <tr><th scope="row">GELAN</th><td>Generalizes CSP and ELAN-style aggregation for different computational blocks.</td><td>Pair efficient inference architecture with PGI-guided training.</td><td>Main-branch export graph, parameter utilization, and ablation gain.</td></tr>
+            <tr><th scope="row">FullPAD</th><td>Collects multi-scale features, enhances correlations, then distributes them to seven points across the pipeline.</td><td>Let cross-scale context influence backbone–neck, neck, and neck–head interfaces.</td><td>Added memory traffic, runtime support, domain transfer, and whether simpler fusion matches it.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">YOLOv9</p>
+          <h3>Programmable Gradient Information is a training design</h3>
+        </div>
+      </div>
+      <div class="flow-strip" role="list" aria-label="Programmable Gradient Information training flow">
+        <div role="listitem"><span>1</span><strong>Input</strong><small>shared evidence</small></div>
+        <div role="listitem"><span>2</span><strong>Main branch</strong><small>future deploy path</small></div>
+        <div role="listitem"><span>3</span><strong>Auxiliary branch</strong><small>reversible information path</small></div>
+        <div role="listitem"><span>4</span><strong>Multi-level signals</strong><small>usable supervision</small></div>
+        <div role="listitem"><span>5</span><strong>Program gradients</strong><small>reduce information loss</small></div>
+        <div role="listitem"><span>6</span><strong>Serve main only</strong><small>auxiliary path removed</small></div>
+      </div>
+      <aside class="callout">
+        <p><strong>Why PGI:</strong> a lossy feed-forward path may not preserve everything a deep loss needs. PGI introduces auxiliary reversible and multi-level information paths so useful gradients reach the main network. <strong>Why not always:</strong> it complicates training and reproduction; the value must appear in an ablation while the serving graph stays unchanged.</p>
+      </aside>
+    </section>
+
+    <section class="section" id="recent-mechanisms" aria-labelledby="recent-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">05 · Recent mechanisms</p>
+          <h2 id="recent-heading">Pairwise attention, many-to-many hypergraphs, and tiny-target assignment</h2>
+          <p>These mechanisms attack different failures. They are alternatives only when the measured bottleneck overlaps.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Area Attention and HyperACE encode different relation structures.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Mechanism</th>
+              <th scope="col">Relation being modeled</th>
+              <th scope="col">Efficiency idea</th>
+              <th scope="col">When it may be better</th>
+              <th scope="col">Risk to test</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">YOLOv12 Area Attention</th>
+              <td>Pairwise token-to-token attention inside a horizontal or vertical area.</td>
+              <td>Simple reshape partitions the map into a fixed number of areas, reducing quadratic work while keeping a larger field than small local windows; FlashAttention reduces memory traffic.</td>
+              <td>Context and receptive field limit a CNN baseline, and the target GPU has efficient attention kernels.</td>
+              <td>Kernel availability, memory, CPU/edge slowdown, higher-resolution scaling, and convergence of large variants.</td>
+            </tr>
+            <tr>
+              <th scope="row">YOLOv13 HyperACE + FullPAD</th>
+              <td>Learned hyperedges connect multiple spatial vertices across feature scales, supporting many-to-many high-order messages as well as a local low-order branch.</td>
+              <td>Learn vertex participation, aggregate vertex→hyperedge→vertex with linear message passing, then distribute the enhanced feature through gated FullPAD tunnels.</td>
+              <td>Complex scenes require cross-location and cross-scale associations that pairwise/local aggregation misses.</td>
+              <td>Dataset-specific contextual shortcuts, operator/toolchain maturity, memory traffic, and latency of L/X variants.</td>
+            </tr>
+            <tr>
+              <th scope="row">Convolutional FPN/PAN baseline</th>
+              <td>Local kernels plus hierarchical multi-scale fusion.</td>
+              <td>Highly optimized standard operators and predictable memory access.</td>
+              <td>Edge portability, maintainability, or dataset size matters more than richer relation modeling.</td>
+              <td>Receptive field and missed contextual interactions; test against attention/hypergraph variants rather than assuming either direction wins.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">YOLO26 STAL</p>
+          <h3>Change the candidate mask, not the localization target</h3>
+        </div>
+      </div>
+      <div class="flow-strip" role="list" aria-label="Small-Target-Aware Label Assignment flow">
+        <div role="listitem"><span>1</span><strong>Tiny true box</strong><small>may contain no grid center</small></div>
+        <div role="listitem"><span>2</span><strong>Detect zero coverage</strong><small>TAL candidate failure</small></div>
+        <div role="listitem"><span>3</span><strong>Build surrogate</strong><small>expand width/height for mask only</small></div>
+        <div role="listitem"><span>4</span><strong>Select candidates</strong><small>guarantee positive coverage</small></div>
+        <div role="listitem"><span>5</span><strong>Restore true box</strong><small>score and regress original</small></div>
+        <div role="listitem"><span>6</span><strong>Receive gradient</strong><small>tiny object is no longer dropped</small></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Why the failure exists</h3>
+          <p>Task-Aligned Assignment first masks candidate centers to those inside a ground-truth box. After feature downsampling, an object smaller than the grid spacing can contain no center. With no candidate, it contributes no classification or localization gradient.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Why STAL is conservative</h3>
+          <p>STAL enlarges each too-small dimension only while constructing the candidate mask. Task-aligned scoring, final assignment, and regression still use the original box, so the detector is not trained to predict an inflated object.</p>
+        </article>
+      </div>
+      <aside class="callout warning">
+        <p><strong>STAL is not a complete small-object solution.</strong> If input resolution erases the object, labels are noisy, or the feature pyramid has no sufficiently fine level, candidate coverage cannot recover missing visual evidence. Compare higher resolution, tiling, a P2 head, data changes, and tracking alongside assignment.</p>
+      </aside>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">YOLO26 optimization</p>
+          <h3>Progressive Loss aligns training with the deployed head</h3>
+        </div>
+      </div>
+      <div class="timeline-list" role="list" aria-label="Progressive Loss curriculum">
+        <article class="content-card timeline-item" role="listitem"><span class="timeline-label">Early</span><h3>Favor dense signal</h3><p>Weight the one-to-many branch more strongly to stabilize shared feature learning.</p></article>
+        <article class="content-card timeline-item" role="listitem"><span class="timeline-label">Middle</span><h3>Transfer emphasis</h3><p>Decrease the dense branch weight while increasing the one-to-one objective.</p></article>
+        <article class="content-card timeline-item" role="listitem"><span class="timeline-label">Late</span><h3>Match deployment</h3><p>Optimize the head that will produce NMS-free predictions at inference.</p></article>
+        <article class="content-card timeline-item" role="listitem"><span class="timeline-label">Update</span><h3>Use MuSGD</h3><p>Mix Muon and SGD updates for multidimensional weights; retain SGD for one-dimensional parameters.</p></article>
+        <article class="content-card timeline-item" role="listitem"><span class="timeline-label">Export</span><h3>Choose a path</h3><p>Use default one-to-one NMS-free output or optional one-to-many output with NMS.</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="selection" aria-labelledby="selection-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">06 · Selection logic</p>
+          <h2 id="selection-heading">Choose a candidate by the constraint that can reject it</h2>
+          <p>Start with the output contract and deployment target. Architecture novelty is a later filter.</p>
+        </div>
+      </div>
+
+      <div class="content-card prose">
+        <h3>Decision tree</h3>
+        <ol class="step-list">
+          <li><strong>Must categories change at inference?</strong> If yes, test YOLOE / YOLOE-26 for text, visual, or prompt-free modes and YOLO-World for text-conditioned open vocabulary. If labels are fixed and domain-specific, continue with a closed-set detector.</li>
+          <li><strong>Must the exported graph avoid class-wise NMS?</strong> If yes, begin with YOLOv10 or the YOLO26 one-to-one path. Verify top-k support and output semantics in the target runtime. If no, dense YOLOv8, v9, YOLO11, v12, v13, or the YOLO26 NMS path remain candidates.</li>
+          <li><strong>Is the bottleneck CPU, mobile, or accelerator compatibility?</strong> Start from a small convolutional model with proven export support. YOLO26 removes DFL and NMS from its default path; YOLO11 or v8 can be simpler mature baselines. Do not assume attention is fast outside the GPU and kernel measured by its paper.</li>
+          <li><strong>Are tiny objects the dominant measured error?</strong> Compare resolution, tiling, P2 features, label quality, STAL, and temporal aggregation. Select the cheapest change that improves AP<sub>S</sub> and downstream recall without unacceptable false positives.</li>
+          <li><strong>Does complex cross-object context dominate?</strong> Add YOLOv12 and v13 as controlled candidates. Area attention models pairwise relations over areas; HyperACE models learned many-to-many relations. Keep the simpler FPN/PAN baseline until an ablation shows domain benefit.</li>
+          <li><strong>Is reproducibility or ecosystem maturity the strongest constraint?</strong> Prefer a pinned, well-supported repository and export path over a newer preprint. Record code commit, weights, license, preprocessing, and post-processing before comparing metrics.</li>
+        </ol>
+      </div>
+
+      <div class="table-wrap table-wrap-wide">
+        <table>
+          <caption>“Better” depends on the rejection test.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Primary constraint</th>
+              <th scope="col">First candidate</th>
+              <th scope="col">Alternatives</th>
+              <th scope="col">Why this starting point</th>
+              <th scope="col">Winner test</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Stable, mature closed-set baseline</th><td>YOLOv8 or YOLO11</td><td>YOLOv5, YOLOX</td><td>Broad tooling and standard dense operators.</td><td>Reproduce data-to-deployment metrics with pinned versions.</td></tr>
+            <tr><th scope="row">Native NMS-free output</th><td>YOLOv10 or YOLO26 E2E</td><td>Real-time DETR families</td><td>One-to-one deploy path removes class-wise NMS.</td><td>Export succeeds; end-to-end p99 and AP satisfy the contract.</td></tr>
+            <tr><th scope="row">Maximum AP with NMS acceptable</th><td>YOLO26 dense path</td><td>v9, YOLO11, v12, v13</td><td>Optional dense head provides a direct accuracy–latency knob.</td><td>Same-data Pareto frontier including post-processing.</td></tr>
+            <tr><th scope="row">Attention-centric context</th><td>YOLOv12</td><td>v13, transformer detector</td><td>Area Attention keeps a broad field with simple partitions.</td><td>Target-runtime latency and domain-slice gain exceed CNN baseline.</td></tr>
+            <tr><th scope="row">High-order cross-scale context</th><td>YOLOv13</td><td>v12, stronger neck, temporal model</td><td>HyperACE and FullPAD explicitly aggregate and redistribute many-to-many relations.</td><td>Cross-domain and shortcut tests confirm robust—not spurious—gain.</td></tr>
+            <tr><th scope="row">Changing vocabulary</th><td>YOLOE / YOLOE-26</td><td>YOLO-World, Grounding DINO</td><td>Supports multiple prompting contracts in a real-time family.</td><td>Seen/unseen AP, prompt sensitivity, unknown handling, and latency.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="benchmarking" aria-labelledby="benchmark-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">07 · Evidence</p>
+          <h2 id="benchmark-heading">Benchmark the system that will actually run</h2>
+          <p>A model table is comparable only when data, training, decoding, runtime, and measurement boundaries match.</p>
+        </div>
+      </div>
+
+      <div class="flow-strip" role="list" aria-label="Fair detector benchmarking flow">
+        <div role="listitem"><span>1</span><strong>Freeze contract</strong><small>task + thresholds + output</small></div>
+        <div role="listitem"><span>2</span><strong>Freeze data</strong><small>split + labels + slices</small></div>
+        <div role="listitem"><span>3</span><strong>Match recipe</strong><small>pretrain + epochs + input</small></div>
+        <div role="listitem"><span>4</span><strong>Export models</strong><small>same runtime + precision</small></div>
+        <div role="listitem"><span>5</span><strong>Measure pipeline</strong><small>warm-up + p50/p95/p99</small></div>
+        <div role="listitem"><span>6</span><strong>Analyze failures</strong><small>size + class + conditions</small></div>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <p class="eyebrow">Control variables</p>
+          <h3>Make the comparison fair</h3>
+          <ul class="check-list">
+            <li>Same train/validation split, label mapping, ignored regions, and leakage checks.</li>
+            <li>Same input size, resize/letterbox policy, normalization, and augmentation budget.</li>
+            <li>Disclose external pretraining, pseudo-labels, epochs, optimizer, and hyperparameter search.</li>
+            <li>Same device, power mode, batch, precision, runtime, workspace, dynamic/static shapes, and concurrency.</li>
+            <li>Export, fuse, and warm up every model; verify numerical drift before timing.</li>
+            <li>Include preprocessing, host/device transfer, decode, top-k, and NMS inside or outside every measurement consistently.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Report enough evidence</p>
+          <h3>Reject averages without tails</h3>
+          <ul class="check-list">
+            <li>COCO-style AP, AP50, AP75, and AP by small/medium/large objects.</li>
+            <li>Per-class recall, false positives per image, confidence calibration, and domain slices.</li>
+            <li>p50, p95, p99 latency, throughput, peak memory, model size, and energy when relevant.</li>
+            <li>Cold start, warm-up count, repeated runs, confidence intervals, and raw timing logs.</li>
+            <li>Downstream tracking, temporal stability, or safety metrics if boxes feed another system.</li>
+            <li>Qualitative failures with a hypothesis and a discriminating next experiment.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout warning">
+        <p><strong>Three comparison traps:</strong> (1) YOLOv10 should be timed after export because unused training branches can distort framework latency. (2) YOLO26's reported COCO checkpoints use Objects365-v1 pretraining and model-size-specific tuning, unlike many train-from-scratch tables. (3) YOLO26's one-to-one and one-to-many paths trade NMS-free simplicity against a typical accuracy advantage for the dense path; report which path was measured.</p>
+      </div>
+    </section>
+
+    <section class="section" id="study-checks" aria-labelledby="checks-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">08 · Retrieval and application</p>
+          <h2 id="checks-heading">Misconceptions, MCQs, and coding practice</h2>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Quick misconception repair.</caption>
+          <thead>
+            <tr><th scope="col">Claim</th><th scope="col">Correction</th><th scope="col">Fast verification</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">“YOLOv13 must follow YOLO12's code.”</th><td>Numbers span independent teams and repositories.</td><td>Read author lists, repository ownership, model YAML, and citations.</td></tr>
+            <tr><th scope="row">“Anchor-free means no post-processing.”</th><td>Dense anchor-free heads can produce duplicates and require NMS.</td><td>Inspect exported outputs and the prediction pipeline.</td></tr>
+            <tr><th scope="row">“End-to-end in a title means NMS-free.”</th><td>The term can describe training or pipeline scope; it does not prove unique output assignment.</td><td>Check the head, assignment cardinality, and whether inference calls NMS.</td></tr>
+            <tr><th scope="row">“More FLOPs always means slower.”</th><td>Kernel efficiency, memory movement, fusion, precision, and hardware dominate wall-clock behavior.</td><td>Benchmark the exported engine on the target device.</td></tr>
+            <tr><th scope="row">“The newest checkpoint is a fair architecture comparison.”</th><td>Pretraining, augmentation, tuning, and data can move AP independently of architecture.</td><td>Run controlled training or disclose the recipe difference.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="split-section" aria-label="YOLO multiple-choice study checks">
+        <div>
+          <details>
+            <summary>MCQ 1 · Which change is sufficient by itself to make a detector NMS-free?</summary>
+            <ol type="A">
+              <li>Replace anchors with points.</li>
+              <li>Use DFL for box distances.</li>
+              <li>Train predictions with a uniqueness-preserving one-to-one assignment and direct decode contract.</li>
+              <li>Add a finer feature level.</li>
+            </ol>
+            <p><strong>Answer: C.</strong> Anchor-free changes box parameterization, not duplicate behavior. One-to-one set-style supervision is the relevant mechanism.</p>
+          </details>
+          <details>
+            <summary>MCQ 2 · Why keep a one-to-many branch during dual-head training?</summary>
+            <ol type="A">
+              <li>It provides richer positive supervision.</li>
+              <li>It guarantees lower serving latency.</li>
+              <li>It removes all matching costs.</li>
+              <li>It eliminates the classifier.</li>
+            </ol>
+            <p><strong>Answer: A.</strong> Dense positives stabilize feature learning. The branch may be discarded or made optional at deployment.</p>
+          </details>
+          <details>
+            <summary>MCQ 3 · What does DFL decode for one box side?</summary>
+            <ol type="A">
+              <li>The argmax class label.</li>
+              <li>The expected value of a probability distribution over distance bins.</li>
+              <li>An anchor aspect ratio from k-means.</li>
+              <li>An NMS threshold.</li>
+            </ol>
+            <p><strong>Answer: B.</strong> Neighboring bins also provide interpolation-like supervision for non-integer targets.</p>
+          </details>
+        </div>
+        <div>
+          <details>
+            <summary>MCQ 4 · Which YOLOv9 component must remain at inference for PGI to help?</summary>
+            <ol type="A">
+              <li>The reversible auxiliary branch.</li>
+              <li>Every auxiliary head.</li>
+              <li>Only the trained main branch.</li>
+              <li>A language encoder.</li>
+            </ol>
+            <p><strong>Answer: C.</strong> PGI shapes training gradients; the auxiliary reversible path is not required in the serving graph.</p>
+          </details>
+          <details>
+            <summary>MCQ 5 · What does YOLO26 STAL enlarge?</summary>
+            <ol type="A">
+              <li>The regression target box.</li>
+              <li>The image at inference.</li>
+              <li>Only the surrogate geometry used to build the candidate-selection mask.</li>
+              <li>Every predicted box before NMS.</li>
+            </ol>
+            <p><strong>Answer: C.</strong> Scoring, final assignment, and regression retain the original target box.</p>
+          </details>
+          <details>
+            <summary>MCQ 6 · What is the strongest evidence that YOLOv12 is faster for a target system?</summary>
+            <ol type="A">
+              <li>Its attention complexity formula.</li>
+              <li>Its paper's result on another GPU.</li>
+              <li>Its parameter count.</li>
+              <li>Repeated exported-pipeline latency on the target hardware and precision.</li>
+            </ol>
+            <p><strong>Answer: D.</strong> Area Attention and FlashAttention gains depend on operators, kernels, memory, shape, and hardware.</p>
+          </details>
+        </div>
+      </div>
+
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">Coding practice</p>
+          <h3>Build mechanisms before benchmarking whole repositories</h3>
+        </div>
+      </div>
+      <div class="algorithm-grid">
+        <article class="algorithm-card">
+          <span>Lab 01 · Geometry</span>
+          <h3>IoU and class-wise NMS</h3>
+          <p>Implement vectorized IoU and NMS. Test empty input, identical boxes, ties, class separation, numerical stability, and quadratic scaling.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 02 · Parameterization</span>
+          <h3>Anchors versus points</h3>
+          <p>Fit k-means anchor dimensions, implement anchor decode and l/t/r/b point decode, then compare coverage under a shifted aspect-ratio distribution.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 03 · Localization</span>
+          <h3>DFL encode and decode</h3>
+          <p>Encode fractional distances into adjacent bins, decode by expectation, check gradients, then compare output channels and range with direct regression.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 04 · Assignment</span>
+          <h3>TAL zero-candidate case</h3>
+          <p>Create a tiny box between grid centers. Reproduce zero coverage, add an STAL-style candidate surrogate, and assert that regression still uses the true box.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 05 · Dual heads</span>
+          <h3>Progressive branch loss</h3>
+          <p>Train a toy dense and unique-prediction head. Plot positive counts, branch gradients, and a linear shift from dense to one-to-one supervision.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 06 · Deployment</span>
+          <h3>Fuse reparameterized blocks</h3>
+          <p>Fold batch normalization and sum 3×3, padded 1×1, and identity kernels. Assert maximum output error before timing both graphs.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 07 · Context</span>
+          <h3>Area versus hyperedge messages</h3>
+          <p>Implement striped pairwise attention and vertex→hyperedge→vertex aggregation on a small tensor. Compare relation structure, memory, and scaling.</p>
+        </article>
+        <article class="algorithm-card">
+          <span>Lab 08 · Evidence</span>
+          <h3>Export benchmark harness</h3>
+          <p>Report warm-up, p50/p95/p99, memory, AP by size, preprocessing, decode, and NMS. Save environment and raw samples with the result.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="primary-sources" aria-labelledby="sources-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">09 · Primary sources</p>
+          <h2 id="sources-heading">Papers, official repositories, and model documentation</h2>
+          <p>The evolution summary is based on original papers and owner-maintained repositories or documentation, checked in July 2026.</p>
+        </div>
+      </div>
+
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Foundations and numbered research lines</h3>
+          <ul class="source-list">
+            <li><a href="https://arxiv.org/abs/1506.02640" target="_blank" rel="noreferrer">YOLOv1 — You Only Look Once ↗</a></li>
+            <li><a href="https://arxiv.org/abs/1612.08242" target="_blank" rel="noreferrer">YOLOv2 / YOLO9000 ↗</a></li>
+            <li><a href="https://arxiv.org/abs/1804.02767" target="_blank" rel="noreferrer">YOLOv3: An Incremental Improvement ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2004.10934" target="_blank" rel="noreferrer">YOLOv4: Optimal Speed and Accuracy ↗</a></li>
+            <li><a href="https://github.com/ultralytics/yolov5" target="_blank" rel="noreferrer">Ultralytics YOLOv5 official repository ↗</a></li>
+            <li><a href="https://docs.ultralytics.com/yolov5/tutorials/architecture-description/" target="_blank" rel="noreferrer">YOLOv5 official architecture description ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2209.02976" target="_blank" rel="noreferrer">YOLOv6 paper ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2301.05586" target="_blank" rel="noreferrer">YOLOv6 v3.0 paper ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2207.02696" target="_blank" rel="noreferrer">YOLOv7 paper ↗</a></li>
+            <li><a href="https://docs.ultralytics.com/models/yolov8/" target="_blank" rel="noreferrer">Ultralytics YOLOv8 official documentation ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2402.13616" target="_blank" rel="noreferrer">YOLOv9: PGI and GELAN ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2405.14458" target="_blank" rel="noreferrer">YOLOv10: Real-Time End-to-End Object Detection ↗</a></li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <h3>Recent and named branches</h3>
+          <ul class="source-list">
+            <li><a href="https://docs.ultralytics.com/models/yolo11/" target="_blank" rel="noreferrer">Ultralytics YOLO11 official documentation ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2502.12524" target="_blank" rel="noreferrer">YOLOv12: Attention-Centric Real-Time Detectors ↗</a></li>
+            <li><a href="https://github.com/sunsmarterjie/yolov12" target="_blank" rel="noreferrer">YOLOv12 official repository ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2506.17733" target="_blank" rel="noreferrer">YOLOv13: Hypergraph-Enhanced Adaptive Visual Perception ↗</a></li>
+            <li><a href="https://github.com/iMoonLab/yolov13" target="_blank" rel="noreferrer">YOLOv13 official repository and model YAML ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2606.03748" target="_blank" rel="noreferrer">Ultralytics YOLO26 paper ↗</a></li>
+            <li><a href="https://docs.ultralytics.com/models/yolo26/" target="_blank" rel="noreferrer">Ultralytics YOLO26 official documentation ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2011.08036" target="_blank" rel="noreferrer">Scaled-YOLOv4 ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2105.04206" target="_blank" rel="noreferrer">YOLOR ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2107.08430" target="_blank" rel="noreferrer">YOLOX ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2401.17270" target="_blank" rel="noreferrer">YOLO-World ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2503.07465" target="_blank" rel="noreferrer">YOLOE: Real-Time Seeing Anything ↗</a></li>
+            <li><a href="https://arxiv.org/abs/2512.23273" target="_blank" rel="noreferrer">YOLO-Master: Expert-Specialized Dynamic Routing ↗</a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <label class="milestone-toggle"><input type="checkbox" data-milestone="yolo-evolution"><span>Mark the YOLO evolution deep dive complete on this device</span></label>
+    <nav class="section card-grid" aria-label="Module navigation">
+      <a class="content-card" href="modern-cv.html">
+        <span class="eyebrow">Back to module</span>
+        <h2>Modern computer vision</h2>
+        <p>Place YOLO beside DETR, foundation representations, generative vision, and neural 3D.</p>
+      </a>
+      <a class="content-card" href="practice.html">
+        <span class="eyebrow">Continue practicing</span>
+        <h2>Computer vision MCQs</h2>
+        <p>Test mechanism understanding and engineering judgment across the full course.</p>
+      </a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <span><strong>CV Systems Lab</strong><small>Learn deeply. Compare methods. Test assumptions.</small></span>
+        </a>
+        <p>Open study material for computer vision, perception, geometry, and ML systems.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="theory.html">Theory</a>
+        <a href="practice.html">MCQ</a>
+        <a href="coding.html">Coding</a>
+        <a href="projects.html">Projects</a>
+        <a href="sources.html">Sources</a>
+        <a href="https://github.com/buicongnguyen/computer_vision">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>
