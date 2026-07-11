@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A rigorous guide from calibrated camera images to bird's-eye-view perception: IPM, depth lifting, splatting, attention, temporal fusion, and occupancy.">
+  <title>Bird's-eye view | CV Systems Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle><span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a><a href="perception.html" data-nav-link>Perception</a><a href="calibration.html" data-nav-link>Calibration</a><a href="bev.html" aria-current="page" data-nav-link>BEV</a><a href="modern-cv.html" data-nav-link>Modern CV</a><a href="practice.html" data-nav-link>Practice</a><a href="coding.html" data-nav-link>Coding</a><a href="projects.html" data-nav-link>Projects</a><a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions"><a class="github-link" href="https://github.com/buicongnguyen/computer_vision">GitHub</a><button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button></div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Bird's-eye view</span></nav>
+    <section class="page-hero">
+      <p class="eyebrow">Pixels → rays → metric space → decisions</p>
+      <h1>Bird's-eye-view conversion and perception</h1>
+      <p>BEV is not one transform or one neural architecture. It is a dependency chain from calibrated frames and planar inverse perspective mapping to learned depth lifting, cross-view attention, temporal alignment, sensor fusion, occupancy, and a planning-facing spatial contract.</p>
+      <div><span class="tag">IPM</span><span class="tag">Lift–splat</span><span class="tag">Temporal BEV</span><span class="tag">Fusion &amp; occupancy</span></div>
+    </section>
+
+    <aside class="callout">
+      <div><p class="eyebrow">Prerequisite gate</p><h2>Do not begin with a network diagram</h2></div>
+      <p>You must first be able to project a 3D point with named frames, derive a plane homography, back-project a depth pixel, and test calibration/time alignment. Review <a href="calibration.html">camera calibration</a> before learned BEV.</p>
+    </aside>
+
+    <section aria-labelledby="chain-heading">
+      <div class="section-heading"><div><p class="eyebrow">Theory flow</p><h2 id="chain-heading">The BEV dependency chain</h2></div></div>
+      <div class="flow-strip wide" role="list" aria-label="BEV theory progression">
+        <div role="listitem"><span>1</span><strong>Calibrate</strong><small>K, frames, time</small></div>
+        <div role="listitem"><span>2</span><strong>Planar IPM</strong><small>known ground</small></div>
+        <div role="listitem"><span>3</span><strong>Lift depth</strong><small>pixel frustums</small></div>
+        <div role="listitem"><span>4</span><strong>Pool/attend</strong><small>BEV features</small></div>
+        <div role="listitem"><span>5</span><strong>Align time</strong><small>ego motion</small></div>
+        <div role="listitem"><span>6</span><strong>Fuse</strong><small>camera/LiDAR/radar</small></div>
+        <div role="listitem"><span>7</span><strong>Predict</strong><small>objects/occupancy</small></div>
+      </div>
+    </section>
+
+    <section class="split-section" aria-labelledby="why-bev-heading">
+      <article class="content-card prose">
+        <p class="eyebrow">Why BEV</p>
+        <h2 id="why-bev-heading">A spatial interface for perception</h2>
+        <ul>
+          <li>A common metric frame simplifies distance, heading, motion, map, and route reasoning.</li>
+          <li>Multiple cameras and range sensors can contribute to the same spatial cell.</li>
+          <li>Temporal features can be ego-motion compensated in a stable coordinate system.</li>
+          <li>Detection, map segmentation, occupancy, flow, and planning can share aligned outputs.</li>
+        </ul>
+      </article>
+      <article class="content-card prose">
+        <p class="eyebrow">What BEV cannot promise</p>
+        <h2>Representation does not remove ambiguity</h2>
+        <ul>
+          <li>Monocular pixels do not uniquely determine depth.</li>
+          <li>Occluded or unobserved space remains uncertain.</li>
+          <li>Grid resolution trades detail for memory/compute.</li>
+          <li>Calibration and timestamp errors become spatial feature errors.</li>
+          <li>A ground-aligned grid may poorly represent vertical structure.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section aria-labelledby="ipm-heading">
+      <div class="section-heading"><div><p class="eyebrow">Stage 1 · Classical geometry</p><h2 id="ipm-heading">Inverse perspective mapping on a plane</h2></div><p>Use this interpretable baseline for lane/road features and as a geometry oracle for learned systems.</p></div>
+      <div class="content-card prose">
+        <p>Assume a world/ego ground plane <code>Z = 0</code> and world-to-camera pose <code>[R | t]</code>. If <code>r₁</code> and <code>r₂</code> are the first two columns of <code>R</code>, a ground point maps to a pixel by:</p>
+        <div class="equation-block">
+          <span>λ [u, v, 1]<sup>T</sup> = K [r₁ &nbsp; r₂ &nbsp; t] [X, Y, 1]<sup>T</sup></span>
+          <span>H<sub>image←ground</sub> = K [r₁ &nbsp; r₂ &nbsp; t]</span>
+          <span>[X, Y, 1]<sup>T</sup> ∼ H<sup>−1</sup><sub>image←ground</sub> [u, v, 1]<sup>T</sup></span>
+        </div>
+        <p>For a dense output, use <strong>backward warping</strong>: create each BEV cell at metric center <code>(X, Y)</code>, map it into the source image with <code>H</code>, divide by homogeneous scale, sample bilinearly, and return a validity mask.</p>
+      </div>
+      <div class="algorithm-grid">
+        <article class="algorithm-card"><span>01</span><h3>Define the grid</h3><p>Choose forward/side bounds, meters per cell, row/column axis direction, origin, and cell-center convention.</p></article>
+        <article class="algorithm-card"><span>02</span><h3>Construct points</h3><p>Create homogeneous ground coordinates for every BEV cell center in the declared ego/world frame.</p></article>
+        <article class="algorithm-card"><span>03</span><h3>Project</h3><p>Apply the ground-to-image homography, normalize, and reject points behind/outside the source image.</p></article>
+        <article class="algorithm-card"><span>04</span><h3>Sample</h3><p>Bilinearly sample image intensities or semantic probabilities; preserve a visibility/validity map.</p></article>
+      </div>
+      <div class="callout warning">
+        <div><p class="eyebrow">Flat-ground failure</p><h3>Off-plane pixels are placed on the road</h3></div>
+        <p>Vehicles, people, walls, slopes, crests, and curbs violate the plane assumption. Tall objects stretch away from the camera because their elevated pixels are incorrectly intersected with the ground plane.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="lift-heading">
+      <div class="section-heading"><div><p class="eyebrow">Stage 2 · Learned geometry</p><h2 id="lift-heading">Lift image features through depth</h2></div></div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Lift</h3>
+          <p>For image feature <code>F(u,v)</code>, predict a probability or weight over depth bins <code>p(d | u,v)</code>. For z-depth <code>d</code>:</p>
+          <div class="equation-block">
+            <span>P<sub>camera</sub>(u,v,d) = d K<sup>−1</sup>[u,v,1]<sup>T</sup></span>
+            <span>P<sub>ego</sub> = T<sub>ego←camera</sub> P<sub>camera</sub></span>
+            <span>G(u,v,d) = p(d | u,v) · F(u,v)</span>
+          </div>
+          <p>This creates feature mass along each viewing frustum. Be explicit whether <code>d</code> is optical-axis depth, range, inverse depth, or another parameterization.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Splat</h3>
+          <p>Map each 3D feature sample to a BEV cell and aggregate all cameras/depth bins:</p>
+          <div class="equation-block">
+            <span>i = floor((X − X<sub>min</sub>) / ΔX)</span>
+            <span>j = floor((Y − Y<sub>min</sub>) / ΔY)</span>
+            <span>B(i,j) = Σ G(u,v,d) for samples in cell (i,j)</span>
+          </div>
+          <p>Sum, mean, max, learned pooling, or sparse scatter have different density and performance behavior. Keep the geometry separately testable from the learned features.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="evolution-heading">
+      <div class="section-heading"><div><p class="eyebrow">Development of BEV theory</p><h2 id="evolution-heading">Each method repairs an earlier assumption—and adds a new one</h2></div></div>
+      <div class="evolution-table" role="table" aria-label="Evolution of BEV methods">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Form</span><span role="columnheader">Key idea</span><span role="columnheader">What it fixes</span><span role="columnheader">New risk/cost</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Planar IPM</span><span role="cell">One calibrated homography</span><span role="cell">Perspective for ground features</span><span role="cell">Flat-ground/off-plane distortion</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Depth lift + splat</span><span role="cell">Distribute learned features over depth</span><span role="cell">Non-planar 3D content</span><span role="cell">Depth ambiguity, discretization, frustum memory</span></div>
+        <div class="evolution-row" role="row"><span role="cell">BEV queries + attention</span><span role="cell">BEV cells sample relevant multi-view features</span><span role="cell">Dense depth-volume cost and flexible fusion</span><span role="cell">Reference-point/calibration sensitivity, attention cost</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Temporal BEV</span><span role="cell">Align past BEV by ego motion and fuse</span><span role="cell">Occlusion and weak single-frame evidence</span><span role="cell">Pose/time/state drift and dynamic-object ghosting</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Multi-sensor BEV</span><span role="cell">Fuse camera semantics with range measurements</span><span role="cell">Monocular scale/depth weakness</span><span role="cell">Sensor dropout, misalignment, rate mismatch</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Occupancy/world models</span><span role="cell">Predict spatial state and its evolution</span><span role="cell">Fixed object vocabulary and open-loop snapshots</span><span role="cell">3D/temporal scale, uncertainty, closed-loop validity</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="temporal-heading">
+      <div class="section-heading"><div><p class="eyebrow">Stage 3 · Time and fusion</p><h2 id="temporal-heading">A BEV map is timestamped, not timeless</h2></div></div>
+      <div class="card-grid">
+        <article class="content-card prose"><h3>Ego-motion alignment</h3><p>Backward-warp the previous BEV into the current frame using timestamped pose. Validate zero-motion identity, known translation/rotation, validity masks, and grid sampling conventions.</p></article>
+        <article class="content-card prose"><h3>Dynamic objects</h3><p>Ego alignment makes the static world consistent, not moving actors. Use object motion, temporal attention, flow, recurrent state, or an explicit dynamic representation to avoid ghosts.</p></article>
+        <article class="content-card prose"><h3>Sensor rate and dropout</h3><p>Camera, LiDAR, radar, and IMU capture at different times/rates. Define interpolation, maximum age, missing-sensor training, confidence, and degraded-mode behavior.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="failure-heading">
+      <div class="section-heading"><div><p class="eyebrow">Failure analysis</p><h2 id="failure-heading">Diagnose the map by perturbing its assumptions</h2></div></div>
+      <div class="diagnostic-grid">
+        <article class="diagnostic-card"><h3>Extrinsic yaw error</h3><p>Objects shift laterally with range and disagree across camera boundaries. Inject small rotations and plot cell/box error versus distance.</p></article>
+        <article class="diagnostic-card"><h3>Camera pitch or height change</h3><p>IPM lane geometry systematically scales/curves; learned lifting can also drift if calibration is not modeled or trained robustly.</p></article>
+        <article class="diagnostic-card"><h3>Depth-bin aliasing</h3><p>Distant features jump between cells or smear. Compare linear, inverse, and task-aware depth bins with memory held fixed.</p></article>
+        <article class="diagnostic-card"><h3>Temporal timestamp error</h3><p>Static map edges double under ego motion; moving objects ghost differently. Sweep offset and separate static/dynamic slices.</p></article>
+        <article class="diagnostic-card"><h3>Camera overlap seam</h3><p>Cross-view features duplicate or cancel. Audit photometric/domain differences, visibility, calibration, and fusion weights.</p></article>
+        <article class="diagnostic-card"><h3>Unknown/occluded space</h3><p>A dense map may look confident where no sensor observed. Preserve observed/free/occupied/unknown semantics and evaluate calibration.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="metrics-heading">
+      <div class="section-heading"><div><p class="eyebrow">Evaluation stack</p><h2 id="metrics-heading">Measure geometry, task quality, time, and system cost</h2></div></div>
+      <div class="metric-grid">
+        <article><strong>Geometry</strong><span>projection/cell error, alignment residual, calibration perturbation sensitivity</span></article>
+        <article><strong>Detection</strong><span>3D/BEV AP, center/dimension/yaw/velocity error, range and occlusion slices</span></article>
+        <article><strong>Map/occupancy</strong><span>class/region IoU, free/occupied/unknown, flow, calibration and rare-structure slices</span></article>
+        <article><strong>Temporal</strong><span>stability, ghosting, track/occupancy consistency, time-offset and pose-error curves</span></article>
+        <article><strong>System</strong><span>end-to-end p50/p95/p99, throughput, memory, bandwidth, power, dropped/aged frames</span></article>
+        <article><strong>Closed loop</strong><span>downstream planning/safety outcomes, scenario coverage, interventions, simulation validity</span></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="lab-heading">
+      <div class="section-heading"><div><p class="eyebrow">Three-stage lab</p><h2 id="lab-heading">Build BEV from an interpretable baseline outward</h2></div><a class="button secondary" href="coding.html">Open BEV coding track</a></div>
+      <div class="phase-grid">
+        <article class="phase-card"><span>Stage 1</span><h3>Classical IPM</h3><p>Synthetic ground checkerboard → calibrated backward warp → valid mask → meters-per-cell check → slope/tall-object failures.</p><strong>Gate: sub-cell error on planar oracle.</strong></article>
+        <article class="phase-card"><span>Stage 2</span><h3>Lift and splat</h3><p>Known depth → frustum geometry → multi-camera scatter → learned depth distribution → memory/quality ablation.</p><strong>Gate: scalar oracle equals vectorized geometry.</strong></article>
+        <article class="phase-card"><span>Stage 3</span><h3>Temporal/fusion</h3><p>Ego-warp previous state → fuse range sensor → inject missing sensor, calibration, time, and pose faults.</p><strong>Gate: documented degraded behavior and rollback.</strong></article>
+      </div>
+    </section>
+
+    <aside class="callout">
+      <div><p class="eyebrow">Senior system-design prompt</p><h2>Design 360° camera-to-BEV perception for heterogeneous vehicles</h2></div>
+      <p>Specify ODD and outputs, camera/calibration contract, grid/range/resolution, depth or attention method, temporal state, sensor dropout, data/evaluation slices, latency/memory budgets, hardware variants, canary/rollback, observability, and the experiment that decides between lift–splat and query-based fusion.</p>
+    </aside>
+
+    <section class="next-actions" aria-labelledby="bev-practice-heading">
+      <div><p class="eyebrow">Practice and build</p><h2 id="bev-practice-heading">Protect every coordinate boundary</h2></div>
+      <div class="action-grid">
+        <a class="action-card" href="practice.html"><span>Knowledge check</span><strong>BEV &amp; 3D MCQs</strong><small>Depth, IPM, fusion, temporal alignment, occupancy.</small></a>
+        <a class="action-card" href="coding.html"><span>Implementation</span><strong>Six BEV/3D exercises</strong><small>Back-projection, IPM, lift–splat, voxelization, warp, alignment audit.</small></a>
+        <a class="action-card" href="projects.html"><span>Portfolio</span><strong>Autonomy capstone</strong><small>Turn the converter into a measured perception system.</small></a>
+      </div>
+    </section>
+
+    <section class="content-card prose" aria-labelledby="bev-sources">
+      <p class="eyebrow">Primary reading</p>
+      <h2 id="bev-sources">Sources at the end of this module</h2>
+      <p>This BEV module is an original extension built on multi-view geometry; it is not attributed to the university courses in the source map.</p>
+      <ul class="source-list">
+        <li><a href="https://arxiv.org/abs/2008.05711">Lift, Splat, Shoot: Encoding Images from Arbitrary Camera Rigs by Implicitly Unprojecting to 3D</a></li>
+        <li><a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf">BEVFormer: Learning Bird's-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers</a></li>
+        <li><a href="https://arxiv.org/abs/2205.13542">BEVFusion: A Simple and Robust LiDAR-Camera Fusion Framework</a></li>
+        <li><a href="https://www.nuscenes.org/nuscenes">nuScenes official dataset and devkit</a></li>
+        <li><a href="sources.html">Complete university course source map and attribution</a></li>
+      </ul>
+    </section>
+
+    <label class="milestone-toggle"><input type="checkbox" data-milestone="bev"><span>Mark BEV conversion complete on this device</span></label>
+    <nav class="page-pagination" aria-label="Course pages"><a href="calibration.html"><span>Previous</span><strong>Calibration</strong></a><a href="modern-cv.html"><span>Next</span><strong>Modern computer vision</strong></a></nav>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div class="footer-brand"><strong>CV Systems Lab</strong><p>BEV is a calibrated spatiotemporal system, not only a tensor shape.</p></div><nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="modern-cv.html">Modern CV</a><a href="sources.html">Sources</a></nav></div></footer>
+  <script src="site.js"></script>
+</body>
+</html>

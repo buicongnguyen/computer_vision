@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Original explained MCQ practice across computer vision foundations, geometry, calibration, deep learning, BEV, and production systems.">
+  <title>MCQ practice | CV Systems Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" aria-current="page" data-nav-link>Practice</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision">GitHub</a>
+        <button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">MCQ practice</span></nav>
+
+    <section class="page-hero">
+      <p class="eyebrow">Recall · diagnose · explain</p>
+      <h1>Computer vision MCQ practice</h1>
+      <p>Seventy-two original questions test mechanisms, calculations, failure diagnosis, and senior engineering judgment. Every answer includes an explanation; progress stays in this browser.</p>
+      <div><span class="tag">72 questions</span><span class="tag">9 domains</span><span class="tag">3 difficulty levels</span></div>
+    </section>
+
+    <section class="practice-layout" aria-label="Quiz workspace">
+      <aside class="filter-panel">
+        <div class="section-heading compact"><div><p class="eyebrow">Configure</p><h2>Practice set</h2></div></div>
+        <label for="topic-filter">Topic</label>
+        <select id="topic-filter"><option value="all">All topics</option></select>
+        <label for="difficulty-filter">Difficulty</label>
+        <select id="difficulty-filter">
+          <option value="all">All difficulties</option>
+          <option value="Foundation">Foundation</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Senior">Senior</option>
+        </select>
+        <label for="mode-filter">Question mode</label>
+        <select id="mode-filter">
+          <option value="all">All questions</option>
+          <option value="unseen">Unseen only</option>
+          <option value="missed">Retry missed</option>
+        </select>
+        <div class="button-stack">
+          <button class="button secondary" id="shuffle-questions" type="button">Shuffle set</button>
+          <button class="button ghost" id="reset-session" type="button">Reset session score</button>
+        </div>
+        <div class="score-panel"><span>Session score</span><strong id="session-score">0 / 0 (0%)</strong></div>
+        <div class="button-stack small">
+          <button class="text-button" id="export-progress" type="button">Export progress JSON</button>
+          <button class="text-button danger" id="clear-progress" type="button">Clear saved progress</button>
+        </div>
+      </aside>
+
+      <section class="quiz-card" aria-labelledby="question-text">
+        <div class="quiz-meta">
+          <span class="tag" id="question-topic">Topic</span>
+          <span class="tag" id="question-difficulty">Difficulty</span>
+          <span id="question-counter" aria-live="polite">0 / 0</span>
+        </div>
+        <h2 id="question-text">Loading question…</h2>
+        <form id="answer-form">
+          <fieldset>
+            <legend class="sr-only">Choose one answer</legend>
+            <div class="choice-list" id="answer-choices"></div>
+          </fieldset>
+          <div class="quiz-actions">
+            <button class="button primary" id="submit-answer" type="submit">Check answer</button>
+            <button class="button secondary" id="next-question" type="button" disabled>Next question</button>
+          </div>
+        </form>
+        <div class="feedback" id="answer-feedback" role="status" aria-live="polite" hidden></div>
+      </section>
+    </section>
+
+    <section aria-labelledby="mastery-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Persistent recall map</p><h2 id="mastery-heading">Topic mastery</h2></div>
+        <p>A question counts here when your most recent answer is correct. Revisit missed topics after roughly 1, 7, and 21 days.</p>
+      </div>
+      <div class="mastery-grid" id="mastery-grid"></div>
+    </section>
+
+    <aside class="callout">
+      <div><p class="eyebrow">Use MCQs correctly</p><h2>Recall is the start, not the finish</h2></div>
+      <p>For every miss, state the mechanism, write a counterexample to the wrong option, and implement or derive the idea. Continue in <a href="coding.html">coding practice</a> or return to the relevant theory page.</p>
+    </aside>
+
+    <nav class="page-pagination" aria-label="Course pages">
+      <a href="modern-cv.html"><span>Previous</span><strong>Modern CV</strong></a>
+      <a href="coding.html"><span>Next</span><strong>Coding practice</strong></a>
+    </nav>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div class="footer-brand"><strong>CV Systems Lab</strong><p>Original practice for senior computer vision engineering.</p></div><nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="coding.html">Coding</a><a href="sources.html">Sources</a></nav></div></footer>
+  <script src="site.js"></script>
+  <script src="quiz-data.js"></script>
+  <script src="practice.js"></script>
+</body>
+</html>

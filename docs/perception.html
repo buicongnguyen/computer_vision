@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build and evaluate complete perception systems: detection, segmentation, depth, tracking, fusion, uncertainty, failure analysis, and data improvement loops.">
+  <meta name="theme-color" content="#071019">
+  <title>Perception systems | CV Systems Lab</title>
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/perception.html">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html" aria-label="CV Systems Lab home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" aria-current="page" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>MCQ</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="theory.html">Theory</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Perception systems</span>
+    </nav>
+
+    <section class="page-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Core system · perception</p>
+        <h1>Turn sensor evidence into decisions you can trust</h1>
+        <p class="hero-lede">Perception is not a collection of heads attached to a backbone. It is a timed, calibrated, measurable contract between the physical world and a downstream consumer—with uncertainty and degraded behavior included.</p>
+        <div class="tag-row" aria-label="Page topics">
+          <span class="tag">Detection</span>
+          <span class="tag">Segmentation</span>
+          <span class="tag">Depth</span>
+          <span class="tag">Tracking</span>
+          <span class="tag">Fusion</span>
+          <span class="tag">Uncertainty</span>
+        </div>
+        <div class="button-row">
+          <a class="button button-primary" href="#system-pipeline">Trace the pipeline</a>
+          <a class="button button-secondary" href="projects.html#perception-benchmark">Build a benchmark</a>
+        </div>
+      </div>
+      <aside class="content-card hero-aside" aria-label="Perception lesson summary">
+        <p class="eyebrow">Operating question</p>
+        <blockquote>What must the next component know, by when, and how should it behave when we are wrong?</blockquote>
+        <dl class="compact-list">
+          <div><dt>Level</dt><dd>Intermediate → Senior</dd></div>
+          <div><dt>Study</dt><dd>3–5 hours</dd></div>
+          <div><dt>Evidence</dt><dd>Slice-based review</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="outcomes-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Learning outcomes</p>
+          <h2 id="outcomes-title">At the end of this module</h2>
+        </div>
+      </div>
+      <div class="card-grid outcomes-grid">
+        <article class="topic-card">
+          <span class="card-index">01</span>
+          <h3>Specify the contract</h3>
+          <p>Define frames, timestamps, classes, uncertainty, latency, coverage, and the downstream decision interface.</p>
+        </article>
+        <article class="topic-card">
+          <span class="card-index">02</span>
+          <h3>Choose task and representation</h3>
+          <p>Select detection, segmentation, depth, tracking, BEV, or occupancy based on what the consumer must query.</p>
+        </article>
+        <article class="topic-card">
+          <span class="card-index">03</span>
+          <h3>Evaluate behavior</h3>
+          <p>Pair headline metrics with calibration, latency, slices, temporal stability, and qualitative error taxonomies.</p>
+        </article>
+        <article class="topic-card">
+          <span class="card-index">04</span>
+          <h3>Close the failure loop</h3>
+          <p>Convert incidents into reproducible slices, targeted data, controlled experiments, launch gates, and monitoring.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="system-pipeline" aria-labelledby="pipeline-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Sensor-to-decision pipeline</p>
+          <h2 id="pipeline-title">Every boundary needs an explicit contract</h2>
+        </div>
+        <p>Debug from left to right; validate safety from right to left.</p>
+      </div>
+
+      <ol class="flow-list flow-list-compact" aria-label="Sensor to decision perception pipeline">
+        <li class="content-card flow-card">
+          <span class="flow-number">01</span>
+          <div><h3>Sense</h3><p>Capture image, range, Doppler, and inertial measurements with exposure and timestamp metadata.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">02</span>
+          <div><h3>Calibrate and synchronize</h3><p>Correct intrinsics and distortion; align extrinsics, motion, rolling shutter, scan time, and clock domains.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">03</span>
+          <div><h3>Encode</h3><p>Normalize the signal and extract features while preserving the resolution, geometry, and detail the task needs.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">04</span>
+          <div><h3>Infer</h3><p>Predict objects, masks, keypoints, depth, flow, lanes, free space, semantics, or occupancy.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">05</span>
+          <div><h3>Associate and fuse</h3><p>Combine views, modalities, and history using frame alignment, gating, reliability, and missing-input behavior.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">06</span>
+          <div><h3>Represent</h3><p>Emit boxes, tracks, vector maps, BEV features, occupancy, embeddings, or a scene state with confidence and age.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">07</span>
+          <div><h3>Decide</h3><p>Search, rank, inspect, alert, plan, or control under a known deadline and cost of false positive versus false negative.</p></div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">08</span>
+          <div><h3>Monitor</h3><p>Measure data health, output quality, uncertainty, latency, drift, incidents, and fallback activation after launch.</p></div>
+        </li>
+      </ol>
+
+      <aside class="callout">
+        <p class="eyebrow">Reverse design</p>
+        <h3>Begin with the decision, not the architecture</h3>
+        <p>If a planner needs collision-relevant occupancy at 20 Hz, a high image-level classification score is insufficient. Work backward from spatial extent, update rate, uncertainty, missed-obstacle cost, and fallback behavior to the representation, fusion strategy, task heads, sensor coverage, and data plan.</p>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="sensors-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Observation layer</p>
+          <h2 id="sensors-title">Know what each sensor measures—and what it does not</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Sensor</th>
+              <th scope="col">Strong evidence</th>
+              <th scope="col">Structural weakness</th>
+              <th scope="col">Required failure probes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Camera</th>
+              <td>Texture, color, class, lane and light semantics</td>
+              <td>Metric depth ambiguity; lighting and weather sensitivity</td>
+              <td>Glare, darkness, blur, occlusion, dirty lens, exposure transition</td>
+            </tr>
+            <tr>
+              <th scope="row">LiDAR</th>
+              <td>Metric range, 3D shape, free-space evidence</td>
+              <td>Sparse returns at range; moving scan; reflectivity effects</td>
+              <td>Range bins, rain, dropout, low reflectivity, time/extrinsic offset</td>
+            </tr>
+            <tr>
+              <th scope="row">Radar</th>
+              <td>Range and radial velocity; adverse-weather resilience</td>
+              <td>Low angular resolution, multipath, ghost targets</td>
+              <td>Metal structures, stationary actors, cross traffic, sparse returns</td>
+            </tr>
+            <tr>
+              <th scope="row">IMU and ego state</th>
+              <td>High-rate rotational and acceleration evidence</td>
+              <td>Bias, integration drift, vibration, temperature sensitivity</td>
+              <td>Bias step, saturation, stale pose, clock drift, aggressive motion</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="tasks-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Task toolbox</p>
+          <h2 id="tasks-title">Choose outputs for downstream questions</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="content-card prose">
+          <p class="eyebrow">Objects</p>
+          <h3>Detection</h3>
+          <p>Answers <em>what and approximately where?</em> Use 2D or 3D boxes when instances and compact geometry matter.</p>
+          <ul>
+            <li><strong>Core choices:</strong> anchor-based, anchor-free, set prediction, open vocabulary.</li>
+            <li><strong>Failure modes:</strong> small objects, crowding, truncation, class imbalance, score miscalibration.</li>
+            <li><strong>Consumer risk:</strong> box overlap does not guarantee collision-relevant geometry.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Pixels and regions</p>
+          <h3>Segmentation</h3>
+          <p>Answers <em>which pixels belong together?</em> Semantic, instance, and panoptic variants trade identity detail against dense coverage.</p>
+          <ul>
+            <li><strong>Core choices:</strong> decoder resolution, class weighting, mask assignment, boundary loss.</li>
+            <li><strong>Failure modes:</strong> thin structures, rare classes, fuzzy labels, boundary erosion.</li>
+            <li><strong>Consumer risk:</strong> high global IoU can hide a dangerous rare-class miss.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Geometry</p>
+          <h3>Depth and 3D</h3>
+          <p>Answers <em>how far and in what spatial configuration?</em> Sources include stereo, active sensing, monocular priors, and multi-view reconstruction.</p>
+          <ul>
+            <li><strong>Core choices:</strong> metric versus relative depth, scale, representation, uncertainty.</li>
+            <li><strong>Failure modes:</strong> reflective surfaces, textureless regions, long range, changed intrinsics.</li>
+            <li><strong>Consumer risk:</strong> average depth error obscures near-field geometric bias.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Time</p>
+          <h3>Tracking</h3>
+          <p>Answers <em>which observation belongs to the same entity over time?</em> Detection, motion, appearance, and lifecycle policy jointly determine identity.</p>
+          <ul>
+            <li><strong>Core choices:</strong> state, motion model, gating, assignment, birth and deletion.</li>
+            <li><strong>Failure modes:</strong> occlusion, crossing, ego motion, delayed measurements, duplicate tracks.</li>
+            <li><strong>Consumer risk:</strong> unstable identity creates unstable velocity and prediction.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Shared state</p>
+          <h3>Fusion</h3>
+          <p>Answers <em>how should complementary evidence become one spatial and temporal belief?</em></p>
+          <ul>
+            <li><strong>Core choices:</strong> raw, feature, BEV, object, or track-level fusion.</li>
+            <li><strong>Failure modes:</strong> calibration drift, stale inputs, sensor dominance, conflicting evidence.</li>
+            <li><strong>Consumer risk:</strong> extra sensors can increase confidence without increasing correctness.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <p class="eyebrow">Scene state</p>
+          <h3>BEV and occupancy</h3>
+          <p>Answers <em>what occupies space around the ego system?</em> A shared top-down state supports fusion and planning but inherits lifting and visibility errors.</p>
+          <ul>
+            <li><strong>Core choices:</strong> grid extent, resolution, height, unknown versus free, temporal memory.</li>
+            <li><strong>Failure modes:</strong> hidden depth error, stale evidence, occlusion, compute growth.</li>
+            <li><strong>Consumer risk:</strong> never-observed space must not silently become free space.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="metrics-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Evaluation</p>
+          <h2 id="metrics-title">A metric is a lens, not the product objective</h2>
+        </div>
+        <p>Report quality, calibration, timing, and slice behavior together.</p>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Detection and segmentation</h3>
+          <div class="equation" role="math" aria-label="intersection over union equals intersection divided by union">IoU = |P ∩ G| / |P ∪ G|</div>
+          <p>Use precision-recall and AP across thresholds, plus per-class, range, size, occlusion, and boundary slices. A single IoU threshold creates brittle pass/fail behavior near the boundary.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Depth and geometry</h3>
+          <div class="equation" role="math" aria-label="absolute relative error equals average absolute prediction minus ground truth divided by ground truth">AbsRel = (1/N) Σ |d̂<sub>i</sub> − d<sub>i</sub>| / d<sub>i</sub></div>
+          <p>Pair AbsRel or RMSE with scale-aware plots, distance bins, surface types, point density, and reprojection error. Evaluate the geometry the product actually consumes.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Tracking and time</h3>
+          <p>Use HOTA, IDF1, identity switches, fragmentation, velocity error, age-to-confirmation, and end-to-end latency. Evaluate at sequence level because frame averages erase lifecycle failures.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Calibration and confidence</h3>
+          <div class="equation" role="math" aria-label="expected calibration error equals sum of bin weights times absolute accuracy minus confidence">ECE = Σ<sub>b</sub> (n<sub>b</sub>/N)|acc(b) − conf(b)|</div>
+          <p>Reliability diagrams, NLL, Brier score, risk-coverage curves, and selective metrics ask whether confidence supports a useful operating policy.</p>
+        </article>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Headline</th>
+              <th scope="col">Pair it with</th>
+              <th scope="col">Slice at minimum</th>
+              <th scope="col">Production question</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">AP / recall</th><td>Calibration, latency, false-positive taxonomy</td><td>Class, size, distance, occlusion, weather</td><td>At the chosen threshold, which errors reach the user?</td></tr>
+            <tr><th scope="row">mIoU</th><td>Boundary F-score, rare-class recall</td><td>Class, topology, thin structure, region</td><td>Does the error alter a downstream path or inspection?</td></tr>
+            <tr><th scope="row">Depth error</th><td>Reprojection and spatial consistency</td><td>Distance, surface, lighting, motion</td><td>Where does metric bias become unsafe or unusable?</td></tr>
+            <tr><th scope="row">IDF1 / HOTA</th><td>Velocity, delay, lifecycle counts</td><td>Track age, occlusion, crossing, ego motion</td><td>Are decisions stable through temporary missing evidence?</td></tr>
+            <tr><th scope="row">Latency percentile</th><td>Throughput, memory, dropped/stale frames</td><td>Input shape, scene density, device, temperature</td><td>What does the system do after the deadline?</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="uncertainty-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Uncertainty</p>
+          <h2 id="uncertainty-title">Confidence must change behavior</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Aleatoric uncertainty</h3>
+          <p>Ambiguity or noise in the observation: blur, occlusion, range sparsity, or indistinguishable classes. More data of the same quality may not remove it.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Epistemic uncertainty</h3>
+          <p>Uncertainty in the learned model or coverage: a rare object, unseen domain, or insufficient training support. Data diversity and model evidence may reduce it.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>State uncertainty</h3>
+          <p>Covariance over position, velocity, orientation, depth, or calibration. Propagate it through transforms instead of attaching an unrelated score.</p>
+        </article>
+      </div>
+      <aside class="callout">
+        <p class="eyebrow">Policy test</p>
+        <h3>If a confidence score cannot change a decision, why compute it?</h3>
+        <p>Define thresholds through explicit costs, selective prediction, fallback, re-observation, human review, speed reduction, or sensor redundancy. Validate calibration on the slices where the policy will use it.</p>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="failure-loop-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Continuous improvement</p>
+          <h2 id="failure-loop-title">Failure → Evidence → Data → Experiment → Gate → Monitor</h2>
+        </div>
+      </div>
+      <ol class="evolution-flow" aria-label="Perception failure and data improvement loop">
+        <li class="content-card timeline-item"><span class="flow-era">Detect</span><h3>Capture the incident</h3><p>Preserve inputs, outputs, versions, timing, calibration, downstream effects, and surrounding context.</p></li>
+        <li class="content-card timeline-item"><span class="flow-era">Localize</span><h3>Find the broken contract</h3><p>Separate sensor, calibration, data, model, threshold, association, fusion, runtime, and consumer failures.</p></li>
+        <li class="content-card timeline-item"><span class="flow-era">Reproduce</span><h3>Create a durable slice</h3><p>Turn one anecdote into a versioned scenario definition with positives, counterexamples, and label review.</p></li>
+        <li class="content-card timeline-item"><span class="flow-era">Change</span><h3>Test the smallest hypothesis</h3><p>Compare data, loss, architecture, calibration, post-processing, and systems changes independently where possible.</p></li>
+        <li class="content-card timeline-item"><span class="flow-era">Gate</span><h3>Protect global and critical behavior</h3><p>Require improvement on the target slice without unacceptable regression, latency, memory, or calibration cost.</p></li>
+        <li class="content-card timeline-item"><span class="flow-era">Learn</span><h3>Deploy gradually and monitor</h3><p>Shadow, canary, observe risk and drift, preserve rollback, and feed new failures back into the evaluation set.</p></li>
+      </ol>
+    </section>
+
+    <section class="section" aria-labelledby="review-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Senior review</p>
+          <h2 id="review-title">Defend the system, not just the network</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Scenario A: global AP rises, near-field recall falls</h3>
+          <ol>
+            <li>Establish whether sampling or metric weighting hid the regression.</li>
+            <li>Quantify product cost by distance, class, motion, and confidence.</li>
+            <li>Trace data, augmentation, resolution, assignment, and threshold changes.</li>
+            <li>Define a launch-blocking slice and recovery experiment.</li>
+          </ol>
+        </article>
+        <article class="content-card prose">
+          <h3>Scenario B: fusion improves clean data but fails after drift</h3>
+          <ol>
+            <li>Inject extrinsic and timestamp offsets to build a response curve.</li>
+            <li>Measure whether confidence recognizes the inconsistency.</li>
+            <li>Compare feature fusion with an independent late-fusion fallback.</li>
+            <li>Specify online health checks and degraded behavior.</li>
+          </ol>
+        </article>
+        <article class="content-card prose">
+          <h3>Review rubric</h3>
+          <ul class="check-list">
+            <li>Consumer and operating domain are explicit.</li>
+            <li>Frames, timing, units, and semantics are testable.</li>
+            <li>Metrics connect to costs and critical slices.</li>
+            <li>Uncertainty changes behavior.</li>
+            <li>Missing, stale, and contradictory inputs are covered.</li>
+            <li>Deployment, monitoring, and rollback are credible.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="practice-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Practice</p>
+          <h2 id="practice-title">Measure mastery in three ways</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="callout">
+          <p class="eyebrow">MCQ</p>
+          <h3>Diagnose task and metric choices</h3>
+          <p>Work through threshold, assignment, calibration, depth, tracking, fusion, and long-tail scenarios with explained answers.</p>
+          <a class="button button-primary" href="practice.html">Open perception questions</a>
+        </article>
+        <article class="callout">
+          <p class="eyebrow">Coding</p>
+          <h3>Implement evaluators and temporal state</h3>
+          <p>Build IoU, NMS, AP, assignment, Kalman update, slice reports, and calibration checks from tested primitives.</p>
+          <a class="button button-secondary" href="coding.html">Open perception coding</a>
+        </article>
+        <article class="callout" id="perception-benchmark">
+          <p class="eyebrow">Project</p>
+          <h3>Create an evidence-first benchmark</h3>
+          <p>Reproduce a baseline, define slices, audit failures, test one improvement, and present the launch trade-off.</p>
+          <a class="button button-secondary" href="projects.html#perception-benchmark">View project brief</a>
+        </article>
+      </div>
+      <label class="milestone-toggle"><input type="checkbox" data-milestone="perception"> Mark perception systems complete on this device</label>
+    </section>
+
+    <aside class="callout" aria-labelledby="source-note-title">
+      <div>
+        <p class="eyebrow">References and attribution</p>
+        <h2 id="source-note-title">Study from courses, then verify with primary sources</h2>
+        <p>The source map links the relevant Stanford, MIT, CMU, and ETH material, task papers, evaluation definitions, and official datasets.</p>
+      </div>
+      <a class="button button-secondary" href="sources.html">View perception sources</a>
+    </aside>
+
+    <nav class="page-pagination" aria-label="Lesson navigation">
+      <a class="pagination-link pagination-previous" href="theory.html">
+        <span>Previous</span>
+        <strong>Theory flow</strong>
+      </a>
+      <a class="pagination-link pagination-next" href="calibration.html">
+        <span>Next</span>
+        <strong>Camera calibration</strong>
+      </a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-brand">
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span></a>
+        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer"><a href="theory.html">Theory</a><a href="practice.html">MCQ</a><a href="coding.html">Coding</a><a href="projects.html">Projects</a><a href="sources.html">Sources</a><a href="https://github.com/buicongnguyen/computer_vision">GitHub</a></nav>
+    </div>
+  </footer>
+  <script src="site.js"></script>
+</body>
+</html>

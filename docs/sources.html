@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Official university course references and attribution notes for the independent CV Systems Lab senior computer vision curriculum.">
+  <title>University course sources | CV Systems Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>
+          <strong>CV Systems Lab</strong>
+          <small>Senior engineer study hub</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>Practice</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" aria-current="page" data-nav-link>Sources</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision">GitHub</a>
+        <button class="theme-toggle" type="button" data-theme-toggle>
+          <span class="theme-icon" aria-hidden="true"></span>
+          <span class="theme-label">Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">University course sources</span>
+    </nav>
+
+    <section class="page-hero">
+      <p class="eyebrow">Reference map</p>
+      <h1>University course sources</h1>
+      <p>Official course pages that informed the topic sequence, learning activities, and capstone structure of this independent senior computer vision curriculum.</p>
+      <div>
+        <span class="tag">Official university pages</span>
+        <span class="tag">Checked 2026-07-11</span>
+        <span class="tag">Original exercises only</span>
+      </div>
+    </section>
+
+    <aside class="callout" aria-labelledby="independence-heading">
+      <div>
+        <p class="eyebrow">Independent resource</p>
+        <h2 id="independence-heading">No university affiliation or endorsement</h2>
+      </div>
+      <p>This project is independent and is not affiliated with, sponsored by, or endorsed by Stanford University, Carnegie Mellon University, the University of Michigan, MIT, UC Berkeley, or Georgia Tech. Course names and institutional marks belong to their respective owners.</p>
+    </aside>
+
+    <section aria-labelledby="curriculum-map-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">How the references are used</p>
+          <h2 id="curriculum-map-heading">One coherent theory-to-systems path</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="topic-card">
+          <p class="eyebrow">01 · First principles</p>
+          <h3>Images and geometry</h3>
+          <p>Image formation, signal processing, local features, transformations, camera models, calibration, stereo, reconstruction, flow, and tracking.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">02 · Learned perception</p>
+          <h3>Recognition to foundation models</h3>
+          <p>Classical recognition leads into optimization, CNNs, detection, segmentation, video, transformers, self-supervision, and multimodal learning.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">03 · 3D and autonomy</p>
+          <h3>Neural scenes and BEV systems</h3>
+          <p>Modern 3D representations and embodied perception lead into an original autonomous-perception unit on inverse perspective mapping and BEV fusion.</p>
+        </article>
+      </div>
+
+      <div class="callout">
+        <div>
+          <p class="eyebrow">Important scope note</p>
+          <h3>BEV is an original extension</h3>
+        </div>
+        <p>The surveyed course descriptions do not present bird's-eye-view conversion as a standalone unit. Stanford-style calibration and multi-view geometry provide the mathematical foundation; separately cited primary research supplies modern lift-to-BEV and temporal-fusion methods. The site does not attribute its BEV module to any university course.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="stanford-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Institution 01</p>
+          <h2 id="stanford-heading">Stanford University</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <p class="eyebrow">Spring 2026</p>
+          <h3>CS231n: Deep Learning for Computer Vision</h3>
+          <p><strong>Curriculum contribution:</strong> the modern deep-learning spine: optimization and backpropagation, CNNs, attention and transformers, detection and segmentation, video, distributed training, self-supervision, generative models, 3D vision, vision-language learning, and robot learning.</p>
+          <p>Its combination of written reasoning and programming informs the theory-plus-code lesson format. Its proposal, staged milestones, final paper, code, and poster inform the capstone checkpoints.</p>
+          <ul class="source-list">
+            <li><a href="https://cs231n.stanford.edu/schedule">Official Spring 2026 schedule</a></li>
+            <li><a href="https://cs231n.stanford.edu/assignments.html">Official assignments overview</a></li>
+            <li><a href="https://cs231n.stanford.edu/2026/project.html">Official project guide</a></li>
+          </ul>
+          <p><strong>Access:</strong> current lecture videos link to Stanford Canvas. This project links to public slides and notes but does not redistribute them.</p>
+        </article>
+
+        <article class="content-card prose">
+          <p class="eyebrow">Spring 2025</p>
+          <h3>CS231A: Computer Vision, From 3D Perception to 3D Reconstruction and Beyond</h3>
+          <p><strong>Curriculum contribution:</strong> camera models and calibration, single-view metrology, epipolar geometry, stereo, structure from motion, depth, feature tracking, optical and scene flow, optimal estimation, neural radiance fields, and Gaussian splatting.</p>
+          <p>This geometry sequence supplies prerequisites for coordinate frames, inverse perspective mapping, and BEV perception.</p>
+          <ul class="source-list">
+            <li><a href="https://web.stanford.edu/class/cs231a/">Official course page</a></li>
+            <li><a href="https://web.stanford.edu/class/cs231a/syllabus.html">Official syllabus</a></li>
+            <li><a href="https://web.stanford.edu/class/cs231a/course_notes.html">Official course notes index</a></li>
+            <li><a href="https://web.stanford.edu/class/cs231a/assignments.html">Official assignments and collaboration policy</a></li>
+          </ul>
+          <p><strong>Access:</strong> the course policy asks students not to consult online implementations. No problem set, code, answer, slide, or figure is reproduced here.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="cmu-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Institution 02</p>
+          <h2 id="cmu-heading">Carnegie Mellon University</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <p class="eyebrow">Spring 2026</p>
+          <h3>16-385: Computer Vision</h3>
+          <p><strong>Curriculum contribution:</strong> a first-principles laboratory progression through filtering and frequency methods, Hough transforms, features, homographies, camera models, two-view geometry, stereo, recognition, neural networks, optical flow, tracking, radiometry, and computational photography.</p>
+          <ul class="source-list">
+            <li><a href="https://16385.courses.cs.cmu.edu/spring2026/">Official course home</a></li>
+            <li><a href="https://16385.courses.cs.cmu.edu/spring2026/courseinfo">Official course information</a></li>
+            <li><a href="https://16385.courses.cs.cmu.edu/spring2026/assignments">Official assignment index</a></li>
+            <li><a href="https://16385.courses.cs.cmu.edu/spring2026/notebooks">Official notebooks and demos</a></li>
+          </ul>
+          <p><strong>Access:</strong> CMU's policy requires assignment repositories to remain private and prohibits publishing solutions. Every public exercise here is newly authored.</p>
+        </article>
+
+        <article class="content-card prose">
+          <p class="eyebrow">Spring 2026</p>
+          <h3>16-720: Graduate Computer Vision</h3>
+          <p><strong>Curriculum contribution:</strong> supplementary graduate depth. Publicly indexed current material verifies an implementation-focused treatment of inverse-compositional Lucas–Kanade tracking and background subtraction.</p>
+          <ul class="source-list">
+            <li><a href="https://16720.courses.cs.cmu.edu/">Official course site</a></li>
+            <li><a href="https://www.cs.cmu.edu/~deva/">Official instructor page confirming the offering</a></li>
+            <li><a href="https://16720.courses.cs.cmu.edu/hw/hw3.pdf">Official current tracking homework</a></li>
+          </ul>
+          <p><strong>Verification limit:</strong> the main site was not consistently accessible when checked, so this project does not claim a complete Spring 2026 syllabus. The homework is linked only as official evidence; none of its content or assets is copied.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="michigan-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Institution 03</p>
+          <h2 id="michigan-heading">University of Michigan</h2>
+        </div>
+      </div>
+
+      <article class="content-card prose">
+        <p class="eyebrow">Winter 2022 archive</p>
+        <h3>EECS 498.008 / 598.008: Deep Learning for Computer Vision</h3>
+        <p><strong>Curriculum contribution:</strong> the coding and assessment pattern. The sequence moves from classifiers, optimization, backpropagation, and CNN engineering into efficient architectures, detection, segmentation, recurrent models, transformers, generative models, interpretability, self-supervision, 3D vision, and video.</p>
+        <p>Its six PyTorch assignments, mixed-format midterm, and end-to-end mini-project motivate original MCQs, coding labs, and pipeline projects.</p>
+        <ul class="source-list">
+          <li><a href="https://web.eecs.umich.edu/~justincj/teaching/eecs498/WI2022/">Official course home</a></li>
+          <li><a href="https://web.eecs.umich.edu/~justincj/teaching/eecs498/WI2022/schedule.html">Official detailed schedule</a></li>
+          <li><a href="https://web.eecs.umich.edu/~justincj/teaching/eecs498/WI2022/syllabus.html">Official syllabus and assessment format</a></li>
+          <li><a href="https://web.eecs.umich.edu/~justincj/teaching/eecs498/WI2022/project.html">Official mini-project guide</a></li>
+        </ul>
+        <p><strong>Access:</strong> Winter 2022 recordings are restricted to Michigan users; the course page separately links public Fall 2019 videos. The collaboration policy prohibits online solutions, and none is reproduced here.</p>
+      </article>
+    </section>
+
+    <section aria-labelledby="mit-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Institution 04</p>
+          <h2 id="mit-heading">Massachusetts Institute of Technology</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <p class="eyebrow">Current catalog</p>
+          <h3>6.4300 Introduction to Computer Vision and 6.8300 Advances in Computer Vision</h3>
+          <p><strong>Curriculum contribution:</strong> the bridge from early, middle, and high-level vision to learned multi-view geometry, differentiable rendering, neural scene representations, correspondence, flow, point tracking, diffusion, contrastive and masked learning, and vision for embodied agents.</p>
+          <ul class="source-list">
+            <li><a href="https://catalog.mit.edu/subjects/6/#vision">Official MIT EECS catalog — Vision section</a></li>
+          </ul>
+          <p><strong>Access:</strong> the catalog provides authoritative current subject descriptions, not a license to republish course assets.</p>
+        </article>
+
+        <article class="content-card prose">
+          <p class="eyebrow">Spring 2022 archive</p>
+          <h3>6.819 / 6.869: Advances in Computer Vision</h3>
+          <p><strong>Curriculum contribution:</strong> a project-based precedent spanning early through high-level vision and machine learning. Its balance of problem sets and an open-ended final project informs the practice-to-investigation progression used here.</p>
+          <ul class="source-list">
+            <li><a href="https://6.869.csail.mit.edu/sp22/">Official MIT CSAIL course archive</a></li>
+          </ul>
+          <p><strong>Access:</strong> this is an archived offering and is labeled as such throughout this site.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="berkeley-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Institution 05</p>
+          <h2 id="berkeley-heading">University of California, Berkeley</h2>
+        </div>
+      </div>
+
+      <article class="content-card prose">
+        <p class="eyebrow">Fall 2026 listing</p>
+        <h3>CS 280A: Introduction to Computer Vision and Computational Photography</h3>
+        <p><strong>Curriculum contribution:</strong> a practical, from-scratch path through image formation, spatial and frequency processing, pyramids, homographies and warping, calibration, stereo, multi-view geometry, structure from motion, the plenoptic function, and CNN-based image manipulation.</p>
+        <ul class="source-list">
+          <li><a href="https://www2.eecs.berkeley.edu/Courses/CS280A/">Official CS 280A catalog and Fall 2026 listing</a></li>
+          <li><a href="https://www2.eecs.berkeley.edu/Courses/CSC280/">Official graduate CS C280 catalog</a></li>
+        </ul>
+        <p><strong>Access:</strong> detailed course archives require CalNet, and the Fall 2026 listing says lecture recordings are unavailable. This project uses only public official descriptions.</p>
+      </article>
+    </section>
+
+    <section aria-labelledby="gatech-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Institution 06</p>
+          <h2 id="gatech-heading">Georgia Institute of Technology</h2>
+        </div>
+      </div>
+
+      <article class="content-card prose">
+        <p class="eyebrow">Spring 2026</p>
+        <h3>CS 6476: Computer Vision</h3>
+        <p><strong>Curriculum contribution:</strong> a theory-to-practice discipline spanning image formation, camera geometry and calibration, feature detection and matching, stereo, motion estimation, tracking, recognition, and scene understanding. Its emphasis on understanding and coding basic methods before relying on high-level libraries informs the site's two-stage labs.</p>
+        <ul class="source-list">
+          <li><a href="https://omscs.gatech.edu/cs-6476-computer-vision">Official OMSCS course page</a></li>
+          <li><a href="https://syllabus.gatech.edu/sites/default/files/2026-04/OMSCS6476%40GATech-2026%20-%20Information_Syllabus.pdf">Official Spring 2026 syllabus</a></li>
+        </ul>
+        <p><strong>Access:</strong> public lesson content requires an Ed Lessons account. The Spring 2026 syllabus says course work products must not be posted publicly, so only independently created material appears here.</p>
+      </article>
+    </section>
+
+    <section aria-labelledby="reuse-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Public repository rules</p>
+          <h2 id="reuse-heading">Access, reuse, and attribution</h2>
+        </div>
+      </div>
+
+      <div class="content-card prose">
+        <ul>
+          <li>Do not copy university slides, diagrams, assignment text, starter code, datasets, answer keys, or recordings unless an item has an explicit compatible license and that license is preserved.</li>
+          <li>Link to an official page instead of mirroring an asset.</li>
+          <li>Cite a source near a close paraphrase and reserve quotation marks for short, necessary quotations.</li>
+          <li>Preserve the license and attribution of separately reused open-source code or data.</li>
+          <li>Do not imply university authorship, affiliation, approval, or equivalence to university credit.</li>
+          <li>Keep all MCQs, labs, tests, solutions, and project rubrics original so this site cannot function as a solution bank for an active course.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div>
+        <strong>CV Systems Lab</strong>
+        <p>An independent, evidence-driven path to senior computer vision engineering.</p>
+      </div>
+      <div>
+        <a href="index.html">Study hub</a>
+        <a href="practice.html">Practice</a>
+        <a href="projects.html">Projects</a>
+        <a href="sources.html" aria-current="page">Sources</a>
+      </div>
+      <p>University sources checked 2026-07-11.</p>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>

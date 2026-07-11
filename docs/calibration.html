@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A theory-to-production guide to camera, stereo, multi-sensor, and temporal calibration for computer vision engineers.">
+  <title>Calibration | CV Systems Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle><span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a><a href="perception.html" data-nav-link>Perception</a><a href="calibration.html" aria-current="page" data-nav-link>Calibration</a><a href="bev.html" data-nav-link>BEV</a><a href="modern-cv.html" data-nav-link>Modern CV</a><a href="practice.html" data-nav-link>Practice</a><a href="coding.html" data-nav-link>Coding</a><a href="projects.html" data-nav-link>Projects</a><a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions"><a class="github-link" href="https://github.com/buicongnguyen/computer_vision">GitHub</a><button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button></div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Calibration</span></nav>
+    <section class="page-hero">
+      <p class="eyebrow">Model the sensor before trusting the model</p>
+      <h1>Camera and multi-sensor calibration</h1>
+      <p>Calibration connects pixels to rays, rays to metric frames, and asynchronous sensors to one physical event. Learn the equations, the estimation workflow, and the production checks that prevent a small geometric error from becoming a large BEV or tracking failure.</p>
+      <div><span class="tag">Intrinsics</span><span class="tag">Extrinsics</span><span class="tag">Distortion</span><span class="tag">Time alignment</span></div>
+    </section>
+
+    <section aria-labelledby="outcomes-heading">
+      <div class="section-heading"><div><p class="eyebrow">Learning outcomes</p><h2 id="outcomes-heading">What you must be able to do</h2></div></div>
+      <div class="card-grid">
+        <article class="topic-card"><strong>01</strong><h3>Project correctly</h3><p>Move a 3D point through named frames, normalized camera coordinates, distortion, and pixel coordinates.</p></article>
+        <article class="topic-card"><strong>02</strong><h3>Estimate responsibly</h3><p>Collect informative observations, identify degeneracy, initialize parameters, refine them, and quantify uncertainty.</p></article>
+        <article class="topic-card"><strong>03</strong><h3>Validate independently</h3><p>Read spatial residual patterns, compare held-out geometry, and detect drift instead of trusting one mean error.</p></article>
+        <article class="topic-card"><strong>04</strong><h3>Operate a rig</h3><p>Treat camera, LiDAR, radar, IMU, ego pose, and clocks as a versioned spatiotemporal calibration system.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="dependency-heading">
+      <div class="section-heading"><div><p class="eyebrow">Dependency flow</p><h2 id="dependency-heading">Calibration is a chain of contracts</h2></div></div>
+      <div class="flow-strip" role="list" aria-label="Calibration dependency chain">
+        <div role="listitem"><span>1</span><strong>Frames</strong><small>axes, units, time</small></div>
+        <div role="listitem"><span>2</span><strong>Pinhole</strong><small>3D ray to pixel</small></div>
+        <div role="listitem"><span>3</span><strong>Distortion</strong><small>lens model</small></div>
+        <div role="listitem"><span>4</span><strong>Estimate</strong><small>observations + loss</small></div>
+        <div role="listitem"><span>5</span><strong>Validate</strong><small>residual structure</small></div>
+        <div role="listitem"><span>6</span><strong>Monitor</strong><small>version + drift</small></div>
+      </div>
+      <p class="section-note">If an overlay is wrong, do not tune the detector first. Determine which contract—frame, units, timing, projection, distortion, or parameter version—is violated.</p>
+    </section>
+
+    <section class="split-section" aria-labelledby="projection-heading">
+      <article class="content-card prose">
+        <p class="eyebrow">Core theory</p>
+        <h2 id="projection-heading">From a world point to a pixel</h2>
+        <p>Use the convention <code>T_camera_world</code>: it maps a homogeneous point from the world frame into the camera frame.</p>
+        <div class="equation-block" aria-label="Camera projection equations">
+          <span>P<sub>c</sub> = R P<sub>w</sub> + t = [X, Y, Z]<sup>T</sup></span>
+          <span>x = X / Z, &nbsp; y = Y / Z</span>
+          <span>[u, v, 1]<sup>T</sup> ∼ K [x, y, 1]<sup>T</sup></span>
+          <span>K = [[f<sub>x</sub>, s, c<sub>x</sub>], [0, f<sub>y</sub>, c<sub>y</sub>], [0, 0, 1]]</span>
+        </div>
+        <p><strong>Checks before projection:</strong> units agree; the frame direction is correct; <code>Z &gt; 0</code> under the chosen camera convention; the calibration version matches the image; and the timestamp is meaningful for a moving rig.</p>
+      </article>
+      <article class="content-card prose">
+        <p class="eyebrow">Worked example</p>
+        <h2>Compute before coding</h2>
+        <p>Let <code>f<sub>x</sub> = f<sub>y</sub> = 800 px</code>, principal point <code>(640, 360)</code>, zero skew/distortion, and camera-frame point <code>(0.5, 0.2, 10) m</code>.</p>
+        <ol>
+          <li>Normalize: <code>x = 0.5/10 = 0.05</code>, <code>y = 0.2/10 = 0.02</code>.</li>
+          <li>Scale and offset: <code>u = 800·0.05 + 640 = 680</code>.</li>
+          <li><code>v = 800·0.02 + 360 = 376</code>.</li>
+        </ol>
+        <p>The pixel is <code>(680, 376)</code>. Doubling every 3D coordinate leaves the pixel unchanged; doubling only depth moves it toward the principal point.</p>
+      </article>
+    </section>
+
+    <section aria-labelledby="distortion-heading">
+      <div class="section-heading"><div><p class="eyebrow">Lens model</p><h2 id="distortion-heading">Distortion lives in normalized coordinates</h2></div><p>Model only the complexity your observations constrain. A flexible model can fit calibration-board noise and still generalize badly.</p></div>
+      <div class="content-card prose">
+        <p>For <code>r² = x² + y²</code>, a common radial-plus-tangential model is:</p>
+        <div class="equation-block">
+          <span>x<sub>radial</sub> = x(1 + k₁r² + k₂r⁴ + k₃r⁶)</span>
+          <span>y<sub>radial</sub> = y(1 + k₁r² + k₂r⁴ + k₃r⁶)</span>
+          <span>x′ = x<sub>radial</sub> + 2p₁xy + p₂(r² + 2x²)</span>
+          <span>y′ = y<sub>radial</sub> + p₁(r² + 2y²) + 2p₂xy</span>
+        </div>
+        <p>Then apply <code>K</code> to <code>(x′, y′)</code>. Fisheye and omnidirectional cameras require models suited to their field of view; coefficient names and signs are library-specific contracts, not universal facts.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="development-heading">
+      <div class="section-heading"><div><p class="eyebrow">Development of the theory</p><h2 id="development-heading">Problem → idea → limitation → production form</h2></div></div>
+      <div class="evolution-table" role="table" aria-label="Development of calibration theory">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Problem</span><span role="columnheader">Idea</span><span role="columnheader">Limitation</span><span role="columnheader">Modern production form</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Pixels lack metric meaning</span><span role="cell">Pinhole projection and intrinsic matrix</span><span role="cell">Real lenses and sensors deviate</span><span role="cell">Calibrated central/noncentral camera model with versioned parameters</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Unknown parameters</span><span role="cell">Known 3D calibration target</span><span role="cell">Accurate target fabrication and measurement are costly</span><span role="cell">Planar multi-view initialization followed by nonlinear refinement</span></div>
+        <div class="evolution-row" role="row"><span role="cell">One camera is not a rig</span><span role="cell">Rigid extrinsic transforms</span><span role="cell">Mechanical/thermal change and weak overlap</span><span role="cell">Joint rig calibration, online health checks, observability-aware refinement</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Sensors capture different moments</span><span role="cell">Timestamp synchronization</span><span role="cell">Clock offset/drift and rolling shutter</span><span role="cell">Clock model, motion compensation, deskew, temporal residual monitoring</span></div>
+      </div>
+    </section>
+
+    <section class="split-section" aria-labelledby="estimate-heading">
+      <article class="content-card prose">
+        <p class="eyebrow">Estimation workflow</p>
+        <h2 id="estimate-heading">Collect observations that excite the model</h2>
+        <ol class="step-list">
+          <li><strong>Specify:</strong> frames, units, image size, lens model, focus/exposure state, temperature/rig conditions.</li>
+          <li><strong>Capture:</strong> board or scene features across image corners, depth, roll, pitch, and yaw—not only centered frontoparallel views.</li>
+          <li><strong>Initialize:</strong> estimate per-view pose and camera parameters using a linear or planar method.</li>
+          <li><strong>Refine:</strong> minimize robust reprojection error over intrinsics, distortion, and poses.</li>
+          <li><strong>Validate:</strong> held-out views, residual maps, physical plausibility, and downstream metric geometry.</li>
+          <li><strong>Package:</strong> immutable calibration ID, validity conditions, covariance/quality, source observations, and compatible software schema.</li>
+        </ol>
+      </article>
+      <article class="content-card prose">
+        <p class="eyebrow">Degeneracy watch</p>
+        <h2>Low loss does not prove identifiability</h2>
+        <ul>
+          <li>Centered frontoparallel boards correlate focal length, distance, and distortion.</li>
+          <li>A tiny image footprint cannot constrain edge distortion.</li>
+          <li>Pure rotation or poor scene depth can weaken translation/scale estimation.</li>
+          <li>Weak camera-LiDAR overlap makes an apparently stable extrinsic misleading.</li>
+          <li>Constant-velocity motion can correlate clock offset with translation.</li>
+          <li>Optimizing too many coefficients can fit noise and target imperfections.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section aria-labelledby="validation-heading">
+      <div class="section-heading"><div><p class="eyebrow">Validation</p><h2 id="validation-heading">Read the shape of residuals</h2></div></div>
+      <div class="diagnostic-grid">
+        <article class="diagnostic-card"><h3>Radial edge pattern</h3><p>Suspect distortion model/coefficients, weak edge coverage, wrong resize, or a calibration from a different focus/resolution.</p></article>
+        <article class="diagnostic-card"><h3>Nearly uniform vector offset</h3><p>Suspect principal point, crop/ROI, frame translation, or timestamp error under motion.</p></article>
+        <article class="diagnostic-card"><h3>Residual grows with range</h3><p>Check small rotation error, focal scale, baseline, timing, and the metric ground-truth process.</p></article>
+        <article class="diagnostic-card"><h3>Only moving objects disagree</h3><p>Check sensor capture times, rolling shutter, deskew, per-object motion, and interpolation—not only rigid extrinsics.</p></article>
+        <article class="diagnostic-card"><h3>One camera/view is bad</h3><p>Inspect feature detection, blur, flex, exposure, target visibility, and whether that observation should be downweighted or rejected.</p></article>
+        <article class="diagnostic-card"><h3>Mean is good; BEV is unstable</h3><p>Inspect per-region/per-view percentiles, calibration sensitivity, coordinate conventions, and temporal version mismatch.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="lab-heading">
+      <div class="section-heading"><div><p class="eyebrow">Applied lab</p><h2 id="lab-heading">Build a calibration auditor</h2></div><a class="button secondary" href="coding.html">Open coding exercises</a></div>
+      <div class="content-card prose">
+        <ol class="step-list">
+          <li>Generate a synthetic camera, planar board poses, distortion, and noisy corner observations.</li>
+          <li>Estimate or load intrinsics/extrinsics and compute per-point residual vectors.</li>
+          <li>Inject focal, principal-point, radial, pose, resize, and timestamp faults one at a time.</li>
+          <li>Report mean, median, p95/max, per-view values, image-coverage heatmap, radial trend, and held-out error.</li>
+          <li>Project independent 3D landmarks or LiDAR points and decide whether the calibration is fit for the intended BEV range.</li>
+        </ol>
+        <p><strong>Gate:</strong> diagnose at least four injected faults, reject a degenerate capture, preserve all frame/unit/time conventions in code, and write a recalibration/rollback policy.</p>
+      </div>
+    </section>
+
+    <aside class="callout">
+      <div><p class="eyebrow">Senior review prompt</p><h2>A rig is correct in the lab and drifts after 30 minutes of driving</h2></div>
+      <p>Design the investigation. Separate thermal/mechanical flex, clock drift, rolling shutter, changing focus, data-version mismatch, and estimator error. Specify observability, monitors, safe fallback, recalibration trigger, ownership, and the experiment that distinguishes the leading hypotheses.</p>
+    </aside>
+
+    <section class="next-actions" aria-labelledby="practice-heading">
+      <div><p class="eyebrow">Check and apply</p><h2 id="practice-heading">Turn equations into evidence</h2></div>
+      <div class="action-grid">
+        <a class="action-card" href="practice.html"><span>Knowledge check</span><strong>Calibration MCQs</strong><small>Filter the quiz by Calibration.</small></a>
+        <a class="action-card" href="coding.html"><span>Implementation</span><strong>Six geometry/calibration drills</strong><small>Projection, DLT, RANSAC, residual audit, and triangulation.</small></a>
+        <a class="action-card" href="bev.html"><span>Dependency</span><strong>Continue to BEV</strong><small>See exactly how calibration errors propagate to a top-down map.</small></a>
+      </div>
+    </section>
+
+    <section class="content-card prose" aria-labelledby="cal-sources">
+      <p class="eyebrow">Sources and further study</p>
+      <h2 id="cal-sources">Course references</h2>
+      <p>Topic selection follows the public geometry spine of Stanford CS231A and related official university courses. This page is an original explanation, not a reproduction of their slides or assignments.</p>
+      <ul class="source-list">
+        <li><a href="https://web.stanford.edu/class/cs231a/course_notes.html">Stanford CS231A self-contained course notes index</a></li>
+        <li><a href="https://web.stanford.edu/class/cs231a/syllabus.html">Stanford CS231A syllabus</a></li>
+        <li><a href="https://16385.courses.cs.cmu.edu/spring2026/">CMU 16-385 Spring 2026</a></li>
+        <li><a href="sources.html">Complete university course source map and attribution</a></li>
+      </ul>
+    </section>
+
+    <label class="milestone-toggle"><input type="checkbox" data-milestone="calibration"><span>Mark sensor calibration complete on this device</span></label>
+    <nav class="page-pagination" aria-label="Course pages"><a href="perception.html"><span>Previous</span><strong>Perception systems</strong></a><a href="bev.html"><span>Next</span><strong>Bird's-eye view</strong></a></nav>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div class="footer-brand"><strong>CV Systems Lab</strong><p>Calibration is a maintained system contract, not a one-time matrix.</p></div><nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="bev.html">BEV</a><a href="sources.html">Sources</a></nav></div></footer>
+  <script src="site.js"></script>
+</body>
+</html>

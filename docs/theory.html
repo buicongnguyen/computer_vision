@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A dependency-first map of computer vision theory, from sensing and estimation to representation, fusion, deployment, and technical leadership.">
+  <meta name="theme-color" content="#071019">
+  <title>Theory flow | CV Systems Lab</title>
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/theory.html">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html" aria-label="CV Systems Lab home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>CV Systems Lab</strong><small>Senior engineer study hub</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" aria-current="page" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>MCQ</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Theory flow</span>
+    </nav>
+
+    <section class="page-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Curriculum spine · start here</p>
+        <h1>Computer vision theory is a chain of decisions</h1>
+        <p class="hero-lede">A senior engineer does more than recognize algorithms. They can trace a pixel from a physical measurement to a product decision, name every assumption along the path, and predict how uncertainty and constraints will propagate.</p>
+        <div class="tag-row" aria-label="Page topics">
+          <span class="tag">Dependency map</span>
+          <span class="tag">Theory evolution</span>
+          <span class="tag">Worked mathematics</span>
+          <span class="tag">Senior reasoning</span>
+        </div>
+        <div class="button-row">
+          <a class="button button-primary" href="#dependency-flow">Follow the dependency flow</a>
+          <a class="button button-secondary" href="practice.html">Check your understanding</a>
+        </div>
+      </div>
+      <aside class="content-card hero-aside" aria-label="Lesson summary">
+        <p class="eyebrow">Mastery target</p>
+        <p class="metric-value">8 links</p>
+        <p>Explain the full chain without hiding behind model names.</p>
+        <dl class="compact-list">
+          <div><dt>Level</dt><dd>Foundation → Senior</dd></div>
+          <div><dt>Study</dt><dd>90–120 minutes</dd></div>
+          <div><dt>Evidence</dt><dd>One design trace</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="outcomes-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Learning outcomes</p>
+          <h2 id="outcomes-title">What you should be able to do</h2>
+        </div>
+      </div>
+      <div class="card-grid outcomes-grid">
+        <article class="topic-card">
+          <span class="card-index">01</span>
+          <h3>Trace dependencies</h3>
+          <p>Connect sensing, geometry, estimation, learned priors, representations, fusion, runtime, and product requirements.</p>
+        </article>
+        <article class="topic-card">
+          <span class="card-index">02</span>
+          <h3>Interrogate assumptions</h3>
+          <p>State observability, noise, scene, calibration, data, and compute assumptions before choosing a method.</p>
+        </article>
+        <article class="topic-card">
+          <span class="card-index">03</span>
+          <h3>Move across eras</h3>
+          <p>Explain why classical, learned, and hybrid solutions emerged—and where each remains the right tool.</p>
+        </article>
+        <article class="topic-card">
+          <span class="card-index">04</span>
+          <h3>Make evidence-based choices</h3>
+          <p>Turn a derivation into an experiment, a failure into a data slice, and a metric into a launch decision.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="dependency-flow" aria-labelledby="dependency-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">The dependency flow</p>
+          <h2 id="dependency-title">Observe → Model → Estimate → Learn → Represent → Fuse → Deploy → Lead</h2>
+        </div>
+        <p>No stage repairs an invalid upstream contract for free.</p>
+      </div>
+
+      <ol class="flow-list" aria-label="Computer vision theory dependency flow">
+        <li class="content-card flow-card">
+          <span class="flow-number">01</span>
+          <div>
+            <h3>Observe</h3>
+            <p>Sensors convert light, range, motion, and time into measurements. Ask what was sampled, when it was sampled, and what the device changed.</p>
+            <p class="flow-question"><strong>Contract:</strong> units, dynamic range, noise, exposure, timestamp, field of view.</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">02</span>
+          <div>
+            <h3>Model</h3>
+            <p>A physical and geometric model relates the scene to the observation: projection, distortion, illumination, rigid motion, or sensor response.</p>
+            <p class="flow-question"><strong>Question:</strong> which variables are observable, and under what scene or motion conditions?</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">03</span>
+          <div>
+            <h3>Estimate</h3>
+            <p>Inference recovers latent state from imperfect evidence using optimization, probability, robust losses, and temporal filtering.</p>
+            <p class="flow-question"><strong>Output:</strong> a value plus residuals, uncertainty, conditioning, and failure status.</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">04</span>
+          <div>
+            <h3>Learn</h3>
+            <p>Data supplies priors that hand-written models cannot express. The objective, sampling process, labels, and augmentations define what is learned.</p>
+            <p class="flow-question"><strong>Risk:</strong> a model can fit the benchmark while learning the wrong invariance.</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">05</span>
+          <div>
+            <h3>Represent</h3>
+            <p>Choose the state passed downstream: pixels, features, boxes, tracks, depth, point clouds, BEV grids, occupancy, or embeddings.</p>
+            <p class="flow-question"><strong>Trade-off:</strong> every representation makes some queries easy by discarding other information.</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">06</span>
+          <div>
+            <h3>Fuse</h3>
+            <p>Combine cameras, LiDAR, radar, IMU, maps, language, and history only after aligning frames, time, semantics, and uncertainty.</p>
+            <p class="flow-question"><strong>Test:</strong> missing, stale, contradictory, and miscalibrated inputs.</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">07</span>
+          <div>
+            <h3>Deploy</h3>
+            <p>Accuracy meets latency, memory, power, availability, privacy, monitoring, and rollback. The runtime is part of the model.</p>
+            <p class="flow-question"><strong>Evidence:</strong> correctness and performance on target hardware, not a notebook average.</p>
+          </div>
+        </li>
+        <li class="content-card flow-card">
+          <span class="flow-number">08</span>
+          <div>
+            <h3>Lead</h3>
+            <p>Translate ambiguity into a testable plan, define interfaces and review gates, make trade-offs legible, and own degraded behavior.</p>
+            <p class="flow-question"><strong>Senior signal:</strong> the team learns faster and the system fails more safely.</p>
+          </div>
+        </li>
+      </ol>
+
+      <aside class="callout">
+        <p class="eyebrow">One-scene trace</p>
+        <h3>A distant pedestrian at dusk</h3>
+        <p>The camera observes a low-signal crop; the projection model connects pixels to rays; a detector estimates class and box; learned features supply appearance priors; a track represents temporal state; radar and camera evidence are fused; deployment determines whether the result arrives before the planner deadline; technical leadership defines the low-confidence fallback. A miss cannot be diagnosed from AP alone—you must locate the broken link.</p>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="evolution-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Development of theory</p>
+          <h2 id="evolution-title">Problem → Idea → Assumption → Failure → Improvement → Modern Form</h2>
+        </div>
+        <p>Use this six-part lens for every algorithm and paper.</p>
+      </div>
+
+      <ol class="evolution-flow" aria-label="Theory development timeline">
+        <li class="content-card timeline-item">
+          <span class="flow-era">Problem</span>
+          <h3>Images are ambiguous projections</h3>
+          <p>Many 3D scenes, materials, and lighting conditions can produce similar pixels. Vision is an inverse problem, not a lookup table.</p>
+        </li>
+        <li class="content-card timeline-item">
+          <span class="flow-era">Idea</span>
+          <h3>Encode structure and invariance</h3>
+          <p>Geometry constrains rays and motion; filters expose local change; probabilistic models express uncertainty; features reduce nuisance variation.</p>
+        </li>
+        <li class="content-card timeline-item">
+          <span class="flow-era">Assumption</span>
+          <h3>The world follows a useful simplification</h3>
+          <p>Brightness is locally constant, a surface is planar, motion is rigid, noise is Gaussian, labels are representative, or train and test distributions match.</p>
+        </li>
+        <li class="content-card timeline-item">
+          <span class="flow-era">Failure</span>
+          <h3>Reality violates the simplification</h3>
+          <p>Specularities break brightness constancy; parallax breaks a homography; occlusion breaks matching; long tails break global averages.</p>
+        </li>
+        <li class="content-card timeline-item">
+          <span class="flow-era">Improvement</span>
+          <h3>Add robustness, data, or a better state</h3>
+          <p>Use robust estimators, multiscale processing, learned representations, temporal context, sensor fusion, uncertainty, and targeted data collection.</p>
+        </li>
+        <li class="content-card timeline-item">
+          <span class="flow-era">Modern form</span>
+          <h3>Hybrid systems with explicit contracts</h3>
+          <p>Foundation features and end-to-end learning coexist with calibration, geometry, filters, safety monitors, runtime constraints, and human review.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="section" aria-labelledby="math-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mathematical backbone</p>
+          <h2 id="math-title">Three equations, one reasoning habit</h2>
+        </div>
+        <p>Write the model, inspect the residual, and test the assumptions.</p>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Projection: observation from state</h3>
+          <div class="equation" role="math" aria-label="u equals f x times X over Z plus c x; v equals f y times Y over Z plus c y">
+            <span>u = f<sub>x</sub>X/Z + c<sub>x</sub></span><br>
+            <span>v = f<sub>y</sub>Y/Z + c<sub>y</sub></span>
+          </div>
+          <p>Depth appears in the denominator, so pixel sensitivity is nonlinear. A coordinate-frame mistake can look like a model failure.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Estimation: state from residuals</h3>
+          <div class="equation" role="math" aria-label="x star equals arg min of residual transpose Sigma inverse residual">
+            x<sup>*</sup> = arg min<sub>x</sub> r(x)<sup>T</sup>Σ<sup>−1</sup>r(x)
+          </div>
+          <p>The covariance weights errors by reliability. Robust losses are needed when the assumed residual distribution cannot explain outliers.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Learning: risk on a distribution</h3>
+          <div class="equation" role="math" aria-label="theta star equals arg min expected loss plus regularization">
+            θ<sup>*</sup> = arg min<sub>θ</sub> E<sub>(x,y)∼D</sub>[L(f<sub>θ</sub>(x), y)] + λR(θ)
+          </div>
+          <p>The dataset distribution is part of the objective. Slice failures reveal when the empirical distribution hides the operating domain.</p>
+        </article>
+      </div>
+
+      <article class="content-card prose worked-example">
+        <p class="eyebrow">Worked example</p>
+        <h3>How depth uncertainty moves a projected point</h3>
+        <p>A calibrated camera has <strong>f<sub>x</sub> = 800 px</strong> and <strong>c<sub>x</sub> = 640 px</strong>. A point is at <strong>X = 1.5 m</strong>, <strong>Z = 12 m</strong>.</p>
+        <div class="equation" role="math" aria-label="u equals 800 times 1.5 divided by 12 plus 640 equals 740 pixels">
+          u = 800 × 1.5 / 12 + 640 = 740 px
+        </div>
+        <p>The local sensitivity to depth is:</p>
+        <div class="equation" role="math" aria-label="absolute partial u partial Z equals f x times absolute X divided by Z squared equals 8.33 pixels per meter">
+          |∂u/∂Z| = f<sub>x</sub>|X|/Z<sup>2</sup> = 8.33 px/m
+        </div>
+        <p>If depth uncertainty is approximately <strong>0.20 m</strong>, first-order pixel uncertainty is about <strong>1.67 px</strong>. That number becomes meaningful only with its assumptions: intrinsics are fixed, X is treated as known, distortion is corrected, and linearization is valid near 12 m.</p>
+        <div class="callout callout-compact">
+          <strong>Senior extension:</strong> now add focal-length uncertainty, correlation between X and Z, rolling shutter, and a 50 ms timestamp offset. Which term dominates for a moving object?
+        </div>
+      </article>
+    </section>
+
+    <section class="section" aria-labelledby="maps-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Evolution maps</p>
+          <h2 id="maps-title">See continuity, not replacement</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Question</th>
+              <th scope="col">Earlier form</th>
+              <th scope="col">Pressure that changed it</th>
+              <th scope="col">Modern form</th>
+              <th scope="col">What still survives</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">What is present?</th>
+              <td>Templates, HOG, sliding windows</td>
+              <td>Appearance diversity and scale</td>
+              <td>CNN/transformer detection and open-vocabulary models</td>
+              <td>Pyramids, matching, suppression, thresholding</td>
+            </tr>
+            <tr>
+              <th scope="row">Where is it in 3D?</th>
+              <td>Stereo, triangulation, PnP</td>
+              <td>Sparse matches and difficult texture</td>
+              <td>Learned depth, neural 3D detection, hybrid reconstruction</td>
+              <td>Projection, calibration, epipolar constraints</td>
+            </tr>
+            <tr>
+              <th scope="row">How does it move?</th>
+              <td>Optical flow and Kalman filters</td>
+              <td>Occlusion and nonlinear interactions</td>
+              <td>Learned association, temporal attention, scene flow</td>
+              <td>State, covariance, gating, motion compensation</td>
+            </tr>
+            <tr>
+              <th scope="row">What should planning consume?</th>
+              <td>Hand-built object lists and maps</td>
+              <td>Fragmented cameras and missing free space</td>
+              <td>BEV features, occupancy, vector maps, world models</td>
+              <td>Frame contracts, uncertainty, latency budgets</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="practice-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Turn theory into evidence</p>
+          <h2 id="practice-title">Recall it, implement it, defend it</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="callout">
+          <p class="eyebrow">MCQ checkpoint</p>
+          <h3>Find the broken assumption</h3>
+          <p>Practice observability, conditioning, projection, loss functions, data shift, representations, and deployment trade-offs with explained answers.</p>
+          <a class="button button-primary" href="practice.html">Open theory questions</a>
+        </article>
+        <article class="callout">
+          <p class="eyebrow">Coding checkpoint</p>
+          <h3>Make the contracts executable</h3>
+          <p>Implement projection, weighted least squares, robust estimation, uncertainty propagation, and transform round-trip tests.</p>
+          <a class="button button-secondary" href="coding.html">Open coding exercises</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-card prose" aria-labelledby="gate-title">
+      <p class="eyebrow">Mastery gate</p>
+      <h2 id="gate-title">Before moving on</h2>
+      <ul class="check-list">
+        <li>Trace one real feature from sensor capture to product action.</li>
+        <li>Name the model, state, residual, uncertainty, and degeneracy at the estimation step.</li>
+        <li>Explain one classical method, why it failed, and which part survives in a modern method.</li>
+        <li>Describe how a data improvement differs from an architecture improvement.</li>
+        <li>State a degraded-mode behavior when fusion or runtime contracts fail.</li>
+      </ul>
+      <label class="milestone-toggle"><input type="checkbox" data-milestone="theory"> Mark theory foundations complete on this device</label>
+    </section>
+
+    <aside class="callout" aria-labelledby="source-note-title">
+      <div>
+        <p class="eyebrow">References and attribution</p>
+        <h2 id="source-note-title">Continue with the curated source map</h2>
+        <p>University courses, textbooks, primary papers, datasets, licensing notes, and access dates are collected on the sources page.</p>
+      </div>
+      <a class="button button-secondary" href="sources.html">View theory sources</a>
+    </aside>
+
+    <nav class="page-pagination" aria-label="Lesson navigation">
+      <a class="pagination-link pagination-previous" href="index.html">
+        <span>Previous</span>
+        <strong>Course overview</strong>
+      </a>
+      <a class="pagination-link pagination-next" href="perception.html">
+        <span>Next</span>
+        <strong>Perception systems</strong>
+      </a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-brand">
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span></a>
+        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer"><a href="theory.html">Theory</a><a href="practice.html">MCQ</a><a href="coding.html">Coding</a><a href="projects.html">Projects</a><a href="sources.html">Sources</a><a href="https://github.com/buicongnguyen/computer_vision">GitHub</a></nav>
+    </div>
+  </footer>
+  <script src="site.js"></script>
+</body>
+</html>

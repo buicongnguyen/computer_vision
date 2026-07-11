@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A rigorous senior-engineer guide to modern computer vision: CNNs, vision transformers, DETR, self-supervision, VLMs, diffusion, neural 3D, world models, evaluation, and production tradeoffs.">
+  <meta name="theme-color" content="#071019">
+  <title>Modern computer vision | CV Systems Lab</title>
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/modern-cv.html">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html" aria-label="CV Systems Lab home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>
+          <strong>CV Systems Lab</strong>
+          <small>Senior engineer study hub</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" aria-current="page" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>MCQ</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <button class="theme-toggle" type="button" data-theme-toggle>
+          <span class="theme-icon" aria-hidden="true"></span>
+          <span class="theme-label">Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Modern computer vision</span>
+    </nav>
+
+    <section class="page-hero">
+      <p class="eyebrow">Module 05 · Modern CV</p>
+      <h1>From engineered features to visual foundation systems</h1>
+      <p>Understand why each major architecture appeared, what mechanism it introduced, which old assumptions it retained, and where it fails when placed inside a real perception product.</p>
+      <div>
+        <span class="tag">Senior level</span>
+        <span class="tag">Theory + mechanisms</span>
+        <span class="tag">Evaluation + production</span>
+        <span class="tag">Original practice</span>
+      </div>
+      <div>
+        <a class="button button-primary" href="#evolution">Trace the evolution</a>
+        <a class="button button-secondary" href="sources.html">Course sources</a>
+      </div>
+    </section>
+
+    <aside class="callout" aria-labelledby="study-contract-heading">
+      <div>
+        <p class="eyebrow">Study contract</p>
+        <h2 id="study-contract-heading">Reason from mechanism, not model names</h2>
+      </div>
+      <p>A senior engineer should be able to derive tensor shapes, state the training signal, identify hidden data assumptions, choose an evaluation protocol, and explain the latency and memory consequences. Treat every architecture below as a bundle of tradeoffs rather than a leaderboard entry.</p>
+    </aside>
+
+    <section class="section" aria-labelledby="outcomes-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Learning outcomes</p>
+          <h2 id="outcomes-heading">What mastery looks like</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        <article class="topic-card">
+          <p class="eyebrow">Explain</p>
+          <h3>Architecture evolution</h3>
+          <p>Connect local descriptors, CNN inductive bias, token mixing, set prediction, representation pretraining, and generative modeling as answers to concrete limitations.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Derive</p>
+          <h3>Core objectives</h3>
+          <p>Work through convolution, attention, bipartite matching, contrastive learning, diffusion denoising, volume rendering, alpha compositing, and latent dynamics.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Decide</p>
+          <h3>System tradeoffs</h3>
+          <p>Select representations, metrics, serving strategies, and fallbacks under accuracy, calibration, memory, throughput, tail-latency, and safety constraints.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="contents-heading">
+      <div class="content-card prose">
+        <p class="eyebrow">On this page</p>
+        <h2 id="contents-heading">Concept map</h2>
+        <ul class="source-list">
+          <li><a href="#evolution">Theory evolution</a></li>
+          <li><a href="#cnn-to-vit">CNNs to vision transformers</a></li>
+          <li><a href="#detr">DETR and set prediction</a></li>
+          <li><a href="#self-supervision">Self-supervision and foundation representations</a></li>
+          <li><a href="#vlm">Open-vocabulary vision and VLMs</a></li>
+          <li><a href="#diffusion">Diffusion and generative vision</a></li>
+          <li><a href="#neural-3d">NeRF and Gaussian splatting</a></li>
+          <li><a href="#embodied">Embodied perception and world models</a></li>
+          <li><a href="#limitations">Failure modes and current limitations</a></li>
+          <li><a href="#evaluation">Evaluation and production</a></li>
+          <li><a href="#role-lenses">Role overlays</a></li>
+          <li><a href="#practice">Original practice prompts</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="evolution" aria-labelledby="evolution-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Theory evolution</p>
+          <h2 id="evolution-heading">Every gain moves the bottleneck</h2>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Major transitions in modern computer vision and the engineering debt each transition introduced.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Stage</th>
+              <th scope="col">Main mechanism</th>
+              <th scope="col">What improved</th>
+              <th scope="col">New cost or weakness</th>
+              <th scope="col">Still the right choice when…</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Classical pipeline</th>
+              <td>Designed filters, invariant descriptors, geometric verification, shallow classifiers</td>
+              <td>Interpretability, low data demand, explicit geometry</td>
+              <td>Brittle features and task-specific engineering</td>
+              <td>Data or compute is scarce, geometry dominates, or auditability matters</td>
+            </tr>
+            <tr>
+              <th scope="row">CNN recognition</th>
+              <td>Learned local kernels, weight sharing, hierarchical receptive fields</td>
+              <td>End-to-end feature learning and strong visual priors</td>
+              <td>Large labeled datasets, texture shortcuts, limited global context</td>
+              <td>Latency, mature accelerators, dense prediction, and stable deployment dominate</td>
+            </tr>
+            <tr>
+              <th scope="row">Residual and feature-pyramid CNNs</th>
+              <td>Skip connections and multi-scale feature hierarchies</td>
+              <td>Deeper optimization and better small-object coverage</td>
+              <td>Complex necks, hand-designed scale routing, memory traffic</td>
+              <td>Multi-scale detection needs predictable speed and proven kernels</td>
+            </tr>
+            <tr>
+              <th scope="row">Vision transformers</th>
+              <td>Patch tokens, global content-dependent attention, large-scale pretraining</td>
+              <td>Long-range interactions and scalable representations</td>
+              <td>Quadratic token interaction, weak built-in locality, data hunger</td>
+              <td>Pretraining is available and global or multimodal context is valuable</td>
+            </tr>
+            <tr>
+              <th scope="row">DETR family</th>
+              <td>Object queries, cross-attention, bipartite set matching</td>
+              <td>End-to-end detection without anchor and NMS heuristics</td>
+              <td>Matching instability, small-object difficulty, decoder cost</td>
+              <td>A clean set interface and joint reasoning outweigh a tuned dense detector</td>
+            </tr>
+            <tr>
+              <th scope="row">Self-supervised foundation encoders</th>
+              <td>Contrastive, masked, or teacher-student objectives over unlabeled data</td>
+              <td>Transferable features and reduced task-label dependence</td>
+              <td>Pretraining expense, hidden data bias, objective-specific blind spots</td>
+              <td>Many downstream tasks can amortize one representation</td>
+            </tr>
+            <tr>
+              <th scope="row">Open-vocabulary and VLM systems</th>
+              <td>Aligned visual and language embedding spaces; instruction-conditioned decoding</td>
+              <td>Flexible concepts, zero/few-shot transfer, semantic interfaces</td>
+              <td>Prompt sensitivity, hallucination, weak localization and calibration</td>
+              <td>Vocabulary changes faster than a closed classifier can be retrained</td>
+            </tr>
+            <tr>
+              <th scope="row">Generative, neural 3D, and world models</th>
+              <td>Learned distributions over pixels, scenes, or future latent states</td>
+              <td>Synthesis, reconstruction, simulation, and predictive state</td>
+              <td>Expensive inference, geometric inconsistency, causal ambiguity, weak guarantees</td>
+              <td>The product benefits from simulation, editing, view synthesis, or planning</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="cnn-to-vit" aria-labelledby="cnn-to-vit-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 01</p>
+          <h2 id="cnn-to-vit-heading">From local convolution to token interaction</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Classical descriptors: invariance by design</h3>
+          <p>Classical systems separate the problem into detection, description, matching, geometric verification, and a task head. A descriptor is engineered to suppress nuisance variation while preserving identity. That separation remains valuable for debugging and for geometry-heavy tasks, but the chosen invariance can discard information the downstream task needs.</p>
+          <p><strong>Senior question:</strong> should illumination change be removed, modeled, or used as a cue? The answer differs for place recognition, photometric stereo, and defect inspection.</p>
+        </article>
+
+        <article class="content-card prose">
+          <h3>CNNs: invariance learned under a locality prior</h3>
+          <p>For output channel <code>cₒ</code> at pixel <code>p</code>, a convolution applies the same local weights everywhere:</p>
+          <pre><code>y[cₒ, p] = σ( Σ[cᵢ, Δ] W[cₒ, cᵢ, Δ] · x[cᵢ, p + Δ] + b[cₒ] )</code></pre>
+          <p>Weight sharing gives translation equivariance before striding and boundary effects. Depth expands the effective receptive field; pooling or striding trades spatial precision for robustness and compute. Residual connections make the learned mapping <code>y = x + F(x)</code>, improving gradient flow and allowing deep models to preserve useful identity features.</p>
+        </article>
+
+        <article class="content-card prose">
+          <h3>ViTs: interaction is selected by content</h3>
+          <p>An image is split into patches, projected to tokens, augmented with position information, and processed using self-attention:</p>
+          <pre><code>Q = XWq,  K = XWk,  V = XWv
+Attention(X) = softmax(QKᵀ / √d) V</code></pre>
+          <p>Unlike a fixed convolutional stencil, each token can mix information from any other token. This gains global context but makes full attention cost roughly <code>O(N²d)</code> in compute and <code>O(N²)</code> in attention memory for <code>N</code> tokens. Smaller patches improve detail while rapidly increasing cost.</p>
+        </article>
+      </div>
+
+      <div class="callout">
+        <div>
+          <p class="eyebrow">Design rule</p>
+          <h3>Inductive bias is prepaid data efficiency</h3>
+        </div>
+        <p>CNN locality and weight sharing constrain the hypothesis space, so less data may be needed. A transformer relaxes those assumptions and can learn broader interactions, but the missing prior must be supplied by data, objective design, architecture, or hybrid local attention. Choose the bias that matches the operating regime.</p>
+      </div>
+    </section>
+
+    <section class="section" id="detr" aria-labelledby="detr-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 02</p>
+          <h2 id="detr-heading">DETR reframes detection as set prediction</h2>
+        </div>
+      </div>
+
+      <div class="content-card prose">
+        <p>Traditional detectors predict many overlapping candidates and then use heuristics such as anchors, IoU thresholds, and non-maximum suppression. DETR introduces a fixed set of learned object queries. Each query attends to image features and emits either one object or “no object.” Because ground-truth objects have no order, training first finds a one-to-one assignment.</p>
+
+        <pre><code>σ̂ = arg min over permutations σ  Σᵢ Cmatch(yᵢ, ŷσ(i))
+
+Lset = Σᵢ [ Lclass(cᵢ, ĉσ̂(i))
+           + λ1 · ||bᵢ - b̂σ̂(i)||₁
+           + λIoU · LIoU(bᵢ, b̂σ̂(i)) ]</code></pre>
+
+        <p>The Hungarian assignment makes duplicates expensive: only one query can own a target. The decoder therefore learns both <em>what</em> an object is and <em>which query</em> should claim it.</p>
+
+        <h3>Mechanism trace</h3>
+        <ol>
+          <li>The backbone converts the image into spatial features.</li>
+          <li>Position information prevents permutation-invariant attention from losing layout.</li>
+          <li>Object queries cross-attend to features and compete to explain the target set.</li>
+          <li>Bipartite matching creates a discrete training assignment.</li>
+          <li>Classification and box losses update matched pairs; unmatched queries learn “no object.”</li>
+        </ol>
+
+        <h3>Where the clean abstraction becomes engineering work</h3>
+        <p>Vanilla global attention can be expensive at high resolution, sparse small objects may receive weak gradients, and early matching can be unstable. Multi-scale features, deformable sampling, denoising queries, stronger initialization, and iterative box refinement address parts of the problem, but each reintroduces design choices. “End to end” does not mean “free of heuristics”; it means the interfaces and losses have moved.</p>
+      </div>
+    </section>
+
+    <section class="section" id="self-supervision" aria-labelledby="self-supervision-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 03</p>
+          <h2 id="self-supervision-heading">Self-supervision defines what should stay the same</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Contrastive learning</h3>
+          <p>Two augmented views of one sample are a positive pair; other samples form negatives. A common per-example objective is:</p>
+          <pre><code>Li = -log [ exp(sim(zᵢ, zᵢ⁺) / τ)
+            / Σⱼ exp(sim(zᵢ, zⱼ) / τ) ]</code></pre>
+          <p>The temperature <code>τ</code> controls how sharply hard negatives dominate. Augmentations encode the invariances: aggressive cropping may help classification yet harm counting or geometry.</p>
+        </article>
+
+        <article class="content-card prose">
+          <h3>Masked modeling</h3>
+          <p>A large fraction of image tokens is hidden and the model reconstructs pixels, features, or discrete targets:</p>
+          <pre><code>Lmask = (1 / |M|) Σ[i ∈ M] || targetᵢ - decoder(encoder(xvisible))ᵢ ||²</code></pre>
+          <p>Masking forces contextual prediction and avoids explicit negatives. The target choice determines whether the representation emphasizes texture, semantics, or geometry.</p>
+        </article>
+
+        <article class="content-card prose">
+          <h3>Teacher-student learning</h3>
+          <p>A slowly updated teacher supplies targets to a student under different views. Centering, sharpening, stop-gradient paths, or variance constraints prevent constant representations. Collapse prevention is a mechanism, not a minor training trick.</p>
+          <pre><code>θteacher ← m · θteacher + (1 - m) · θstudent</code></pre>
+        </article>
+      </div>
+
+      <div class="content-card prose">
+        <h3>Foundation representation is an evaluation claim</h3>
+        <p>A large encoder becomes “foundational” only if its features transfer across meaningful shifts in tasks, labels, domains, viewpoints, and data scale. Linear probing measures accessibility under a frozen representation; fine-tuning measures adaptability; retrieval tests metric structure; dense tasks expose whether spatial detail survived. A single benchmark cannot establish generality.</p>
+      </div>
+    </section>
+
+    <section class="section" id="vlm" aria-labelledby="vlm-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 04</p>
+          <h2 id="vlm-heading">Open-vocabulary perception aligns pixels with language</h2>
+        </div>
+      </div>
+
+      <div class="content-card prose">
+        <p>A dual-encoder vision-language model maps an image and text descriptions into a shared normalized space. For image embedding <code>v</code>, text embedding <code>tₖ</code>, and learned scale <code>s</code>:</p>
+        <pre><code>logit(image, class k) = s · cosine(v, tₖ)
+p(k | image) = softmax over k [ logit(image, class k) ]</code></pre>
+
+        <p>Replacing a fixed classifier matrix with text embeddings makes the vocabulary editable at inference time. Detection and segmentation systems extend the idea by aligning regions, pixels, or object queries with language. A generative VLM instead conditions a language decoder on visual tokens and can answer, describe, or reason through text.</p>
+
+        <h3>What “open vocabulary” does not guarantee</h3>
+        <ul>
+          <li><strong>Open world:</strong> scoring arbitrary labels does not guarantee reliable unknown rejection.</li>
+          <li><strong>Grounding:</strong> image-level alignment can recognize a concept without localizing it.</li>
+          <li><strong>Compositionality:</strong> object and attribute familiarity does not ensure correct relations or counting.</li>
+          <li><strong>Calibration:</strong> prompt wording and class-list composition can change confidence.</li>
+          <li><strong>Fresh knowledge:</strong> language coverage is bounded by training data and the visual evidence actually present.</li>
+        </ul>
+
+        <p><strong>Production pattern:</strong> use prompt ensembles and curated taxonomies offline, cache text embeddings, calibrate on the target domain, maintain an explicit unknown path, and route low-confidence cases to a specialist model or human workflow.</p>
+      </div>
+    </section>
+
+    <section class="section" id="diffusion" aria-labelledby="diffusion-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 05</p>
+          <h2 id="diffusion-heading">Diffusion learns to reverse controlled corruption</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Forward and reverse processes</h3>
+          <p>The forward process adds Gaussian noise according to a known schedule. A noisy sample can be produced directly:</p>
+          <pre><code>xt = √ᾱt · x0 + √(1 - ᾱt) · ε,    ε ~ N(0, I)</code></pre>
+          <p>A network predicts the injected noise, velocity, clean sample, or score. In the noise-prediction form:</p>
+          <pre><code>Lsimple = E[x0, ε, t] || ε - εθ(xt, t, condition) ||²</code></pre>
+        </article>
+
+        <article class="content-card prose">
+          <h3>Conditioning and guidance</h3>
+          <p>Text, masks, depth, pose, edges, or reference images condition denoising. Classifier-free guidance combines conditional and unconditional predictions:</p>
+          <pre><code>εguided = εuncond + w · (εcond - εuncond)</code></pre>
+          <p>Larger <code>w</code> often increases condition adherence while reducing diversity or creating artifacts. Guidance is a controllability tradeoff, not a free quality knob.</p>
+        </article>
+      </div>
+
+      <div class="content-card prose">
+        <h3>Generative vision beyond image synthesis</h3>
+        <p>Denoising objectives support editing, restoration, super-resolution, data generation, probabilistic depth, future prediction, 3D priors, and planning proposals. Their value comes from modeling a distribution rather than only a point estimate. Their cost is iterative inference and difficult verification: a perceptually plausible sample can still violate identity, geometry, physics, labels, or safety constraints.</p>
+        <p>Evaluate conditional fidelity, diversity, geometry, temporal consistency, memorization risk, and downstream utility separately. One scalar perceptual score is insufficient.</p>
+      </div>
+    </section>
+
+    <section class="section" id="neural-3d" aria-labelledby="neural-3d-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 06</p>
+          <h2 id="neural-3d-heading">NeRF and Gaussian splatting trade rendering structure</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>NeRF: continuous field + volume rendering</h3>
+          <p>A neural field maps a 3D point and view direction to density <code>σ</code> and color <code>c</code>. Samples along a camera ray are composited front to back:</p>
+          <pre><code>αi = 1 - exp(-σi · δi)
+Ti = exp(-Σ[j&lt;i] σj · δj)
+C(ray) = Σi Ti · αi · ci</code></pre>
+          <p>Camera poses tie 2D observations into a shared 3D field. Differentiable rendering lets image error supervise geometry and appearance indirectly. Rendering can be expensive because many field evaluations are required per ray.</p>
+        </article>
+
+        <article class="content-card prose">
+          <h3>Gaussian splatting: explicit primitives + rasterization</h3>
+          <p>A scene is represented by anisotropic 3D Gaussians with position, covariance, opacity, and appearance. Projection yields a 2D elliptical footprint:</p>
+          <pre><code>αi(u) = oi · exp[-½ (u - μi)ᵀ Σi⁻¹ (u - μi)]
+C(u) = Σi ci · αi(u) · Π[j&lt;i](1 - αj(u))</code></pre>
+          <p>Fast tile-based rasterization gives high interactive rendering speed, but the explicit primitive set can consume substantial memory and requires densification, pruning, sorting, and careful handling of visibility.</p>
+        </article>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Decision factors for neural radiance fields and Gaussian splats.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Question</th>
+              <th scope="col">Neural field tendency</th>
+              <th scope="col">Gaussian tendency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Representation</th>
+              <td>Implicit continuous function</td>
+              <td>Explicit adaptive primitives</td>
+            </tr>
+            <tr>
+              <th scope="row">Rendering</th>
+              <td>Ray sampling and integration</td>
+              <td>Projection, sorting, and alpha compositing</td>
+            </tr>
+            <tr>
+              <th scope="row">Typical strength</th>
+              <td>Compact continuous modeling and flexible field queries</td>
+              <td>Fast high-quality novel-view rendering</td>
+            </tr>
+            <tr>
+              <th scope="row">Typical risk</th>
+              <td>Slow training/rendering and floaters under weak coverage</td>
+              <td>Memory growth, primitive management, and geometry ambiguity</td>
+            </tr>
+            <tr>
+              <th scope="row">Shared dependency</th>
+              <td colspan="2">Accurate calibration, adequate view coverage, a suitable scene model, and validation beyond photometric quality</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="embodied" aria-labelledby="embodied-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mechanism 07</p>
+          <h2 id="embodied-heading">World models make perception action-conditional</h2>
+        </div>
+      </div>
+
+      <div class="content-card prose">
+        <p>A recognition model estimates what is visible now. An embodied system needs state relevant to future decisions: geometry, motion, uncertainty, affordances, and the consequences of action. A compact latent dynamics model can be written as:</p>
+        <pre><code>zt = encoder(observationt)
+ẑt+1 ~ pθ(zt+1 | zt, at)
+ô t+1 = decoder(ẑt+1)</code></pre>
+
+        <p>Training may combine representation, prediction, reconstruction, reward, value, or action losses:</p>
+        <pre><code>L = λrep Lrepresentation + λdyn Lprediction
+  + λtask Ltask + λunc Luncertainty</code></pre>
+
+        <h3>The central design choice: what must the latent preserve?</h3>
+        <p>Pixel prediction rewards appearance detail; feature prediction can emphasize semantics; occupancy or flow rewards geometric dynamics; reward/value prediction keeps decision-relevant information. No single target is universally sufficient. A latent that renders attractive video may ignore a small obstacle; a state optimized only for reward may be hard to audit.</p>
+
+        <h3>Open-loop versus closed-loop evidence</h3>
+        <p>Future-frame quality, trajectory error, or latent loss is open-loop evidence. An embodied system must also be tested closed loop with interventions, recovery from error, counterfactual actions, long-tail scenarios, and uncertainty-aware fallback. Small prediction bias compounds when the model's own outputs change the next observation distribution.</p>
+      </div>
+    </section>
+
+    <section class="section" id="limitations" aria-labelledby="limitations-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Failure analysis</p>
+          <h2 id="limitations-heading">Current limitations to design around</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="topic-card">
+          <p class="eyebrow">Distribution</p>
+          <h3>Shortcut learning and shift</h3>
+          <p>Models exploit background, capture pipeline, text, or dataset artifacts. Random train/test splits can hide correlated leakage. Validate across time, geography, device, weather, and collection policy.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Confidence</p>
+          <h3>Open-set calibration</h3>
+          <p>Softmax or similarity scores need not reflect correctness under novelty. Separate ranking quality, probabilistic calibration, unknown detection, and selective-risk behavior.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Structure</p>
+          <h3>Geometry and temporal consistency</h3>
+          <p>Strong semantic models can violate epipolar geometry, object permanence, scale, or motion. Add explicit geometric tests and sequence-level metrics instead of trusting frame-wise accuracy.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Language</p>
+          <h3>Hallucination and grounding gaps</h3>
+          <p>VLM output may follow language priors when evidence is absent. Require evidence localization, abstention, constrained vocabularies, retrieval, or tool verification for high-impact decisions.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Generation</p>
+          <h3>Plausibility is not truth</h3>
+          <p>Diffusion and world models can produce convincing but physically or semantically wrong samples. Generated data needs provenance, coverage analysis, and downstream validation against real data.</p>
+        </article>
+        <article class="topic-card">
+          <p class="eyebrow">Systems</p>
+          <h3>Average speed hides tail failures</h3>
+          <p>Dynamic shapes, preprocessing, memory allocation, data transfer, throttling, and batching change latency. Measure end-to-end percentiles on the target hardware and workload.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="evaluation" aria-labelledby="evaluation-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Evidence before adoption</p>
+          <h2 id="evaluation-heading">Evaluation must cover task, uncertainty, and system</h2>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>A minimum evidence matrix for modern vision systems.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Capability</th>
+              <th scope="col">Primary quality metrics</th>
+              <th scope="col">Required slices</th>
+              <th scope="col">System and risk evidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Classification</th>
+              <td>Accuracy, macro F1, per-class recall</td>
+              <td>Tail classes, domain, corruption, time</td>
+              <td>ECE or reliability curves, selective risk, latency</td>
+            </tr>
+            <tr>
+              <th scope="row">Detection / segmentation</th>
+              <td>AP by IoU and size; mIoU, Dice, PQ, boundary quality</td>
+              <td>Range, scale, occlusion, density, weather</td>
+              <td>False negatives by hazard, temporal stability, peak memory</td>
+            </tr>
+            <tr>
+              <th scope="row">Open-vocabulary / VLM</th>
+              <td>Open-vocabulary AP, retrieval recall, grounded QA</td>
+              <td>Prompt templates, synonyms, unseen compositions, unknowns</td>
+              <td>Abstention, evidence grounding, hallucination rate, cache cost</td>
+            </tr>
+            <tr>
+              <th scope="row">Generative vision</th>
+              <td>Distributional, perceptual, condition-fidelity, and human measures</td>
+              <td>Identity, text, geometry, temporal length, rare conditions</td>
+              <td>Memorization, safety filters, sampling steps, energy and throughput</td>
+            </tr>
+            <tr>
+              <th scope="row">Neural rendering</th>
+              <td>PSNR, SSIM, perceptual distance, depth or surface error</td>
+              <td>Held-out views, extrapolation, sparse coverage, motion</td>
+              <td>Training time, FPS, representation size, pose sensitivity</td>
+            </tr>
+            <tr>
+              <th scope="row">Embodied / world model</th>
+              <td>Prediction, occupancy, flow, trajectory, task success</td>
+              <td>Long horizon, interaction, recovery, rare agents, interventions</td>
+              <td>Closed-loop collision or failure rate, uncertainty, fallback behavior</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <h3>Calibration is decision-specific</h3>
+          <p>Expected calibration error bins confidence and compares mean confidence with empirical accuracy:</p>
+          <pre><code>ECE = Σb (|Bb| / n) · | accuracy(Bb) - confidence(Bb) |</code></pre>
+          <p>ECE can hide local failures. Also inspect class-conditional reliability, risk-coverage curves, threshold stability, and calibration after deployment transformations such as quantization.</p>
+        </article>
+
+        <article class="content-card prose">
+          <h3>Production budget is a vector</h3>
+          <p>Track end-to-end <code>p50/p95/p99</code> latency, throughput at the intended batch size, peak and steady memory, startup time, power, model size, data-transfer cost, and recovery behavior. FLOPs alone miss memory bandwidth, kernel launch overhead, operator support, and host-device synchronization.</p>
+        </article>
+      </div>
+
+      <div class="callout">
+        <div>
+          <p class="eyebrow">Deployment gate</p>
+          <h3>Compare complete systems under one operating point</h3>
+        </div>
+        <p>Fix input policy, precision, hardware, batch size, warm-up, confidence threshold, post-processing, and data slices before comparing models. Report Pareto frontiers rather than naming a single winner. Re-run quality tests on the exported engine; graph rewrites and reduced precision can change predictions.</p>
+      </div>
+    </section>
+
+    <section class="section" id="role-lenses" aria-labelledby="role-lenses-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Role overlays</p>
+          <h2 id="role-lenses-heading">Translate theory into senior-engineer evidence</h2>
+        </div>
+        <span class="tag">Role lenses, not vacancy claims</span>
+      </div>
+
+      <div class="card-grid">
+        <article class="topic-card">
+          <p class="eyebrow">Google-scale lens</p>
+          <h3>Representation, data, and evaluation</h3>
+          <ul>
+            <li>Design leakage-resistant data splits and long-tail slices.</li>
+            <li>Compare frozen, adapted, and task-specific representations.</li>
+            <li>Build reproducible distributed experiments and ablations.</li>
+            <li>Explain calibration, privacy, fairness, and monitoring choices.</li>
+          </ul>
+          <p><strong>Portfolio evidence:</strong> a dataset card, scaling study, error taxonomy, model card, and production launch criteria.</p>
+        </article>
+
+        <article class="topic-card">
+          <p class="eyebrow">NVIDIA-style systems lens</p>
+          <h3>Accelerated training and inference</h3>
+          <ul>
+            <li>Profile kernels, memory traffic, layout changes, and transfers.</li>
+            <li>Use mixed precision, quantization, fusion, and shape constraints deliberately.</li>
+            <li>Distinguish throughput optimization from real-time tail latency.</li>
+            <li>Validate exported engines numerically and task-wise.</li>
+          </ul>
+          <p><strong>Portfolio evidence:</strong> traces, roofline reasoning, accuracy-latency Pareto curves, and a reproducible deployment benchmark.</p>
+        </article>
+
+        <article class="topic-card">
+          <p class="eyebrow">42dot autonomy lens</p>
+          <h3>Geometry, temporal perception, and safety</h3>
+          <ul>
+            <li>Connect calibration and coordinate frames to 3D or BEV outputs.</li>
+            <li>Handle multi-camera timing, occlusion, motion, and uncertainty.</li>
+            <li>Evaluate by range, weather, agent type, map context, and hazard.</li>
+            <li>Define closed-loop fallbacks and monitor calibration drift.</li>
+          </ul>
+          <p><strong>Portfolio evidence:</strong> geometry tests, sequence metrics, failure replay, uncertainty analysis, and a safety-oriented design review.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="practice" aria-labelledby="practice-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Original practice</p>
+          <h2 id="practice-heading">Turn mechanisms into interview-ready judgment</h2>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <article class="content-card prose">
+          <p class="eyebrow">Theory prompts</p>
+          <h3>Derive and explain</h3>
+          <ol>
+            <li>Prove convolution is translation equivariant when boundary and stride effects are ignored. Give two ways a production CNN breaks exact equivariance.</li>
+            <li>For a <code>224×224</code> image, compare token count and attention-matrix size for patch sizes <code>16</code> and <code>8</code>. Explain the effect on small objects.</li>
+            <li>Construct a three-prediction, two-target matching-cost matrix and solve the optimal DETR assignment by hand. Show why greedy matching can fail.</li>
+            <li>Explain how contrastive temperature changes gradient emphasis. Predict two symptoms when it is much too small.</li>
+            <li>Derive front-to-back transmittance in volume rendering from independent absorption over ray intervals.</li>
+          </ol>
+        </article>
+
+        <article class="content-card prose">
+          <p class="eyebrow">Coding prompts</p>
+          <h3>Implement and test</h3>
+          <ol>
+            <li>Implement patchification and unpatchification with shape assertions and a round-trip test. Add non-square images and non-divisible dimensions to the test plan.</li>
+            <li>Implement scaled dot-product attention without a high-level attention layer. Test mask broadcasting, gradient flow, and numerical stability at large logits.</li>
+            <li>Implement InfoNCE for a symmetric image/text batch. Verify that aligned embeddings lower loss and report retrieval recall.</li>
+            <li>Implement discrete NeRF compositing for one ray. Numerically test empty space, an opaque surface, and sample-order errors.</li>
+            <li>Export one detector at two precisions and compare task metrics, output drift, p50/p99 latency, memory, and warm-up behavior.</li>
+          </ol>
+        </article>
+
+        <article class="content-card prose">
+          <p class="eyebrow">System-design prompts</p>
+          <h3>Defend a decision</h3>
+          <ol>
+            <li>Design an open-vocabulary detector for a changing retail catalog. Specify prompt policy, unknown handling, annotation loop, calibration, and rollback.</li>
+            <li>Choose between a CNN, ViT, and hybrid backbone for a 30 FPS edge device. Ask for missing constraints before proposing an answer.</li>
+            <li>Design evaluation for synthetic weather data used to train an autonomous perception model. Separate realism, coverage, leakage, and downstream utility.</li>
+            <li>Review a world model whose open-loop video quality improved while closed-loop driving worsened. Propose hypotheses and discriminating experiments.</li>
+            <li>Plan migration from a dense anchor detector to a DETR-family model without interrupting service. Include shadow traffic, metric parity, threshold recalibration, and fallback.</li>
+          </ol>
+        </article>
+      </div>
+
+      <div class="callout">
+        <div>
+          <p class="eyebrow">Completion rubric</p>
+          <h3>For every answer, expose the chain of evidence</h3>
+        </div>
+        <p>State assumptions, tensor shapes, objective, baseline, metric, data slice, system budget, expected failure, and a falsifying experiment. A plausible architecture diagram without this chain is not a senior-level answer.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="sources-note-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Attribution</p>
+          <h2 id="sources-note-heading">Course references and reuse policy</h2>
+        </div>
+      </div>
+      <div class="content-card prose">
+        <p>This page is original teaching material. Its topic sequence was informed by official Stanford, CMU, Michigan, MIT, Berkeley, and Georgia Tech course descriptions. University materials are linked rather than copied, and active-course solutions are not reproduced.</p>
+        <p><a class="button button-secondary" href="sources.html">Review university course sources</a></p>
+      </div>
+    </section>
+
+    <label class="milestone-toggle"><input type="checkbox" data-milestone="modern-cv"><span>Mark modern computer vision complete on this device</span></label>
+    <nav class="section card-grid" aria-label="Module navigation">
+      <a class="content-card" href="bev.html">
+        <span class="eyebrow">Previous module</span>
+        <h2>BEV perception</h2>
+        <p>Move from camera geometry into learned top-down representations.</p>
+      </a>
+      <a class="content-card" href="practice.html">
+        <span class="eyebrow">Next module</span>
+        <h2>Practice and MCQs</h2>
+        <p>Test recall, mechanism understanding, and engineering judgment.</p>
+      </a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <span><strong>CV Systems Lab</strong><small>Learn deeply. Measure honestly. Ship evidence.</small></span>
+        </a>
+        <p>Open study material for senior computer vision, perception, and ML systems engineering.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="theory.html">Theory</a>
+        <a href="practice.html">MCQ</a>
+        <a href="coding.html">Coding</a>
+        <a href="projects.html">Projects</a>
+        <a href="sources.html">Sources</a>
+        <a href="https://github.com/buicongnguyen/computer_vision">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>
