@@ -2051,6 +2051,315 @@ details > :not(summary) {
   color: var(--faint);
 }
 
+/* Accessible system graphs and data-flow diagrams */
+.system-diagram {
+  margin: 1.25rem 0 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 24rem),
+    var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.system-diagram__viewport {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  padding: clamp(0.85rem, 2vw, 1.4rem);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  scrollbar-color: var(--line-strong) var(--surface-2);
+}
+
+.system-diagram__viewport:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -4px;
+}
+
+.system-diagram__canvas {
+  display: block;
+  width: 100%;
+  min-width: 48rem;
+  height: auto;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  shape-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
+}
+
+.system-diagram--wide .system-diagram__canvas {
+  min-width: 68rem;
+}
+
+.system-diagram figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--line);
+  padding: 0.8rem 1rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.system-diagram figcaption strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.system-diagram__hint {
+  display: none;
+  flex: 0 0 auto;
+  color: var(--cyan);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.diagram-lane {
+  fill: color-mix(in srgb, var(--surface-2) 88%, transparent);
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-node {
+  fill: var(--surface-2);
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-node--sensor {
+  fill: color-mix(in srgb, var(--cyan) 8%, var(--surface-2));
+  stroke: var(--cyan);
+}
+
+.diagram-node--state {
+  fill: color-mix(in srgb, var(--violet) 8%, var(--surface-2));
+  stroke: var(--violet);
+}
+
+.diagram-node--decision {
+  fill: color-mix(in srgb, var(--amber) 8%, var(--surface-2));
+  stroke: var(--amber);
+}
+
+.diagram-node--output {
+  fill: color-mix(in srgb, var(--lime) 8%, var(--surface-2));
+  stroke: var(--lime);
+}
+
+.diagram-node--safety {
+  fill: color-mix(in srgb, var(--danger) 8%, var(--surface-2));
+  stroke: var(--danger);
+}
+
+.diagram-edge {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-edge--support {
+  stroke: var(--violet);
+  stroke-dasharray: 7 5;
+}
+
+.diagram-edge--feedback {
+  stroke: var(--amber);
+  stroke-dasharray: 3 5;
+}
+
+.diagram-edge--safety {
+  stroke: var(--danger);
+  stroke-dasharray: 10 4 2 4;
+}
+
+.diagram-arrowhead {
+  fill: var(--cyan);
+}
+
+.diagram-arrowhead--support {
+  fill: var(--violet);
+}
+
+.diagram-arrowhead--feedback {
+  fill: var(--amber);
+}
+
+.diagram-arrowhead--safety {
+  fill: var(--danger);
+}
+
+.diagram-kicker,
+.diagram-lane-label {
+  fill: var(--cyan);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.diagram-title {
+  fill: var(--text);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.diagram-detail,
+.diagram-edge-label,
+.diagram-axis-label {
+  fill: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.diagram-edge-label {
+  font-size: 12px;
+}
+
+.diagram-axis,
+.diagram-gridline {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-gridline {
+  stroke: var(--line);
+}
+
+.diagram-bar {
+  fill: color-mix(in srgb, var(--cyan) 36%, var(--surface-2));
+  stroke: var(--cyan);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-pose {
+  fill: var(--surface-2);
+  stroke: var(--cyan);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-landmark {
+  fill: color-mix(in srgb, var(--lime) 18%, var(--surface-2));
+  stroke: var(--lime);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-factor {
+  fill: color-mix(in srgb, var(--violet) 16%, var(--surface-2));
+  stroke: var(--violet);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.diagram-mobile-flow,
+.diagram-mobile-bars {
+  display: none;
+}
+
+.diagram-mobile-flow {
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+}
+
+.diagram-mobile-flow li {
+  position: relative;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 0.9rem;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.diagram-mobile-flow li + li {
+  margin-top: 1.5rem;
+}
+
+.diagram-mobile-flow li + li::before {
+  position: absolute;
+  top: -1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--cyan);
+  content: "↓";
+}
+
+.diagram-mobile-flow li.is-support {
+  border-style: dashed;
+  border-color: var(--violet);
+}
+
+.diagram-mobile-flow li.is-safety {
+  border-style: dashed;
+  border-color: var(--danger);
+}
+
+.diagram-mobile-flow strong,
+.diagram-mobile-flow small {
+  display: block;
+}
+
+.diagram-mobile-flow strong {
+  font-weight: 500;
+}
+
+.diagram-mobile-flow small {
+  margin-top: 0.15rem;
+  color: var(--muted);
+}
+
+.diagram-mobile-bars {
+  gap: 0.7rem;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+}
+
+.diagram-mobile-bars li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 3rem;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--muted);
+}
+
+.diagram-mobile-bars span {
+  height: 0.8rem;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--cyan) 50%, var(--surface-2));
+}
+
+.diagram-mobile-bars li:nth-child(1) span {
+  width: 100%;
+}
+
+.diagram-mobile-bars li:nth-child(2) span {
+  width: 50%;
+}
+
+.diagram-mobile-bars li:nth-child(3) span {
+  width: 25%;
+}
+
+.diagram-mobile-bars strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
 .evolution-table {
   overflow-x: auto;
   border: 1px solid var(--line);
@@ -2586,6 +2895,10 @@ input[type="search"] {
 }
 
 @media (max-width: 1050px) {
+  .system-diagram__hint {
+    display: inline;
+  }
+
   .flow-list,
   .flow-list-compact,
   .algorithm-grid {
@@ -2624,6 +2937,24 @@ input[type="search"] {
 }
 
 @media (max-width: 760px) {
+  .system-diagram__viewport {
+    padding: 0.7rem;
+  }
+
+  .system-diagram__canvas {
+    min-width: 42rem;
+  }
+
+  .system-diagram--wide .system-diagram__canvas {
+    min-width: 58rem;
+  }
+
+  .system-diagram figcaption {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
   .split-section,
   .algorithm-grid,
   .diagnostic-grid,
@@ -2683,6 +3014,38 @@ input[type="search"] {
   }
 }
 
+@media (max-width: 620px) {
+  .system-diagram__viewport {
+    display: none;
+  }
+
+  .diagram-mobile-flow,
+  .diagram-mobile-bars {
+    display: grid;
+  }
+
+  .system-diagram__hint {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .diagram-lane,
+  .diagram-node,
+  .diagram-pose,
+  .diagram-landmark,
+  .diagram-factor {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  .diagram-edge,
+  .diagram-axis,
+  .diagram-gridline {
+    stroke: LinkText;
+  }
+}
+
 @media print {
   .filter-panel,
   .filter-bar,
@@ -2698,5 +3061,48 @@ input[type="search"] {
   .content-card {
     box-shadow: none;
     break-inside: avoid;
+  }
+
+  .system-diagram {
+    border-color: #777;
+    background: #fff;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .system-diagram__viewport {
+    overflow: visible;
+    background: none;
+  }
+
+  .system-diagram__canvas,
+  .system-diagram--wide .system-diagram__canvas {
+    min-width: 0;
+  }
+
+  .diagram-mobile-flow,
+  .diagram-mobile-bars {
+    display: none;
+  }
+
+  .diagram-lane,
+  .diagram-node,
+  .diagram-pose,
+  .diagram-landmark,
+  .diagram-factor {
+    fill: #fff;
+    stroke: #555;
+  }
+
+  .diagram-title,
+  .diagram-kicker {
+    fill: #111;
+  }
+
+  .diagram-detail,
+  .diagram-edge-label,
+  .diagram-axis-label,
+  .diagram-lane-label {
+    fill: #333;
   }
 }

@@ -22,6 +22,9 @@ skills self-assessment, or private information.
   Ultralytics releases, and independent research branches.
 - A current-topics lesson on LingBot-Map, monocular streaming reconstruction,
   3D detection, 3D Gaussian Splatting, and recent NVIDIA reconstruction work.
+- An autonomous-driving systems lesson with six responsive graphs for the
+  closed loop, sensor fusion, frame transforms, representation choice, SLAM,
+  and prediction-to-control feedback.
 - 80 explained multiple-choice questions and 36 progressive coding exercises.
 - Six applied projects with baselines, comparison gates, failure tests, and
   reproducibility requirements.

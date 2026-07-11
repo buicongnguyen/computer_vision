@@ -50,24 +50,128 @@
 
     <section id="master-flow" aria-labelledby="master-flow-heading">
       <div class="section-heading"><div><p class="eyebrow">Fourteen-stage dependency map</p><h2 id="master-flow-heading">Follow evidence from photons and returns to actuation</h2></div><p>Arrows show prerequisites, not one mandatory software decomposition. Shared or end-to-end models may learn across several stages, but the contracts remain testable.</p></div>
-      <div class="flow-strip wide" role="list" aria-label="Autonomous driving master flow stages one through seven">
-        <div role="listitem"><span>1</span><strong>Specify</strong><small>ODD, route, outputs</small></div>
-        <div role="listitem"><span>2</span><strong>Sense</strong><small>camera/LiDAR/radar</small></div>
-        <div role="listitem"><span>3</span><strong>Time</strong><small>clocks, trigger, sync</small></div>
-        <div role="listitem"><span>4</span><strong>Calibrate</strong><small>intrinsic/extrinsic</small></div>
-        <div role="listitem"><span>5</span><strong>Decode</strong><small>pixels, returns, IMU</small></div>
-        <div role="listitem"><span>6</span><strong>Localize</strong><small>ego pose + covariance</small></div>
-        <div role="listitem"><span>7</span><strong>Align</strong><small>deskew + transform</small></div>
-      </div>
-      <div class="flow-strip wide" role="list" aria-label="Autonomous driving master flow stages eight through fourteen">
-        <div role="listitem"><span>8</span><strong>Represent</strong><small>points/BEV/occupancy</small></div>
-        <div role="listitem"><span>9</span><strong>Perceive</strong><small>objects/maps/tracks</small></div>
-        <div role="listitem"><span>10</span><strong>Predict</strong><small>future modes + flow</small></div>
-        <div role="listitem"><span>11</span><strong>Behave</strong><small>yield/merge/stop</small></div>
-        <div role="listitem"><span>12</span><strong>Plan</strong><small>feasible trajectory</small></div>
-        <div role="listitem"><span>13</span><strong>Control</strong><small>steer/brake/drive</small></div>
-        <div role="listitem"><span>14</span><strong>Learn</strong><small>monitor/replay/improve</small></div>
-      </div>
+      <figure class="system-diagram system-diagram--wide" id="autonomy-closed-loop-figure" data-diagram="closed-loop">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable autonomous-driving closed-loop data-flow graph">
+          <svg class="system-diagram__canvas" id="autonomy-closed-loop-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 640" aria-labelledby="autonomy-closed-loop-title" aria-describedby="autonomy-closed-loop-desc autonomy-closed-loop-caption">
+            <title id="autonomy-closed-loop-title">Autonomous-driving closed-loop dependency graph</title>
+            <desc id="autonomy-closed-loop-desc">The physical world produces sensor evidence. Timing, calibration, localization and alignment create a shared representation for perception, prediction, planning and control. Vehicle motion changes the next observation. Context, health monitoring, fallback, logging and replay support the main loop.</desc>
+            <defs>
+              <marker id="closed-loop-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="closed-loop-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="closed-loop-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="closed-loop-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="20" width="1140" height="105" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="145" width="1140" height="310" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="475" width="1140" height="145" rx="16"></rect>
+            <text class="diagram-lane-label" x="42" y="48">CONTEXT</text>
+            <text class="diagram-lane-label" x="42" y="173">EVIDENCE → STATE → ACTION → FEEDBACK</text>
+            <text class="diagram-lane-label" x="42" y="503">ASSURANCE &amp; LEARNING</text>
+
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M180 250 H215"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M365 250 H400"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M550 250 H585"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M735 250 H770"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M920 250 H955"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M1030 292 V330"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M955 380 H920"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M770 380 H735"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M585 380 H550"></path>
+            <path class="diagram-edge" marker-end="url(#closed-loop-arrow)" d="M400 380 H365"></path>
+            <path class="diagram-edge--feedback diagram-edge" marker-end="url(#closed-loop-feedback-arrow)" d="M215 380 H92 Q48 380 48 336 V293"></path>
+            <text class="diagram-edge-label" x="55" y="353">next observation</text>
+
+            <rect class="diagram-node diagram-node--output" x="30" y="205" width="150" height="88" rx="13"></rect>
+            <text class="diagram-title" x="105" y="238" text-anchor="middle">Physical world</text>
+            <text class="diagram-detail" x="105" y="262" text-anchor="middle">road · agents · weather</text>
+
+            <rect class="diagram-node diagram-node--sensor" x="215" y="205" width="150" height="88" rx="13"></rect>
+            <text class="diagram-title" x="290" y="238" text-anchor="middle">Sensor suite</text>
+            <text class="diagram-detail" x="290" y="262" text-anchor="middle">camera · LiDAR · radar</text>
+
+            <rect class="diagram-node diagram-node--sensor" x="400" y="205" width="150" height="88" rx="13"></rect>
+            <text class="diagram-title" x="475" y="232" text-anchor="middle">Prepare evidence</text>
+            <text class="diagram-detail" x="475" y="255" text-anchor="middle">sync · calibrate</text>
+            <text class="diagram-detail" x="475" y="274" text-anchor="middle">decode · validate</text>
+
+            <rect class="diagram-node diagram-node--state" x="585" y="205" width="150" height="88" rx="13"></rect>
+            <text class="diagram-title" x="660" y="238" text-anchor="middle">Localize ego</text>
+            <text class="diagram-detail" x="660" y="262" text-anchor="middle">T(t) + covariance</text>
+
+            <rect class="diagram-node diagram-node--state" x="770" y="205" width="150" height="88" rx="13"></rect>
+            <text class="diagram-title" x="845" y="238" text-anchor="middle">Deskew + align</text>
+            <text class="diagram-detail" x="845" y="262" text-anchor="middle">one time · one frame</text>
+
+            <rect class="diagram-node diagram-node--state" x="955" y="205" width="150" height="88" rx="13"></rect>
+            <text class="diagram-title" x="1030" y="232" text-anchor="middle">Represent</text>
+            <text class="diagram-detail" x="1030" y="255" text-anchor="middle">points · BEV</text>
+            <text class="diagram-detail" x="1030" y="274" text-anchor="middle">objects · occupancy</text>
+
+            <rect class="diagram-node diagram-node--state" x="955" y="330" width="150" height="100" rx="13"></rect>
+            <text class="diagram-title" x="1030" y="366" text-anchor="middle">Perceive + track</text>
+            <text class="diagram-detail" x="1030" y="390" text-anchor="middle">identity · map · unknown</text>
+
+            <rect class="diagram-node diagram-node--state" x="770" y="330" width="150" height="100" rx="13"></rect>
+            <text class="diagram-title" x="845" y="366" text-anchor="middle">Predict futures</text>
+            <text class="diagram-detail" x="845" y="390" text-anchor="middle">modes · probability · flow</text>
+
+            <rect class="diagram-node diagram-node--decision" x="585" y="330" width="150" height="100" rx="13"></rect>
+            <text class="diagram-title" x="660" y="359" text-anchor="middle">Behavior + motion</text>
+            <text class="diagram-detail" x="660" y="383" text-anchor="middle">rules · risk · comfort</text>
+            <text class="diagram-detail" x="660" y="402" text-anchor="middle">feasible trajectory</text>
+
+            <rect class="diagram-node diagram-node--decision" x="400" y="330" width="150" height="100" rx="13"></rect>
+            <text class="diagram-title" x="475" y="366" text-anchor="middle">Control</text>
+            <text class="diagram-detail" x="475" y="390" text-anchor="middle">steer · brake · torque</text>
+
+            <rect class="diagram-node diagram-node--output" x="215" y="330" width="150" height="100" rx="13"></rect>
+            <text class="diagram-title" x="290" y="366" text-anchor="middle">Vehicle</text>
+            <text class="diagram-detail" x="290" y="390" text-anchor="middle">pose + interaction</text>
+
+            <rect class="diagram-node" x="80" y="60" width="180" height="48" rx="12"></rect>
+            <text class="diagram-title" x="170" y="90" text-anchor="middle">ODD + mission</text>
+            <rect class="diagram-node" x="500" y="60" width="210" height="48" rx="12"></rect>
+            <text class="diagram-title" x="605" y="90" text-anchor="middle">Route · map · rules</text>
+            <rect class="diagram-node" x="900" y="60" width="190" height="48" rx="12"></rect>
+            <text class="diagram-title" x="995" y="90" text-anchor="middle">System constraints</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#closed-loop-support-arrow)" d="M605 108 V145 H660 V325"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#closed-loop-support-arrow)" d="M170 108 V145 H475 V200"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#closed-loop-support-arrow)" d="M995 108 V145 H695 V325"></path>
+
+            <rect class="diagram-node diagram-node--state" x="70" y="530" width="210" height="62" rx="13"></rect>
+            <text class="diagram-title" x="175" y="556" text-anchor="middle">IMU · GNSS · wheels</text>
+            <text class="diagram-detail" x="175" y="578" text-anchor="middle">motion + global reference</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#closed-loop-support-arrow)" d="M280 561 H330 Q360 561 360 520 V315 Q360 305 585 280"></path>
+
+            <rect class="diagram-node diagram-node--safety" x="360" y="530" width="210" height="62" rx="13"></rect>
+            <text class="diagram-title" x="465" y="556" text-anchor="middle">Health + uncertainty</text>
+            <text class="diagram-detail" x="465" y="578" text-anchor="middle">age · latency · feasibility</text>
+            <rect class="diagram-node diagram-node--safety" x="650" y="530" width="180" height="62" rx="13"></rect>
+            <text class="diagram-title" x="740" y="556" text-anchor="middle">Fallback</text>
+            <text class="diagram-detail" x="740" y="578" text-anchor="middle">degrade · limit · stop</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#closed-loop-safety-arrow)" d="M570 561 H645"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#closed-loop-safety-arrow)" d="M740 530 V470 H520 V435"></path>
+
+            <rect class="diagram-node diagram-node--output" x="900" y="530" width="210" height="62" rx="13"></rect>
+            <text class="diagram-title" x="1005" y="556" text-anchor="middle">Logs · replay · simulation</text>
+            <text class="diagram-detail" x="1005" y="578" text-anchor="middle">faults + scenario outcomes</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#closed-loop-feedback-arrow)" d="M1005 530 V485 H1100 Q1130 485 1130 455 V185 Q1130 155 1080 120"></path>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow" aria-label="Autonomous-driving closed-loop flow for small screens">
+          <li><strong>1 · Physical world and ODD</strong><small>Road, agents, weather, mission, route and rules.</small></li>
+          <li><strong>2 · Sensor evidence</strong><small>Camera, LiDAR, radar, IMU, GNSS and wheels with timestamps.</small></li>
+          <li><strong>3 · Prepare and localize</strong><small>Synchronize, calibrate, decode, estimate ego pose and covariance.</small></li>
+          <li><strong>4 · Align and represent</strong><small>Deskew into one time/frame; build points, BEV, objects or occupancy.</small></li>
+          <li><strong>5 · Perceive and predict</strong><small>Estimate tracked state, uncertainty and several plausible futures.</small></li>
+          <li><strong>6 · Plan and control</strong><small>Select behavior and a feasible trajectory; issue steering, brake and torque.</small></li>
+          <li><strong>7 · Vehicle changes the world</strong><small>The chosen action changes pose, interaction and the next observation.</small></li>
+          <li class="is-safety"><strong>Independent safety path</strong><small>Monitor data age, uncertainty, feasibility and latency; degrade, limit or stop.</small></li>
+          <li class="is-support"><strong>Learning path</strong><small>Logs, replay and simulation turn faults and outcomes into new tests and training data.</small></li>
+        </ol>
+        <figcaption id="autonomy-closed-loop-caption"><span><strong>Read the loop clockwise:</strong> solid arrows carry evidence and action; dashed arrows carry context, safety intervention, and learning feedback.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the graph →</span></figcaption>
+      </figure>
       <div class="split-section">
         <article class="content-card prose"><h3>Fast support stream</h3><p>IMU, wheel odometry, GNSS, vehicle state, and map priors support localization and motion compensation. Their timestamps and reference frames are as important as their values.</p></article>
         <article class="content-card prose"><h3>Feedback closes the graph</h3><p>Control changes vehicle pose, which changes the next observation. That feedback creates compounding error, recovery, and interaction effects that logged open-loop metrics cannot reproduce.</p></article>
@@ -84,6 +188,118 @@
         <div class="evolution-row" role="row"><span role="cell">Radar</span><span role="cell">Range, radial velocity and weather tolerance</span><span role="cell">Detection/cube processing, clutter and ambiguity handling, calibration and time</span><span role="cell">Lower angular resolution and multipath; fuse camera/LiDAR geometry.</span></div>
         <div class="evolution-row" role="row"><span role="cell">GNSS / IMU / wheels</span><span role="cell">Global reference and high-rate ego dynamics</span><span role="cell">Bias/noise models, time base, lever arms, preintegration and outage flags</span><span role="cell">Drift, multipath and slip; combine through a state estimator.</span></div>
       </div>
+      <figure class="system-diagram system-diagram--wide" id="sensor-alignment-flow-figure" data-diagram="sensor-alignment">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable multi-sensor preparation and fusion data-flow diagram">
+          <svg class="system-diagram__canvas" id="sensor-alignment-flow-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 650" aria-labelledby="sensor-alignment-flow-title" aria-describedby="sensor-alignment-flow-desc sensor-alignment-flow-caption">
+            <title id="sensor-alignment-flow-title">Multi-sensor preparation, alignment and fusion choices</title>
+            <desc id="sensor-alignment-flow-desc">Camera, LiDAR, radar, inertial, GNSS and wheel measurements pass through sensor-specific front ends. A central gate checks time synchronization, transforms, ego motion, quality and availability. Early, shared BEV or late fusion produce a timestamped world state.</desc>
+            <defs>
+              <marker id="sensor-flow-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="sensor-flow-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="sensor-flow-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="40" y="34">RAW MEASUREMENTS</text>
+            <text class="diagram-lane-label" x="250" y="34">SENSOR-SPECIFIC FRONT ENDS</text>
+            <text class="diagram-lane-label" x="525" y="34">COMMON GATE</text>
+            <text class="diagram-lane-label" x="785" y="34">FUSION LOCATION</text>
+            <text class="diagram-lane-label" x="1010" y="34">WORLD STATE</text>
+
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M200 100 H245"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M200 210 H245"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M200 320 H245"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M200 430 H245"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M200 540 H245"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M475 100 H495 Q515 100 515 230 H525"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M475 210 H525"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M475 320 H525"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#sensor-flow-support-arrow)" d="M475 430 H500 Q515 430 515 345 H525"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#sensor-flow-support-arrow)" d="M475 540 H610 V355"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M735 270 H765 Q780 270 780 135 H795"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M735 285 H795"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M735 300 H765 Q780 300 780 435 H795"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M975 135 H990 Q1000 135 1000 265 H1015"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M975 285 H1015"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M975 435 H990 Q1000 435 1000 305 H1015"></path>
+
+            <rect class="diagram-node diagram-node--sensor" x="30" y="65" width="170" height="70" rx="12"></rect>
+            <text class="diagram-title" x="115" y="94" text-anchor="middle">Camera</text>
+            <text class="diagram-detail" x="115" y="116" text-anchor="middle">image · time · exposure</text>
+            <rect class="diagram-node diagram-node--sensor" x="30" y="175" width="170" height="70" rx="12"></rect>
+            <text class="diagram-title" x="115" y="204" text-anchor="middle">LiDAR</text>
+            <text class="diagram-detail" x="115" y="226" text-anchor="middle">range · angles · point time</text>
+            <rect class="diagram-node diagram-node--sensor" x="30" y="285" width="170" height="70" rx="12"></rect>
+            <text class="diagram-title" x="115" y="314" text-anchor="middle">Radar</text>
+            <text class="diagram-detail" x="115" y="336" text-anchor="middle">range · azimuth · velocity</text>
+            <rect class="diagram-node diagram-node--sensor" x="30" y="395" width="170" height="70" rx="12"></rect>
+            <text class="diagram-title" x="115" y="424" text-anchor="middle">IMU</text>
+            <text class="diagram-detail" x="115" y="446" text-anchor="middle">angular rate · acceleration</text>
+            <rect class="diagram-node diagram-node--sensor" x="30" y="505" width="170" height="70" rx="12"></rect>
+            <text class="diagram-title" x="115" y="534" text-anchor="middle">GNSS + wheels</text>
+            <text class="diagram-detail" x="115" y="556" text-anchor="middle">position · speed · validity</text>
+
+            <rect class="diagram-node" x="245" y="65" width="230" height="70" rx="12"></rect>
+            <text class="diagram-title" x="360" y="94" text-anchor="middle">Image front end</text>
+            <text class="diagram-detail" x="360" y="116" text-anchor="middle">ISP contract · undistort · encode</text>
+            <rect class="diagram-node" x="245" y="175" width="230" height="70" rx="12"></rect>
+            <text class="diagram-title" x="360" y="204" text-anchor="middle">Point-cloud front end</text>
+            <text class="diagram-detail" x="360" y="226" text-anchor="middle">decode · beam table · XYZ · deskew</text>
+            <rect class="diagram-node" x="245" y="285" width="230" height="70" rx="12"></rect>
+            <text class="diagram-title" x="360" y="314" text-anchor="middle">Radar front end</text>
+            <text class="diagram-detail" x="360" y="336" text-anchor="middle">clutter · ambiguity · encode</text>
+            <rect class="diagram-node diagram-node--state" x="245" y="395" width="230" height="70" rx="12"></rect>
+            <text class="diagram-title" x="360" y="424" text-anchor="middle">Inertial integration</text>
+            <text class="diagram-detail" x="360" y="446" text-anchor="middle">bias model · preintegrate</text>
+            <rect class="diagram-node diagram-node--state" x="245" y="505" width="230" height="70" rx="12"></rect>
+            <text class="diagram-title" x="360" y="534" text-anchor="middle">Global / wheel gates</text>
+            <text class="diagram-detail" x="360" y="556" text-anchor="middle">lever arm · outage · slip flags</text>
+
+            <rect class="diagram-node diagram-node--state" x="525" y="210" width="210" height="145" rx="16"></rect>
+            <text class="diagram-title" x="630" y="244" text-anchor="middle">Alignment + health gate</text>
+            <text class="diagram-detail" x="630" y="270" text-anchor="middle">time synchronization</text>
+            <text class="diagram-detail" x="630" y="291" text-anchor="middle">extrinsics + ego motion</text>
+            <text class="diagram-detail" x="630" y="312" text-anchor="middle">quality + availability</text>
+            <text class="diagram-detail" x="630" y="333" text-anchor="middle">common reference time/frame</text>
+            <rect class="diagram-node diagram-node--safety" x="525" y="440" width="210" height="85" rx="13"></rect>
+            <text class="diagram-title" x="630" y="472" text-anchor="middle">Missing / degraded sensor</text>
+            <text class="diagram-detail" x="630" y="496" text-anchor="middle">mask · gate · reweight · fallback</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#sensor-flow-safety-arrow)" d="M630 440 V365"></path>
+
+            <rect class="diagram-node diagram-node--decision" x="795" y="85" width="180" height="100" rx="13"></rect>
+            <text class="diagram-title" x="885" y="116" text-anchor="middle">Early / raw fusion</text>
+            <text class="diagram-detail" x="885" y="141" text-anchor="middle">precise correspondence</text>
+            <text class="diagram-detail" x="885" y="161" text-anchor="middle">tight alignment required</text>
+            <rect class="diagram-node diagram-node--decision" x="795" y="235" width="180" height="100" rx="13"></rect>
+            <text class="diagram-title" x="885" y="266" text-anchor="middle">Shared BEV fusion</text>
+            <text class="diagram-detail" x="885" y="291" text-anchor="middle">common metric reasoning</text>
+            <text class="diagram-detail" x="885" y="311" text-anchor="middle">feature-level complement</text>
+            <rect class="diagram-node diagram-node--decision" x="795" y="385" width="180" height="100" rx="13"></rect>
+            <text class="diagram-title" x="885" y="416" text-anchor="middle">Late / track fusion</text>
+            <text class="diagram-detail" x="885" y="441" text-anchor="middle">modular diagnostics</text>
+            <text class="diagram-detail" x="885" y="461" text-anchor="middle">independent fallbacks</text>
+
+            <rect class="diagram-node diagram-node--output" x="1015" y="210" width="145" height="150" rx="16"></rect>
+            <text class="diagram-title" x="1087" y="241" text-anchor="middle">World state</text>
+            <text class="diagram-detail" x="1087" y="267" text-anchor="middle">objects + tracks</text>
+            <text class="diagram-detail" x="1087" y="289" text-anchor="middle">vector map</text>
+            <text class="diagram-detail" x="1087" y="311" text-anchor="middle">occupancy + flow</text>
+            <text class="diagram-detail" x="1087" y="333" text-anchor="middle">pose + uncertainty</text>
+            <rect class="diagram-node diagram-node--output" x="1015" y="405" width="145" height="90" rx="13"></rect>
+            <text class="diagram-title" x="1087" y="437" text-anchor="middle">Consumers</text>
+            <text class="diagram-detail" x="1087" y="462" text-anchor="middle">predict · plan · monitor</text>
+            <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M1087 360 V400"></path>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow" aria-label="Multi-sensor fusion flow for small screens">
+          <li><strong>1 · Preserve sensor evidence</strong><small>Images, ranges, velocity, motion, timestamps and validity metadata.</small></li>
+          <li><strong>2 · Run the correct front end</strong><small>Undistort images; decode and deskew LiDAR; process radar; integrate inertial state.</small></li>
+          <li><strong>3 · Pass the alignment gate</strong><small>Common time, calibrated frames, ego motion, quality and availability.</small></li>
+          <li><strong>4 · Choose the fusion location</strong><small>Early for defensible raw correspondence; shared BEV for metric features; late for modular objects/tracks.</small></li>
+          <li class="is-safety"><strong>5 · Handle missing sensors explicitly</strong><small>Mask, gate, reweight or enter a documented degraded mode.</small></li>
+          <li><strong>6 · Publish a world-state contract</strong><small>Objects, tracks, maps, occupancy, flow, pose and uncertainty with one timestamp.</small></li>
+        </ol>
+        <figcaption id="sensor-alignment-flow-caption"><span><strong>Fusion starts after alignment:</strong> early, shared-BEV, and late fusion are different choices with different observability and fallback requirements.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the graph →</span></figcaption>
+      </figure>
       <div class="split-section">
         <article class="content-card prose">
           <h3>LiDAR signal → point-cloud flow</h3>
@@ -109,6 +325,110 @@
         </div>
         <p>For camera–LiDAR projection use <code>λp̃ = K · T(camera←LiDAR) · p(LiDAR)</code>, then require positive camera depth, correct distortion state, image bounds, aligned acquisition time, and an occlusion-aware depth buffer.</p>
       </div>
+      <figure class="system-diagram system-diagram--wide" id="geometry-transform-figure" data-diagram="geometry-transform">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable deskew, coordinate-transform, projection and frame-tree diagram">
+          <svg class="system-diagram__canvas" id="geometry-transform-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 610" aria-labelledby="geometry-transform-title" aria-describedby="geometry-transform-desc geometry-transform-caption">
+            <title id="geometry-transform-title">LiDAR-to-camera projection, back-projection, planar IPM and coordinate frames</title>
+            <desc id="geometry-transform-desc">A raw LiDAR point is deskewed to a reference time, transformed into the camera frame, checked for visibility and projected through camera intrinsics to a pixel. A pixel with metric depth can be back-projected into 3D. A separate planar homography is valid only for the assumed ground plane. The lower frame tree separates global correction, local ego motion and fixed sensor extrinsics.</desc>
+            <defs>
+              <marker id="geometry-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="geometry-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="geometry-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="35" y="35">3D POINT → CAMERA PIXEL</text>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M180 118 H220"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M380 118 H420"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M580 118 H620"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M780 118 H820"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M980 118 H1020"></path>
+            <text class="diagram-edge-label" x="200" y="104" text-anchor="middle">tᵢ → tᵣ</text>
+            <text class="diagram-edge-label" x="400" y="104" text-anchor="middle">ᶜTₗ</text>
+            <text class="diagram-edge-label" x="600" y="104" text-anchor="middle">z &gt; 0</text>
+            <text class="diagram-edge-label" x="800" y="104" text-anchor="middle">K</text>
+
+            <rect class="diagram-node diagram-node--sensor" x="25" y="72" width="155" height="92" rx="13"></rect>
+            <text class="diagram-title" x="102" y="105" text-anchor="middle">Raw LiDAR point</text>
+            <text class="diagram-detail" x="102" y="130" text-anchor="middle">ᴸ⁽ᵗⁱ⁾p + return time</text>
+            <rect class="diagram-node diagram-node--state" x="220" y="72" width="160" height="92" rx="13"></rect>
+            <text class="diagram-title" x="300" y="105" text-anchor="middle">Deskew</text>
+            <text class="diagram-detail" x="300" y="130" text-anchor="middle">point at reference tᵣ</text>
+            <rect class="diagram-node diagram-node--state" x="420" y="72" width="160" height="92" rx="13"></rect>
+            <text class="diagram-title" x="500" y="105" text-anchor="middle">Camera-frame 3D</text>
+            <text class="diagram-detail" x="500" y="130" text-anchor="middle">ᶜp = ᶜTₗ · ᴸp</text>
+            <rect class="diagram-node diagram-node--safety" x="620" y="72" width="160" height="92" rx="13"></rect>
+            <text class="diagram-title" x="700" y="100" text-anchor="middle">Visibility gate</text>
+            <text class="diagram-detail" x="700" y="124" text-anchor="middle">depth · bounds</text>
+            <text class="diagram-detail" x="700" y="144" text-anchor="middle">occlusion buffer</text>
+            <rect class="diagram-node diagram-node--decision" x="820" y="72" width="160" height="92" rx="13"></rect>
+            <text class="diagram-title" x="900" y="105" text-anchor="middle">Project</text>
+            <text class="diagram-detail" x="900" y="130" text-anchor="middle">λp̃ = K · ᶜp</text>
+            <rect class="diagram-node diagram-node--output" x="1020" y="72" width="135" height="92" rx="13"></rect>
+            <text class="diagram-title" x="1087" y="105" text-anchor="middle">Pixel (u, v)</text>
+            <text class="diagram-detail" x="1087" y="130" text-anchor="middle">visible RGB sample</text>
+
+            <text class="diagram-lane-label" x="35" y="215">IMAGE → METRIC 3D OR PLANAR BEV</text>
+            <rect class="diagram-node diagram-node--sensor" x="35" y="245" width="185" height="90" rx="13"></rect>
+            <text class="diagram-title" x="127" y="277" text-anchor="middle">Pixel + metric depth z</text>
+            <text class="diagram-detail" x="127" y="301" text-anchor="middle">stereo · RGB-D · depth model</text>
+            <rect class="diagram-node diagram-node--state" x="310" y="245" width="180" height="90" rx="13"></rect>
+            <text class="diagram-title" x="400" y="277" text-anchor="middle">Back-project</text>
+            <text class="diagram-detail" x="400" y="301" text-anchor="middle">Xᶜ = zK⁻¹p̃</text>
+            <rect class="diagram-node diagram-node--output" x="580" y="245" width="190" height="90" rx="13"></rect>
+            <text class="diagram-title" x="675" y="277" text-anchor="middle">Ego-frame geometry</text>
+            <text class="diagram-detail" x="675" y="301" text-anchor="middle">points · voxels · BEV</text>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M220 290 H305"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M490 290 H575"></path>
+            <text class="diagram-edge-label" x="532" y="278" text-anchor="middle">ᴱT꜀</text>
+
+            <rect class="diagram-node diagram-node--sensor" x="845" y="225" width="145" height="90" rx="13"></rect>
+            <text class="diagram-title" x="917" y="257" text-anchor="middle">Road pixel</text>
+            <text class="diagram-detail" x="917" y="281" text-anchor="middle">assumed ground</text>
+            <rect class="diagram-node diagram-node--decision" x="1010" y="225" width="145" height="90" rx="13"></rect>
+            <text class="diagram-title" x="1082" y="257" text-anchor="middle">Planar IPM</text>
+            <text class="diagram-detail" x="1082" y="281" text-anchor="middle">Hground⁻¹ only</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#geometry-feedback-arrow)" d="M990 270 H1005"></path>
+            <text class="diagram-edge-label" x="997" y="211" text-anchor="middle">not general 3D</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#geometry-support-arrow)" d="M1087 164 V220"></path>
+
+            <text class="diagram-lane-label" x="35" y="405">FRAME TREE: FIXED EXTRINSICS VS TIME-VARYING POSE</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#geometry-support-arrow)" d="M170 490 H240"></path>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#geometry-feedback-arrow)" d="M390 490 H460"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M610 490 H680"></path>
+            <path class="diagram-edge" marker-end="url(#geometry-arrow)" d="M830 490 H900"></path>
+            <text class="diagram-edge-label" x="205" y="473" text-anchor="middle">datum</text>
+            <text class="diagram-edge-label" x="425" y="473" text-anchor="middle">correction</text>
+            <text class="diagram-edge-label" x="645" y="473" text-anchor="middle">T(t)</text>
+            <text class="diagram-edge-label" x="865" y="473" text-anchor="middle">extrinsic</text>
+            <rect class="diagram-node" x="40" y="448" width="130" height="82" rx="13"></rect>
+            <text class="diagram-title" x="105" y="481" text-anchor="middle">earth</text>
+            <text class="diagram-detail" x="105" y="505" text-anchor="middle">global datum</text>
+            <rect class="diagram-node diagram-node--state" x="240" y="448" width="150" height="82" rx="13"></rect>
+            <text class="diagram-title" x="315" y="481" text-anchor="middle">map</text>
+            <text class="diagram-detail" x="315" y="505" text-anchor="middle">globally corrected</text>
+            <rect class="diagram-node diagram-node--state" x="460" y="448" width="150" height="82" rx="13"></rect>
+            <text class="diagram-title" x="535" y="481" text-anchor="middle">odom</text>
+            <text class="diagram-detail" x="535" y="505" text-anchor="middle">locally continuous</text>
+            <rect class="diagram-node diagram-node--output" x="680" y="448" width="150" height="82" rx="13"></rect>
+            <text class="diagram-title" x="755" y="481" text-anchor="middle">ego / base(t)</text>
+            <text class="diagram-detail" x="755" y="505" text-anchor="middle">vehicle pose</text>
+            <rect class="diagram-node diagram-node--sensor" x="900" y="438" width="240" height="102" rx="13"></rect>
+            <text class="diagram-title" x="1020" y="471" text-anchor="middle">sensor frames</text>
+            <text class="diagram-detail" x="1020" y="496" text-anchor="middle">camera · LiDAR · radar · IMU</text>
+            <text class="diagram-detail" x="1020" y="518" text-anchor="middle">calibrated lever arms</text>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow" aria-label="Coordinate-transform and projection flow for small screens">
+          <li><strong>1 · Preserve LiDAR point time</strong><small>Each return begins in the LiDAR frame at its own acquisition time.</small></li>
+          <li><strong>2 · Deskew to one reference time</strong><small>Use the time-varying ego trajectory before treating the scan as rigid.</small></li>
+          <li><strong>3 · Apply the calibrated extrinsic</strong><small>Transform LiDAR geometry into the camera or ego frame with a named direction.</small></li>
+          <li class="is-safety"><strong>4 · Pass visibility gates</strong><small>Require positive depth, image bounds, the correct distortion state and occlusion handling.</small></li>
+          <li><strong>5 · Project or back-project</strong><small>Use K for 3D-to-pixel projection; use metric depth with K⁻¹ for pixel-to-3D.</small></li>
+          <li class="is-support"><strong>6 · Treat planar IPM separately</strong><small>A ground homography is valid only on its assumed plane, not for general 3D objects.</small></li>
+          <li><strong>Frame contract</strong><small>earth → map → odom → ego(t) → sensors separates global correction, local motion and fixed extrinsics.</small></li>
+        </ol>
+        <figcaption id="geometry-transform-caption"><span><strong>Different arrows mean different quantities:</strong> fixed sensor calibration, time-varying pose, deskew, projection, and planar homography are not interchangeable.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the graph →</span></figcaption>
+      </figure>
       <div class="evolution-table" role="table" aria-label="Geometry operation choices">
         <div class="evolution-row evolution-head" role="row"><span role="columnheader">Operation</span><span role="columnheader">Quantity</span><span role="columnheader">Choose when</span><span role="columnheader">Do not confuse it with</span></div>
         <div class="evolution-row" role="row"><span role="cell">Calibration</span><span role="cell">Persistent intrinsics, extrinsics and time relationship</span><span role="cell">Defining how sensor frames and measurements relate</span><span role="cell">A changing scan-to-map pose.</span></div>
@@ -142,6 +462,127 @@
         <div class="equation-block"><span>i = floor((x − x<sub>min</sub>) / v<sub>x</sub>) &nbsp; · &nbsp; j = floor((y − y<sub>min</sub>) / v<sub>y</sub>) &nbsp; · &nbsp; k = floor((z − z<sub>min</sub>) / v<sub>z</sub>)</span></div>
         <p>Halving all three voxel dimensions can create eight times as many dense cells. Sparse storage removes empty computation, not coordinate construction, hashing, feature-density, or accelerator costs.</p>
       </div>
+      <figure class="system-diagram system-diagram--wide" id="representation-choice-figure" data-diagram="representation-choice">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable spatial-representation decision tree and voxel-cost graph">
+          <svg class="system-diagram__canvas" id="representation-choice-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 660" aria-labelledby="representation-choice-title" aria-describedby="representation-choice-desc representation-choice-caption">
+            <title id="representation-choice-title">Spatial representation decision tree and relative dense voxel cost</title>
+            <desc id="representation-choice-desc">A decision tree maps downstream queries to range images, raw points, pillars, 2D BEV, sparse voxels, 3D occupancy or objects plus a vector map. A logarithmic bar graph shows that reducing an isotropic voxel edge from 0.4 meters to 0.2 meters creates eight times as many dense cells, and reducing it to 0.1 meters creates sixty-four times as many.</desc>
+            <defs>
+              <marker id="representation-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="representation-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="30" y="32">DECISION TREE: START FROM THE CONSUMER</text>
+            <rect class="diagram-node diagram-node--decision" x="25" y="70" width="210" height="86" rx="14"></rect>
+            <text class="diagram-title" x="130" y="101" text-anchor="middle">What must be queried?</text>
+            <text class="diagram-detail" x="130" y="126" text-anchor="middle">geometry · topology · state</text>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M235 113 H275"></path>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#representation-support-arrow)" d="M485 85 H540"></path>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M380 120 V150"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#representation-support-arrow)" d="M485 185 H540"></path>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M380 220 V250"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#representation-support-arrow)" d="M485 285 H540"></path>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M380 320 V350"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#representation-support-arrow)" d="M485 385 H540"></path>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M380 420 V450"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#representation-support-arrow)" d="M485 485 H540"></path>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M380 520 V550"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#representation-support-arrow)" d="M485 585 H540"></path>
+            <path class="diagram-edge" marker-end="url(#representation-arrow)" d="M380 620 H540"></path>
+            <text class="diagram-edge-label" x="511" y="73">yes</text>
+            <text class="diagram-edge-label" x="391" y="141">no ↓</text>
+            <text class="diagram-edge-label" x="511" y="173">yes</text>
+            <text class="diagram-edge-label" x="391" y="241">no ↓</text>
+            <text class="diagram-edge-label" x="511" y="273">yes</text>
+            <text class="diagram-edge-label" x="391" y="341">no ↓</text>
+            <text class="diagram-edge-label" x="511" y="373">yes</text>
+            <text class="diagram-edge-label" x="391" y="441">no ↓</text>
+            <text class="diagram-edge-label" x="511" y="473">yes</text>
+            <text class="diagram-edge-label" x="391" y="541">no ↓</text>
+            <text class="diagram-edge-label" x="511" y="573">yes</text>
+            <text class="diagram-edge-label" x="500" y="610">otherwise</text>
+
+            <rect class="diagram-node" x="275" y="50" width="210" height="70" rx="12"></rect>
+            <text class="diagram-title" x="380" y="79" text-anchor="middle">Native beam topology?</text>
+            <text class="diagram-detail" x="380" y="101" text-anchor="middle">LiDAR rings / azimuth adjacency</text>
+            <rect class="diagram-node" x="275" y="150" width="210" height="70" rx="12"></rect>
+            <text class="diagram-title" x="380" y="179" text-anchor="middle">Exact point-local geometry?</text>
+            <text class="diagram-detail" x="380" y="201" text-anchor="middle">avoid grid quantization</text>
+            <rect class="diagram-node" x="275" y="250" width="210" height="70" rx="12"></rect>
+            <text class="diagram-title" x="380" y="279" text-anchor="middle">Collapse height for speed?</text>
+            <text class="diagram-detail" x="380" y="301" text-anchor="middle">road detection dominates</text>
+            <rect class="diagram-node" x="275" y="350" width="210" height="70" rx="12"></rect>
+            <text class="diagram-title" x="380" y="379" text-anchor="middle">Shared horizontal metric state?</text>
+            <text class="diagram-detail" x="380" y="401" text-anchor="middle">fusion · maps · planning</text>
+            <rect class="diagram-node" x="275" y="450" width="210" height="70" rx="12"></rect>
+            <text class="diagram-title" x="380" y="479" text-anchor="middle">Vertical structure required?</text>
+            <text class="diagram-detail" x="380" y="501" text-anchor="middle">bridges · stacked surfaces</text>
+            <rect class="diagram-node" x="275" y="550" width="210" height="70" rx="12"></rect>
+            <text class="diagram-title" x="380" y="579" text-anchor="middle">Free / occupied / unknown?</text>
+            <text class="diagram-detail" x="380" y="601" text-anchor="middle">open-set volumetric state</text>
+
+            <rect class="diagram-node diagram-node--output" x="540" y="50" width="190" height="70" rx="12"></rect>
+            <text class="diagram-title" x="635" y="79" text-anchor="middle">Range image</text>
+            <text class="diagram-detail" x="635" y="101" text-anchor="middle">native scan topology</text>
+            <rect class="diagram-node diagram-node--output" x="540" y="150" width="190" height="70" rx="12"></rect>
+            <text class="diagram-title" x="635" y="179" text-anchor="middle">Raw points</text>
+            <text class="diagram-detail" x="635" y="201" text-anchor="middle">irregular neighborhoods</text>
+            <rect class="diagram-node diagram-node--output" x="540" y="250" width="190" height="70" rx="12"></rect>
+            <text class="diagram-title" x="635" y="279" text-anchor="middle">Pillars</text>
+            <text class="diagram-detail" x="635" y="301" text-anchor="middle">fast vertical compression</text>
+            <rect class="diagram-node diagram-node--output" x="540" y="350" width="190" height="70" rx="12"></rect>
+            <text class="diagram-title" x="635" y="379" text-anchor="middle">2D BEV</text>
+            <text class="diagram-detail" x="635" y="401" text-anchor="middle">shared ground-aligned state</text>
+            <rect class="diagram-node diagram-node--output" x="540" y="450" width="190" height="70" rx="12"></rect>
+            <text class="diagram-title" x="635" y="479" text-anchor="middle">Sparse voxels</text>
+            <text class="diagram-detail" x="635" y="501" text-anchor="middle">occupied 3D structure</text>
+            <rect class="diagram-node diagram-node--output" x="540" y="550" width="190" height="70" rx="12"></rect>
+            <text class="diagram-title" x="635" y="579" text-anchor="middle">3D occupancy + flow</text>
+            <text class="diagram-detail" x="635" y="601" text-anchor="middle">volume and future motion</text>
+            <rect class="diagram-node diagram-node--output" x="540" y="622" width="190" height="34" rx="10"></rect>
+            <text class="diagram-title" x="635" y="645" text-anchor="middle">Objects + vector map</text>
+
+            <text class="diagram-lane-label" x="790" y="32">VOXEL COST GRAPH</text>
+            <text class="diagram-title" x="975" y="70" text-anchor="middle">Relative dense cell count</text>
+            <text class="diagram-detail" x="975" y="94" text-anchor="middle">fixed physical volume · isotropic cells · logarithmic scale</text>
+            <line class="diagram-axis" x1="825" y1="510" x2="1140" y2="510"></line>
+            <line class="diagram-axis" x1="825" y1="145" x2="825" y2="510"></line>
+            <line class="diagram-gridline" x1="825" y1="430" x2="1140" y2="430"></line>
+            <line class="diagram-gridline" x1="825" y1="310" x2="1140" y2="310"></line>
+            <line class="diagram-gridline" x1="825" y1="190" x2="1140" y2="190"></line>
+            <text class="diagram-axis-label" x="807" y="435" text-anchor="end">1×</text>
+            <text class="diagram-axis-label" x="807" y="315" text-anchor="end">8×</text>
+            <text class="diagram-axis-label" x="807" y="195" text-anchor="end">64×</text>
+            <rect class="diagram-bar" x="860" y="430" width="68" height="80" rx="7"></rect>
+            <rect class="diagram-bar" x="960" y="310" width="68" height="200" rx="7"></rect>
+            <rect class="diagram-bar" x="1060" y="190" width="68" height="320" rx="7"></rect>
+            <text class="diagram-title" x="894" y="416" text-anchor="middle">1×</text>
+            <text class="diagram-title" x="994" y="296" text-anchor="middle">8×</text>
+            <text class="diagram-title" x="1094" y="176" text-anchor="middle">64×</text>
+            <text class="diagram-axis-label" x="894" y="535" text-anchor="middle">0.4 m</text>
+            <text class="diagram-axis-label" x="994" y="535" text-anchor="middle">0.2 m</text>
+            <text class="diagram-axis-label" x="1094" y="535" text-anchor="middle">0.1 m</text>
+            <text class="diagram-detail" x="975" y="575" text-anchor="middle">Halving x, y and z edge length → 8× cells</text>
+            <text class="diagram-detail" x="975" y="600" text-anchor="middle">Sparse storage skips empty cells, not indexing or feature cost.</text>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow" aria-label="Spatial representation decision flow for small screens">
+          <li><strong>Range image</strong><small>Choose when native LiDAR beam topology is the important neighborhood.</small></li>
+          <li><strong>Raw points</strong><small>Choose when exact point-local geometry matters more than regular memory access.</small></li>
+          <li><strong>Pillars</strong><small>Choose for fast road-scene detection when vertical compression is acceptable.</small></li>
+          <li><strong>2D BEV</strong><small>Choose for shared ground-aligned fusion, maps, tracking and planning.</small></li>
+          <li><strong>Sparse voxels</strong><small>Choose when occupied 3D height structure must be preserved.</small></li>
+          <li><strong>3D occupancy + flow</strong><small>Choose for free, occupied and unknown open-set volume and future motion.</small></li>
+          <li><strong>Objects + vector map</strong><small>Choose for compact identities, agent semantics and lane topology.</small></li>
+        </ol>
+        <ul class="diagram-mobile-bars" aria-label="Relative dense voxel cell count">
+          <li><strong>0.1 m</strong><span aria-hidden="true"></span><strong>64×</strong></li>
+          <li><strong>0.2 m</strong><span aria-hidden="true"></span><strong>8×</strong></li>
+          <li><strong>0.4 m</strong><span aria-hidden="true"></span><strong>1×</strong></li>
+        </ul>
+        <figcaption id="representation-choice-caption"><span><strong>No universal winner:</strong> choose from seven representations by downstream query, then measure quantization, memory and latency. Halving voxel edge length in three dimensions creates 8× cells.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the tree and graph →</span></figcaption>
+      </figure>
       <div class="evolution-table" role="table" aria-label="Spatial representation choice table">
         <div class="evolution-row evolution-head" role="row"><span role="columnheader">Representation</span><span role="columnheader">Best fit</span><span role="columnheader">Preserves</span><span role="columnheader">Switch when</span></div>
         <div class="evolution-row" role="row"><span role="cell">Raw points</span><span role="cell">Local geometry and point-wise tasks</span><span role="cell">Original metric coordinates and return attributes</span><span role="cell">Irregular neighborhoods dominate compute.</span></div>
@@ -156,15 +597,101 @@
 
     <section id="localization-slam" aria-labelledby="localization-slam-heading">
       <div class="section-heading"><div><p class="eyebrow">State estimation</p><h2 id="localization-slam-heading">Registration becomes odometry; global constraints make localization and SLAM</h2></div><p>Keep locally continuous control coordinates separate from globally corrected map coordinates.</p></div>
-      <div class="flow-strip wide" role="list" aria-label="Localization and SLAM flow">
-        <div role="listitem"><span>1</span><strong>Front end</strong><small>features/scan match</small></div>
-        <div role="listitem"><span>2</span><strong>Odometry</strong><small>local relative motion</small></div>
-        <div role="listitem"><span>3</span><strong>Fuse</strong><small>IMU/wheels/GNSS</small></div>
-        <div role="listitem"><span>4</span><strong>Retrieve</strong><small>map/place candidate</small></div>
-        <div role="listitem"><span>5</span><strong>Verify</strong><small>geometric inliers</small></div>
-        <div role="listitem"><span>6</span><strong>Optimize</strong><small>factor/pose graph</small></div>
-        <div role="listitem"><span>7</span><strong>Publish</strong><small>pose + covariance</small></div>
-      </div>
+      <figure class="system-diagram system-diagram--wide" id="slam-factor-graph-figure" data-diagram="slam-factor-graph">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable SLAM factor graph and local-global output diagram">
+          <svg class="system-diagram__canvas" id="slam-factor-graph-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 560" aria-labelledby="slam-factor-graph-title" aria-describedby="slam-factor-graph-desc slam-factor-graph-caption">
+            <title id="slam-factor-graph-title">SLAM factor graph with verified loop closure and separate local and global outputs</title>
+            <desc id="slam-factor-graph-desc">Four ego poses are connected by odometry, inertial and wheel factors. Landmarks, GNSS and map priors constrain selected poses. Place retrieval proposes that the last pose revisits the first; geometric verification either rejects it or adds a robust loop factor. The optimizer publishes a continuous odometry pose for control and a separate global map correction for localization consumers.</desc>
+            <defs>
+              <marker id="slam-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="slam-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="slam-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="slam-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="35" y="35">FRONT END + ACCEPTED FACTORS</text>
+            <text class="diagram-lane-label" x="755" y="35">ROBUST BACK END + OUTPUT CONTRACT</text>
+
+            <line class="diagram-edge" x1="115" y1="285" x2="195" y2="285"></line>
+            <line class="diagram-edge" x1="225" y1="285" x2="305" y2="285"></line>
+            <line class="diagram-edge" x1="355" y1="285" x2="435" y2="285"></line>
+            <line class="diagram-edge" x1="465" y1="285" x2="545" y2="285"></line>
+            <line class="diagram-edge" x1="595" y1="285" x2="675" y2="285"></line>
+            <text class="diagram-edge-label" x="210" y="325" text-anchor="middle">VO / scan registration</text>
+            <text class="diagram-edge-label" x="450" y="325" text-anchor="middle">relative motion factors</text>
+            <text class="diagram-edge-label" x="660" y="325" text-anchor="middle">odometry</text>
+
+            <circle class="diagram-pose" cx="85" cy="285" r="30"></circle>
+            <text class="diagram-title" x="85" y="291" text-anchor="middle">x₀</text>
+            <rect class="diagram-factor" x="195" y="270" width="30" height="30" rx="5"></rect>
+            <circle class="diagram-pose" cx="325" cy="285" r="30"></circle>
+            <text class="diagram-title" x="325" y="291" text-anchor="middle">x₁</text>
+            <rect class="diagram-factor" x="435" y="270" width="30" height="30" rx="5"></rect>
+            <circle class="diagram-pose" cx="565" cy="285" r="30"></circle>
+            <text class="diagram-title" x="565" y="291" text-anchor="middle">x₂</text>
+            <rect class="diagram-factor" x="675" y="270" width="30" height="30" rx="5"></rect>
+            <circle class="diagram-pose" cx="720" cy="285" r="30"></circle>
+            <text class="diagram-title" x="720" y="291" text-anchor="middle">x₃</text>
+
+            <circle class="diagram-landmark" cx="185" cy="120" r="24"></circle>
+            <text class="diagram-title" x="185" y="126" text-anchor="middle">L₁</text>
+            <circle class="diagram-landmark" cx="430" cy="120" r="24"></circle>
+            <text class="diagram-title" x="430" y="126" text-anchor="middle">L₂</text>
+            <rect class="diagram-node diagram-node--state" x="510" y="70" width="150" height="70" rx="12"></rect>
+            <text class="diagram-title" x="585" y="98" text-anchor="middle">GNSS / map prior</text>
+            <text class="diagram-detail" x="585" y="120" text-anchor="middle">absolute but gated</text>
+            <line class="diagram-edge diagram-edge--support" x1="185" y1="144" x2="305" y2="262"></line>
+            <line class="diagram-edge diagram-edge--support" x1="430" y1="144" x2="545" y2="262"></line>
+            <line class="diagram-edge diagram-edge--support" x1="585" y1="140" x2="565" y2="253"></line>
+            <text class="diagram-edge-label" x="270" y="175">visual / LiDAR observations</text>
+
+            <rect class="diagram-node diagram-node--state" x="80" y="405" width="190" height="75" rx="12"></rect>
+            <text class="diagram-title" x="175" y="433" text-anchor="middle">IMU + wheel factors</text>
+            <text class="diagram-detail" x="175" y="457" text-anchor="middle">preintegration · bias · slip</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#slam-support-arrow)" d="M270 442 H390 Q420 442 420 330"></path>
+
+            <path class="diagram-edge diagram-edge--feedback" d="M720 253 C700 160 400 30 85 253"></path>
+            <text class="diagram-edge-label" x="400" y="66" text-anchor="middle">place retrieval: “x₃ resembles x₀” — candidate only</text>
+            <rect class="diagram-node diagram-node--decision" x="690" y="85" width="190" height="86" rx="13"></rect>
+            <text class="diagram-title" x="785" y="116" text-anchor="middle">Geometric verification</text>
+            <text class="diagram-detail" x="785" y="140" text-anchor="middle">inliers · pose · observability</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#slam-feedback-arrow)" d="M720 230 V176 H745"></path>
+            <rect class="diagram-node diagram-node--safety" x="930" y="75" width="170" height="65" rx="12"></rect>
+            <text class="diagram-title" x="1015" y="103" text-anchor="middle">Reject candidate</text>
+            <text class="diagram-detail" x="1015" y="123" text-anchor="middle">bad geometry / degeneracy</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#slam-safety-arrow)" d="M880 112 H925"></path>
+
+            <rect class="diagram-node diagram-node--decision" x="780" y="245" width="180" height="90" rx="14"></rect>
+            <text class="diagram-title" x="870" y="276" text-anchor="middle">Robust graph optimizer</text>
+            <text class="diagram-detail" x="870" y="300" text-anchor="middle">accepted factors + covariance</text>
+            <text class="diagram-detail" x="870" y="320" text-anchor="middle">robust loss / switchable loop</text>
+            <path class="diagram-edge" marker-end="url(#slam-arrow)" d="M750 285 H775"></path>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#slam-feedback-arrow)" d="M785 171 V240"></path>
+
+            <rect class="diagram-node diagram-node--output" x="1000" y="220" width="160" height="95" rx="13"></rect>
+            <text class="diagram-title" x="1080" y="251" text-anchor="middle">Local output</text>
+            <text class="diagram-detail" x="1080" y="275" text-anchor="middle">Todom←base + covariance</text>
+            <text class="diagram-detail" x="1080" y="296" text-anchor="middle">continuous → controller</text>
+            <rect class="diagram-node diagram-node--state" x="1000" y="365" width="160" height="95" rx="13"></rect>
+            <text class="diagram-title" x="1080" y="396" text-anchor="middle">Global output</text>
+            <text class="diagram-detail" x="1080" y="420" text-anchor="middle">Tmap←odom + map</text>
+            <text class="diagram-detail" x="1080" y="441" text-anchor="middle">corrected → map users</text>
+            <path class="diagram-edge" marker-end="url(#slam-arrow)" d="M960 275 H995"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#slam-support-arrow)" d="M870 335 V412 H995"></path>
+            <text class="diagram-edge-label" x="1075" y="500" text-anchor="middle">Never inject an unexplained global jump into control.</text>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow" aria-label="Localization and SLAM graph flow for small screens">
+          <li><strong>1 · Front-end associations</strong><small>Feature tracks, scan matches and sensor observations create candidate constraints.</small></li>
+          <li><strong>2 · Local odometry</strong><small>Relative vision/LiDAR, IMU and wheel factors produce a continuous but drifting pose.</small></li>
+          <li><strong>3 · Global priors</strong><small>Gate GNSS, mapped landmarks and other absolute constraints before fusion.</small></li>
+          <li class="is-support"><strong>4 · Loop retrieval proposes</strong><small>Appearance similarity creates a candidate revisit; it does not create a graph edge.</small></li>
+          <li class="is-safety"><strong>5 · Geometry verifies or rejects</strong><small>Check inliers, pose observability, degeneracy and covariance before accepting a loop.</small></li>
+          <li><strong>6 · Robust graph optimization</strong><small>Optimize accepted constraints with realistic uncertainty and rejectable loop factors.</small></li>
+          <li><strong>7 · Publish two contracts</strong><small>Continuous odom pose for control; globally corrected map relationship for localization and mapping.</small></li>
+        </ol>
+        <figcaption id="slam-factor-graph-caption"><span><strong>Retrieval is not loop closure:</strong> geometric verification decides whether a candidate becomes a factor; local control and global map outputs remain distinct.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the factor graph →</span></figcaption>
+      </figure>
       <div class="evolution-table" role="table" aria-label="Localization method choices">
         <div class="evolution-row evolution-head" role="row"><span role="columnheader">Estimator</span><span role="columnheader">Prefer when</span><span role="columnheader">Primary weakness</span><span role="columnheader">Required diagnostic</span></div>
         <div class="evolution-row" role="row"><span role="cell">Monocular VO</span><span role="cell">Minimal hardware and textured scenes</span><span role="cell">Scale ambiguity, light and texture</span><span role="cell">Parallax/cheirality and tracked-feature health.</span></div>
@@ -181,15 +708,123 @@
 
     <section id="prediction-planning" aria-labelledby="prediction-planning-heading">
       <div class="section-heading"><div><p class="eyebrow">From state to action</p><h2 id="prediction-planning-heading">Prediction models possibilities; planning chooses one safe ego future</h2></div><p>“Planning” is a hierarchy, not a single steering output.</p></div>
-      <div class="flow-strip wide" role="list" aria-label="Prediction planning and control hierarchy">
-        <div role="listitem"><span>1</span><strong>Route</strong><small>destination/corridor</small></div>
-        <div role="listitem"><span>2</span><strong>Predict</strong><small>agent/scene futures</small></div>
-        <div role="listitem"><span>3</span><strong>Behavior</strong><small>yield/merge/pass</small></div>
-        <div role="listitem"><span>4</span><strong>Propose</strong><small>paths/trajectories</small></div>
-        <div role="listitem"><span>5</span><strong>Score</strong><small>risk/rules/comfort</small></div>
-        <div role="listitem"><span>6</span><strong>Control</strong><small>track trajectory</small></div>
-        <div role="listitem"><span>7</span><strong>Fallback</strong><small>limit/stop/recover</small></div>
-      </div>
+      <figure class="system-diagram system-diagram--wide" id="planning-feedback-figure" data-diagram="planning-feedback">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable prediction, planning, safety and closed-loop feedback diagram">
+          <svg class="system-diagram__canvas" id="planning-feedback-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 630" aria-labelledby="planning-feedback-title" aria-describedby="planning-feedback-desc planning-feedback-caption">
+            <title id="planning-feedback-title">Multimodal prediction, behavior planning, trajectory scoring, control and safety feedback</title>
+            <desc id="planning-feedback-desc">A timestamped world state enters a multimodal predictor. Several agent and scene futures inform behavior candidates and time-parameterized trajectory proposals. A scorer checks collision, dynamics, rules, comfort, progress and uncertainty. The selected trajectory goes to a controller and vehicle; the next sensor observation closes the loop. An independent monitor can command a degraded mode or minimal-risk fallback.</desc>
+            <defs>
+              <marker id="planning-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="planning-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="planning-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="planning-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="35" y="35">CONTEXT AND RISK INPUTS</text>
+            <rect class="diagram-node" x="70" y="60" width="205" height="72" rx="12"></rect>
+            <text class="diagram-title" x="172" y="89" text-anchor="middle">Route · ODD · traffic rules</text>
+            <text class="diagram-detail" x="172" y="112" text-anchor="middle">goal · topology · legal constraints</text>
+            <rect class="diagram-node diagram-node--state" x="480" y="60" width="205" height="72" rx="12"></rect>
+            <text class="diagram-title" x="582" y="89" text-anchor="middle">Occupancy + unknown space</text>
+            <text class="diagram-detail" x="582" y="112" text-anchor="middle">collision evidence · occlusion</text>
+            <rect class="diagram-node diagram-node--safety" x="890" y="60" width="205" height="72" rx="12"></rect>
+            <text class="diagram-title" x="992" y="89" text-anchor="middle">Ego uncertainty + data age</text>
+            <text class="diagram-detail" x="992" y="112" text-anchor="middle">covariance · latency · validity</text>
+
+            <text class="diagram-lane-label" x="35" y="175">PREDICT → CHOOSE BEHAVIOR → PROPOSE → SCORE</text>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M185 245 H220"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M380 245 H420"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M570 245 H610"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M770 245 H810"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M970 245 H1010"></path>
+
+            <rect class="diagram-node diagram-node--state" x="25" y="200" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="105" y="230" text-anchor="middle">World state at t</text>
+            <text class="diagram-detail" x="105" y="254" text-anchor="middle">tracks · map · occupancy</text>
+            <text class="diagram-detail" x="105" y="274" text-anchor="middle">timestamp + uncertainty</text>
+            <rect class="diagram-node diagram-node--state" x="220" y="200" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="300" y="230" text-anchor="middle">Multimodal predictor</text>
+            <text class="diagram-detail" x="300" y="254" text-anchor="middle">interaction · intent</text>
+            <text class="diagram-detail" x="300" y="274" text-anchor="middle">probability calibration</text>
+            <rect class="diagram-node diagram-node--state" x="420" y="190" width="150" height="110" rx="13"></rect>
+            <text class="diagram-title" x="495" y="219" text-anchor="middle">Future branches</text>
+            <text class="diagram-detail" x="495" y="243" text-anchor="middle">wait / cross</text>
+            <text class="diagram-detail" x="495" y="264" text-anchor="middle">yield / merge</text>
+            <text class="diagram-detail" x="495" y="285" text-anchor="middle">free / occupied flow</text>
+            <rect class="diagram-node diagram-node--decision" x="610" y="190" width="160" height="110" rx="13"></rect>
+            <text class="diagram-title" x="690" y="219" text-anchor="middle">Behavior candidates</text>
+            <text class="diagram-detail" x="690" y="243" text-anchor="middle">keep · yield · merge</text>
+            <text class="diagram-detail" x="690" y="264" text-anchor="middle">stop · pass · reroute</text>
+            <text class="diagram-detail" x="690" y="285" text-anchor="middle">conditioned on route</text>
+            <rect class="diagram-node diagram-node--decision" x="810" y="190" width="160" height="110" rx="13"></rect>
+            <text class="diagram-title" x="890" y="219" text-anchor="middle">Trajectory proposals</text>
+            <text class="diagram-detail" x="890" y="243" text-anchor="middle">τᵢ = [x,y,yaw,v,a,t]</text>
+            <text class="diagram-detail" x="890" y="264" text-anchor="middle">search · optimize · learn</text>
+            <text class="diagram-detail" x="890" y="285" text-anchor="middle">multiple feasible modes</text>
+            <rect class="diagram-node diagram-node--safety" x="1010" y="180" width="150" height="130" rx="13"></rect>
+            <text class="diagram-title" x="1085" y="208" text-anchor="middle">Constraint + cost</text>
+            <text class="diagram-detail" x="1085" y="232" text-anchor="middle">collision · dynamics</text>
+            <text class="diagram-detail" x="1085" y="253" text-anchor="middle">rules · comfort</text>
+            <text class="diagram-detail" x="1085" y="274" text-anchor="middle">progress · uncertainty</text>
+            <text class="diagram-detail" x="1085" y="295" text-anchor="middle">feasible or reject</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#planning-support-arrow)" d="M172 132 V160 H690 V185"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#planning-support-arrow)" d="M582 132 V150 H1085 V175"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#planning-safety-arrow)" d="M992 132 V160 H1115 V175"></path>
+
+            <text class="diagram-lane-label" x="35" y="360">SELECT → CONTROL → PHYSICAL FEEDBACK</text>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M1085 310 V380 H970"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M810 425 H770"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M610 425 H570"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M410 425 H370"></path>
+            <path class="diagram-edge" marker-end="url(#planning-arrow)" d="M210 425 H170"></path>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#planning-feedback-arrow)" d="M25 425 H12 V245 H20"></path>
+            <text class="diagram-edge-label" x="24" y="348">action changes next observation</text>
+
+            <rect class="diagram-node diagram-node--output" x="810" y="380" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="890" y="410" text-anchor="middle">Selected trajectory</text>
+            <text class="diagram-detail" x="890" y="434" text-anchor="middle">time-parameterized</text>
+            <text class="diagram-detail" x="890" y="454" text-anchor="middle">limits + contingency</text>
+            <rect class="diagram-node diagram-node--decision" x="610" y="380" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="690" y="410" text-anchor="middle">Controller / MPC</text>
+            <text class="diagram-detail" x="690" y="434" text-anchor="middle">tracking + actuator delay</text>
+            <text class="diagram-detail" x="690" y="454" text-anchor="middle">steer · brake · torque</text>
+            <rect class="diagram-node diagram-node--output" x="410" y="380" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="490" y="410" text-anchor="middle">Vehicle + agents</text>
+            <text class="diagram-detail" x="490" y="434" text-anchor="middle">dynamics · interaction</text>
+            <text class="diagram-detail" x="490" y="454" text-anchor="middle">environment changes</text>
+            <rect class="diagram-node diagram-node--sensor" x="210" y="380" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="290" y="410" text-anchor="middle">Sensors at t+1</text>
+            <text class="diagram-detail" x="290" y="434" text-anchor="middle">new viewpoint</text>
+            <text class="diagram-detail" x="290" y="454" text-anchor="middle">new actor responses</text>
+            <rect class="diagram-node diagram-node--state" x="20" y="380" width="150" height="90" rx="13"></rect>
+            <text class="diagram-title" x="95" y="410" text-anchor="middle">World state t+1</text>
+            <text class="diagram-detail" x="95" y="434" text-anchor="middle">feedback-distributed</text>
+            <text class="diagram-detail" x="95" y="454" text-anchor="middle">not a fixed log</text>
+
+            <rect class="diagram-node diagram-node--safety" x="420" y="520" width="230" height="78" rx="13"></rect>
+            <text class="diagram-title" x="535" y="549" text-anchor="middle">Independent safety monitor</text>
+            <text class="diagram-detail" x="535" y="573" text-anchor="middle">age · feasibility · tracking error · latency</text>
+            <rect class="diagram-node diagram-node--safety" x="735" y="520" width="230" height="78" rx="13"></rect>
+            <text class="diagram-title" x="850" y="549" text-anchor="middle">Minimal-risk fallback</text>
+            <text class="diagram-detail" x="850" y="573" text-anchor="middle">limit speed · stop · recover</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#planning-safety-arrow)" d="M650 559 H730"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#planning-safety-arrow)" d="M850 520 V490 H725 V475"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#planning-safety-arrow)" d="M992 132 V500 H650"></path>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow" aria-label="Prediction, planning and feedback flow for small screens">
+          <li><strong>1 · Timestamped world state</strong><small>Tracks, map, occupancy, unknown space, ego covariance and data age.</small></li>
+          <li><strong>2 · Multimodal prediction</strong><small>Preserve several calibrated futures such as wait/cross and yield/merge.</small></li>
+          <li><strong>3 · Behavior choices</strong><small>Keep, yield, merge, stop, pass or reroute under route, ODD and traffic rules.</small></li>
+          <li><strong>4 · Time-parameterized trajectories</strong><small>Propose paths with yaw, speed, acceleration and time—not geometry alone.</small></li>
+          <li class="is-safety"><strong>5 · Constraint and risk scoring</strong><small>Check collision, dynamics, rules, comfort, progress, uncertainty and unknown space.</small></li>
+          <li><strong>6 · Control and actuation</strong><small>Track the selected feasible trajectory under delay, saturation and model mismatch.</small></li>
+          <li><strong>7 · Closed-loop feedback</strong><small>The action changes vehicle pose, other agents and the next sensor distribution.</small></li>
+          <li class="is-safety"><strong>Independent safety path</strong><small>Monitor data age, feasibility, tracking error and latency; limit speed, stop or enter a minimal-risk maneuver.</small></li>
+        </ol>
+        <figcaption id="planning-feedback-caption"><span><strong>Prediction preserves possibilities; planning commits to action:</strong> only the returning feedback edge exposes compounding error, interaction and recovery.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the loop →</span></figcaption>
+      </figure>
       <div class="evolution-table" role="table" aria-label="Planning method choice table">
         <div class="evolution-row evolution-head" role="row"><span role="columnheader">Planning form</span><span role="columnheader">Useful when</span><span role="columnheader">Strength</span><span role="columnheader">Critical test</span></div>
         <div class="evolution-row" role="row"><span role="cell">Rules + search / optimization</span><span role="cell">Constraints and map structure are explicit</span><span role="cell">Inspectability and hard feasibility constraints</span><span role="cell">Combinatorial interactions and hand-designed cost brittleness.</span></div>
