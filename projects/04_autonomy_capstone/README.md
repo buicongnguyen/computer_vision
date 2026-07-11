@@ -4,26 +4,28 @@ Build a perception system that goes beyond a clean-dataset model demo. The
 capstone must combine geometry, temporal reasoning, scenario evaluation,
 fault injection, a data-improvement loop, and a measured runtime decision.
 
-This is the main portfolio artifact for a 42dot/autonomous-driving application.
-It is also useful for NVIDIA performance roles when the optimization track is
-completed and for large-scale ML roles when the data-engine track is completed.
+Use the capstone to connect camera and range sensing, calibration, temporal
+alignment, spatial representation, tracking, evaluation, deployment, and
+closed-loop reasoning in one reproducible study. The objective is to test how
+the complete system behaves when measurements and assumptions are imperfect.
 
 Estimated effort: **80-120 hours** across weeks 9-24.
 
-Role sources were verified **2026-07-11 (Asia/Seoul)**. The architecture and
-acceptance criteria below are portfolio recommendations, not a specification
-published by 42dot.
+Dataset and technical source links were checked **2026-07-11 (Asia/Seoul)**.
+The architecture and acceptance criteria below are original study guidance,
+not specifications published by a dataset provider or research organization.
 
-## Portfolio claim
+## Learning objective
 
-At completion, you should be able to defend this claim with evidence:
+At completion, the experiment record should support this conclusion:
 
-> I designed and evaluated a calibrated temporal perception stack, measured
-> where fusion helped and failed, detected sensor degradation, improved a
-> targeted failure slice through a reproducible data loop, and made an explicit
-> accuracy-latency-memory launch recommendation.
+> The study designed and evaluated a calibrated temporal perception stack,
+> measured where fusion helped and failed, detected sensor degradation,
+> improved a targeted failure slice through a reproducible data loop, and made
+> an explicit accuracy-latency-memory system recommendation.
 
-Do not make the claim until the final acceptance checklist passes.
+Treat the conclusion as a hypothesis until the final acceptance checklist
+passes.
 
 ## Select a data track
 
@@ -32,29 +34,29 @@ Choose during Milestone 0 and record the dataset version and license.
 ### Track A — Multi-sensor BEV/tracking (recommended)
 
 Use a manageable licensed subset such as nuScenes mini. Implement camera-only
-and camera-plus-radar or camera-plus-LiDAR configurations. This track best
-demonstrates the current 42dot Senior AI Perception themes of sensor
-characteristics, alignment, calibration, BEV/3D/occupancy, fusion and deployed
-resource trade-offs.
+and camera-plus-radar or camera-plus-LiDAR configurations. This track provides
+the broadest study of sensor characteristics, alignment, calibration,
+BEV/3D/occupancy, fusion, and deployed resource trade-offs.
 
 Primary dataset site: [nuScenes](https://www.nuscenes.org/nuscenes)
 
-### Track B — 42dot multi-camera tracking
+### Track B — Multi-camera tracking
 
-Use the official [42dot MCMOT dataset](https://42dot.ai/openDataset/ad/mcmot).
+Use the official [MCMOT dataset](https://42dot.ai/openDataset/ad/mcmot).
 It provides three front-camera streams, cross-camera track IDs and visibility
 annotations. Add the synthetic transform/time-fault harness from the curriculum
 because MCMOT alone is not a calibrated multi-sensor 3D fusion benchmark.
 
-This track is smaller and directly company-relevant. Do not describe it as
-camera-LiDAR fusion or full closed-loop autonomy.
+This track is smaller and focuses on temporal and cross-camera association. Do
+not describe it as camera-LiDAR fusion or full closed-loop autonomy.
 
-### Track C — Existing public or employer-safe system
+### Track C — Alternative licensed dataset or system
 
-Use another public dataset or a sanitized system only when its license permits
-portfolio use. Write a one-page equivalence note showing how it still covers
-calibration/timing, temporal state, failure slices, degradation and runtime.
-Never use confidential employer code, data, architecture or metrics.
+Use another public dataset or an authorized system only when its license and
+access terms permit the intended study, reporting, and redistribution. Write a
+one-page equivalence note showing how it still covers calibration/timing,
+temporal state, failure slices, degradation, and runtime. Never publish
+proprietary or restricted code, data, architecture, or metrics.
 
 ## Required system boundary
 
@@ -349,7 +351,7 @@ Choose one:
 - Perception faults can be tied to a downstream behavior hypothesis.
 - Limitations explain what cannot be concluded from the capstone.
 
-## Final portfolio artifacts
+## Final study artifacts
 
 Produce all of the following:
 
@@ -363,7 +365,8 @@ Produce all of the following:
 - 12-slide design review;
 - one-page executive launch decision;
 - one-page postmortem titled `I was wrong because...`; and
-- three resume bullets: algorithm, production and leadership versions.
+- three concise summaries: algorithm result, system trade-off, and experimental
+  lesson.
 
 ## Final acceptance checklist
 
@@ -397,7 +400,7 @@ Produce all of the following:
 - [ ] Accuracy-latency-memory-robustness decision is explicit.
 - [ ] Monitoring, rollout and rollback are specified.
 
-### Senior communication
+### Technical communication
 
 - [ ] Two alternatives were rejected with evidence.
 - [ ] Ownership and cross-team interfaces are clear.
@@ -405,7 +408,7 @@ Produce all of the following:
 - [ ] No confidential or unlicensed material is included.
 - [ ] A skeptical engineer can reproduce each headline claim.
 
-## Mock interview built from the capstone
+## Timed technical review
 
 Run a 90-minute review:
 
@@ -414,34 +417,28 @@ Run a 90-minute review:
 3. **15 minutes:** explain a difficult failure cluster and data response.
 4. **20 minutes:** redesign for a missing sensor and 30% compute reduction.
 5. **15 minutes:** defend launch/no-go, monitoring and rollback.
-6. **15 minutes:** leadership questions about disagreement, prioritization and
-   what you would change.
+6. **15 minutes:** decision-making questions about disagreement,
+   prioritization, and what you would change.
 
 Pass when the reviewer can trace claims to evidence and no answer relies on
 "the model learns it" without a mechanism or test.
 
-## Role alignment and sources
+## Technical sources and datasets
 
-Verified **2026-07-11**. Requirements below come from official sources; the
-capstone design remains preparation guidance.
+Verified **2026-07-11**. These links provide data, research context, and examples
+of continuous improvement. The capstone design and acceptance criteria remain
+original study guidance.
 
-- [42dot live open roles](https://www.42dot.ai/careers/openroles)
-- [Senior Computer Vision Engineer — official indexed role page](https://stage.42dot.ai/careers/openroles/d7f9e679-a018-4ab8-933c-3399995f9da8)
-  — 3D CV, pose/tracking, efficient vision, self-supervised scene learning,
-  world models, closed-loop simulation, C++/Python, sensors and optimization.
-- [Senior AI Perception Engineer — official indexed role page](https://stage.42dot.ai/careers/openroles/d03cec6d-f885-4d4a-bfce-76fd81994731)
-  — alignment/calibration/projection, BEV/3D/occupancy, fusion, failure analysis,
-  deployment and accuracy-resource decisions.
-- [42dot Active Learning article](https://www.42dot.ai/blog/180) — production-
-  like failure discovery, hard-case data collection, offline teacher,
-  distillation and model improvement.
-- [42dot research](https://www.42dot.ai/research) — scene completion, 3D MOT,
-  occupancy, depth, lanes and motion research signals.
-- [42dot MCMOT](https://42dot.ai/openDataset/ad/mcmot) and
+- [nuScenes](https://www.nuscenes.org/nuscenes) — calibrated multi-sensor
+  autonomous-driving data and task definitions; verify the current terms before
+  downloading or redistributing artifacts.
+- [Active Learning for Continuous Model Improvement](https://www.42dot.ai/blog/180)
+  — failure discovery, hard-case collection, offline teachers, distillation,
+  and iterative model improvement.
+- [Autonomous-driving research index](https://www.42dot.ai/research) — research
+  examples spanning scene completion, 3D tracking, occupancy, depth, lanes, and
+  motion.
+- [MCMOT dataset](https://42dot.ai/openDataset/ad/mcmot) and
   [autonomous-driving dataset overview](https://42dot.ai/openDataset/ad/overview)
-  — official portfolio-safe starting points subject to their current license.
-- [HMG Tech Talent Forum 2026: Minwoo Park](https://www.hyundai.com/worldwide/en/newsroom/detail/0000001193)
-  — strategic emphasis on production scale, data flywheels, sensor
-  standardization, cross-functional execution, and safety/reliability. This is
-  company-direction context, not a capstone brief or interview rubric.
-
+  — multi-camera tracking data and other dataset entry points, subject to their
+  current licenses and access terms.

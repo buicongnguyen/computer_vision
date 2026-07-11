@@ -16,6 +16,29 @@ You should be able to:
 - reason about ego motion, time synchronization, and sensor fusion;
 - diagnose drift, frame errors, and real-time pipeline failures.
 
+## Dependency map: measurement to planning coordinates
+
+```mermaid
+flowchart LR
+    A["Frames, clocks, uncertainty"] --> B1["Camera / stereo"]
+    A --> B2["LiDAR packets / returns"]
+    B1 --> C1["Depth, flow, tracks"]
+    B2 --> C2["Calibrated XYZ points"]
+    C2 --> D["Deskew, filter, ground removal"]
+    C1 --> E["Cross-sensor calibration"]
+    D --> E
+    E --> F["Points / range view / voxels / pillars / BEV"]
+    F --> G["Registration and odometry"]
+    G --> H["VIO / LIO / SLAM"]
+    H --> I["Temporal 3D state"]
+    I --> J["Perception → prediction → planning → control"]
+```
+
+The order matters. Registration assumes calibrated measurements; deskew assumes
+time and ego motion; temporal fusion assumes a common reference frame; planning
+assumes the world state distinguishes observed, free, occupied, uncertain, and
+stale information.
+
 ## 1. Time is part of the measurement
 
 A sample is not fully described by its tensor. It also has:
@@ -170,51 +193,225 @@ Depth may be axial distance \(Z\), range along a ray, inverse depth, disparity, 
 
 A point cloud should carry frame, timestamp, units, invalid-value policy, and possibly per-point acquisition time and uncertainty.
 
-## 7. 3D boxes and autonomous-driving geometry
+## 7. LiDAR measurement and point generation
 
-A 3D box requires center, dimensions, orientation, frame, and convention. Ambiguities include:
+A LiDAR front end is a measurement pipeline rather than a file-format reader:
 
-- dimensions ordered as length/width/height or another order;
-- center at geometric center or ground contact;
-- yaw axis and positive direction;
-- radians or degrees;
-- camera, ego, map, or sensor frame.
+```text
+emission → return detection → range/signal/return ID → timestamped packet
+→ beam/azimuth calibration → XYZ → deskew → filtering → reference frame
+```
 
-Bird’s-eye-view IoU and full 3D IoU measure different errors. Camera-only depth uncertainty often grows with range, so equal metric thresholds do not imply equal difficulty.
+For pulsed time of flight,
 
-Ego motion must be compensated before interpreting persistent objects in a common frame. Calibration and time-offset error can resemble object velocity.
+$$
+r=\frac{c\Delta t}{2}.
+$$
 
-## 8. Visual odometry and SLAM
+For calibrated azimuth \(\theta\) and elevation \(\phi\), one common sensor-frame
+conversion is
 
-A feature-based visual-odometry front end typically:
+$$
+x=r\cos\phi\cos\theta,\qquad
+y=r\cos\phi\sin\theta,\qquad
+z=r\sin\phi.
+$$
 
-- detects and tracks or matches features;
-- estimates relative pose robustly;
-- triangulates or uses existing landmarks;
-- refines pose by reprojection error;
-- selects keyframes.
+The exact axis order and angle convention are sensor contracts. Use the
+manufacturer's beam calibration rather than assuming uniformly spaced rings.
+Preserve range, raw signal, calibrated reflectivity, near-infrared level,
+return index, ring/beam ID, column timestamp, validity flags, and uncertainty
+when available. These fields are not interchangeable.
 
-Monocular geometry has an unobservable global scale without additional information. Pure rotation, low parallax, repeated texture, and dynamic scenes are difficult.
+Required checks include packet loss, invalid range codes, dual-return policy,
+minimum/maximum range, azimuth wrap, beam-table version, unit conversion, and
+the transform between the LiDAR and ego frames. Weather, mixed pixels,
+grazing incidence, retroreflectors, multipath, dust, and partial occlusion can
+produce physically plausible but misleading returns.
 
-SLAM adds a persistent map and often loop closure. Loop closure reduces accumulated drift but a false loop can corrupt the map globally. Pose-graph optimization requires a gauge anchor and uncertainty-aware constraints.
+## 8. Deskew, filtering, and ground extraction
 
-Evaluate trajectories after stating alignment:
+A rotating scan is collected over an interval. Let \({}^WT_L(t)\) map a LiDAR
+frame at time \(t\) into the world frame. A point acquired at \(t_i\), expressed
+in the LiDAR frame at that instant, is moved to reference time \(t_r\) by
 
-- absolute trajectory error measures global consistency;
-- relative pose error measures local drift;
-- alignment may remove translation, rotation, and sometimes scale.
+$$
+{}^{L(t_r)}p_i=
+\left({}^WT_L(t_r)\right)^{-1}
+{}^WT_L(t_i){}^{L(t_i)}p_i.
+$$
 
-## 9. Multi-sensor fusion
+The trajectory may come from IMU integration, wheel/visual/LiDAR odometry, or
+a fused pose estimate. Interpolate orientation on the rotation manifold and
+translation in a stated motion model. A wrong clock offset can leave curved
+walls and duplicated edges even when the extrinsic matrix is correct.
 
-Fusion can happen at:
+A defensible front-end order is:
 
-- raw or early feature level;
-- intermediate representation level;
-- object or track level.
+1. decode packets and preserve acquisition time;
+2. apply beam calibration and reject invalid/range-gated returns;
+3. generate points with return metadata;
+4. deskew to one timestamp;
+5. transform to the declared ego/local frame;
+6. crop the region of interest and remove isolated/weather noise;
+7. estimate ground or road surface;
+8. downsample or encode for the task.
 
-Early fusion preserves information but requires tight calibration and synchronization. Late fusion is modular and easier to debug but may discard complementary evidence.
+Ground-removal choices expose different assumptions:
 
-Sensor errors are often correlated. Treating correlated estimates as independent makes covariance too confident. Delayed and out-of-sequence measurements require buffering, state rewind, smoothing, or an explicit approximation.
+| Method | Prefer when | Main failure |
+|---|---|---|
+| Fixed height threshold | Flat road and fixed mounting | Hills, banking, suspension motion |
+| RANSAC plane | One dominant local plane | Curved roads, multiple levels, traffic occlusion |
+| Grid/slope or progressive filter | Rolling road geometry | Threshold tuning and sparse distant cells |
+| Range-image segmentation | Native scan topology matters | Seam, projection collision, sensor dependence |
+| Learned semantic ground | Rich geometry and sufficient labels | Domain shift and overconfident mistakes |
+
+## 9. Choose a spatial representation
+
+For voxel size \((v_x,v_y,v_z)\) and grid origin
+\((x_{min},y_{min},z_{min})\),
+
+$$
+i=\left\lfloor\frac{x-x_{min}}{v_x}\right\rfloor,\quad
+j=\left\lfloor\frac{y-y_{min}}{v_y}\right\rfloor,\quad
+k=\left\lfloor\frac{z-z_{min}}{v_z}\right\rfloor.
+$$
+
+- **Raw points** avoid quantization but have irregular neighborhood access.
+- **Range images** preserve LiDAR beam adjacency and enable fast 2D processing,
+  but introduce seams, collisions, and sensor-specific topology.
+- **Pillars** collapse vertical cells into columns and enable efficient 2D BEV
+  convolution; they lose detailed vertical separation.
+- **Sparse voxels** preserve 3D height structure while skipping empty cells;
+  coordinate construction and sparse-kernel support still cost time.
+- **Dense voxels** have simple regular neighborhoods but cubic memory growth.
+- **2D BEV** is a compact shared interface for detection, maps, tracking, and
+  planning but can hide vertical geometry.
+- **3D occupancy** represents free, occupied, and unknown volume beyond a fixed
+  object vocabulary, at substantial labeling and memory cost.
+
+Halving every voxel dimension can create up to eight times as many cells in a
+fixed dense volume. Compare quality, memory, latency, range-bin behavior, and
+quantization—not only headline accuracy.
+
+## 10. Calibration is not registration
+
+**Calibration** estimates a persistent spatial and temporal relationship
+between sensors. **Registration** estimates the relative pose between two
+scene observations, usually changing from scan to scan. Calibration supplies
+the transform that fusion assumes; registration supplies ego motion or local
+map alignment.
+
+For a LiDAR point projected into a camera,
+
+$$
+\lambda\tilde p_C=K\,{}^CT_L
+\begin{bmatrix}p_L\\1\end{bmatrix}.
+$$
+
+Require positive camera depth, image bounds, the correct distortion convention,
+time alignment, and a z-buffer for occlusion-aware colorization. RGB pixels are
+not a geometric point cloud: ICP cannot directly register RGB to LiDAR unless
+the image has first produced metric 3D through stereo, RGB-D, or another depth
+source.
+
+For local scan registration, point-to-point ICP minimizes
+
+$$
+\min_{R,t}\sum_i\|Rp_i+t-q_i\|^2,
+$$
+
+while point-to-plane ICP minimizes
+
+$$
+\min_{R,t}\sum_i\left[n_i^T(Rp_i+t-q_i)\right]^2.
+$$
+
+Use point-to-plane ICP or GICP when overlap, initialization, and normals are
+good. Use a global feature/place prior plus local refinement when the initial
+pose is poor. NDT fits local Gaussian distributions and optimizes likelihood
+without explicit closest-point pairs; it can provide a smoother objective but
+still needs sufficient geometry and an adequate starting region. Use
+continuous-time registration or IMU deskew when motion within a scan is large.
+
+Common registration failures are low overlap, repetitive structure, moving
+objects, tunnels or open roads with weak constraints, bad normals, scale
+mismatch, and a local minimum that still reports a small residual.
+
+## 11. Odometry, VIO, LIO, and SLAM
+
+A localization stack contains several distinct stages:
+
+1. a front end performs feature tracking, scan matching, and data association;
+2. odometry estimates locally continuous incremental motion;
+3. IMU preintegration or filtering supplies high-rate motion and bias state;
+4. a back end combines visual/LiDAR, inertial, wheel, GNSS, and map factors;
+5. loop retrieval proposes a revisit;
+6. geometric verification accepts or rejects it;
+7. pose-graph or factor-graph optimization corrects global drift;
+8. the corrected trajectory updates the map and reference-frame relationship.
+
+A generic robust factor-graph objective is
+
+$$
+x^*=\arg\min_x\sum_k
+\rho\!\left(r_k(x)^T\Sigma_k^{-1}r_k(x)\right).
+$$
+
+- Monocular visual odometry is low-cost but has scale ambiguity and depends on
+  texture and illumination.
+- Stereo odometry has metric scale but its depth weakens with range.
+- VIO adds metric scale, gravity, and high-rate motion but is sensitive to IMU
+  bias, initialization, timing, and camera-IMU calibration.
+- LiDAR odometry is metric and lighting-independent but degenerates in weak or
+  repetitive geometry.
+- LIO couples LiDAR and IMU for motion robustness, at the cost of tighter time,
+  extrinsic, and noise-model requirements.
+- GNSS/map factors add global reference but must be gated for outages,
+  multipath, map change, and frame-conversion errors.
+
+Odometry is locally continuous and may drift; a map frame can be globally
+corrected and therefore jump. Loop closure requires retrieval **and** geometric
+verification—a false loop can corrupt the complete map.
+
+Evaluate trajectories after declaring alignment. Absolute trajectory error
+measures global consistency; relative pose error measures local drift. State
+whether evaluation removes translation, rotation, and monocular scale.
+
+## 12. Temporal 3D state and sensor fusion
+
+A 3D box requires center, dimensions, orientation, frame, timestamp, covariance,
+and convention. State whether dimensions are length/width/height, whether the
+center is geometric or on the ground, the yaw axis/sign, and units. BEV IoU and
+full 3D IoU measure different errors.
+
+Fusion can occur at raw, feature, BEV/voxel, object, track, or factor level.
+Early fusion preserves information but has tight alignment and missing-sensor
+requirements. Late fusion is modular and easier to inspect but discards
+low-level complementary evidence. Sensor errors can be correlated; treating
+correlated estimates as independent makes covariance unjustifiably small.
+Delayed measurements require buffering, state rewind, smoothing, or an explicit
+bounded approximation.
+
+## 13. Where geometry meets the driving stack
+
+The output of this module is not a collection of boxes; it is a timestamped,
+uncertainty-aware world state:
+
+```text
+sensors → synchronized calibrated measurements → localization
+→ detection/segmentation/occupancy/tracking
+→ future trajectories and occupancy flow
+→ behavior and motion planning
+→ trajectory tracking/control → new observations
+```
+
+Perception estimates the present; prediction represents plausible futures;
+planning selects a safe, legal, comfortable action under those futures; control
+tracks the chosen trajectory. Keep these evaluation boundaries visible so a
+better perception proxy metric is not assumed to imply better closed-loop
+driving.
 
 ## Practical labs
 
@@ -258,16 +455,37 @@ Implement a small transform graph.
 - Inject a small rotation, translation, and time offset separately.
 - Measure their image-space effects by depth and object velocity.
 
-### Lab 5 — Visual odometry
+### Lab 5 — LiDAR front end and deskew
+
+- Convert calibrated range/azimuth/elevation samples into XYZ with ring,
+  timestamp, signal, and return metadata.
+- Simulate a moving spinning LiDAR viewing a wall.
+- Deskew with a known trajectory, then inject time and extrinsic errors.
+- Compare height threshold, RANSAC plane, and grid/slope ground removal.
+- Report wall residual, retained-point rate, runtime, and range slices.
+
+### Lab 6 — ICP and NDT registration
+
+- Implement point-to-point and point-to-plane ICP or inspect a library
+  implementation against scalar reference cases.
+- Sweep initial translation/yaw and visualize the convergence basin.
+- Add outliers, moving objects, weak overlap, and a geometrically degenerate
+  corridor.
+- Compare a distribution-based NDT implementation with ICP under a fixed
+  compute budget.
+- Require a failure/uncertainty output rather than always returning a pose.
+
+### Lab 7 — Visual or LiDAR-inertial odometry
 
 - Track or match features across a sequence.
-- Estimate motion with robust geometry.
+- Or register sequential LiDAR scans with IMU-based deskew.
+- Estimate motion with robust geometry and a named reference timestamp.
 - Apply cheirality and parallax checks.
-- Triangulate and refine.
+- Triangulate/refine for vision, or inspect degeneracy and IMU bias for LIO.
 - Compare relative and absolute trajectory error.
 - Detect and report tracking failure instead of emitting an arbitrary pose.
 
-### Lab 6 — Asynchronous fusion simulation
+### Lab 8 — Asynchronous fusion and downstream boundary
 
 Simulate a moving object with camera-like position and radar-like velocity observations at different rates.
 
@@ -276,8 +494,10 @@ Simulate a moving object with camera-like position and radar-like velocity obser
 - Introduce clock offset and delayed observations.
 - Plot innovation and covariance consistency.
 - Define behavior for stale or missing sensors.
+- Compare how the same perception error changes a constant-velocity prediction
+  and a simple collision-cost planner.
 
-## Production failure modes
+## System failure modes
 
 - Using processing time instead of acquisition time.
 - Assuming sensors share a clock because timestamps have the same units.
@@ -296,8 +516,14 @@ Simulate a moving object with camera-like position and radar-like velocity obser
 - A false loop closure corrupting the complete map.
 - Queueing stale frames until latency becomes unsafe.
 - Evaluating a pipeline on frames it silently dropped.
+- Treating a calibration matrix as a scan-to-scan registration result, or vice
+  versa.
+- Running ICP on a motion-distorted scan and blaming the map for curved walls.
+- Removing ground before transforming points into the declared reference frame.
+- Declaring unknown/unobserved occupancy as free space.
+- Adding loop closure from retrieval without geometric verification.
 
-## Oral interview questions
+## Review and derivation questions
 
 1. Derive the optical-flow constraint and explain the aperture problem.
 2. Why do image pyramids help optical flow, and when do they hurt?
@@ -313,7 +539,13 @@ Simulate a moving object with camera-like position and radar-like velocity obser
 12. What can cause a low-reprojection-error but wrong trajectory?
 13. Compare early and late sensor fusion.
 14. How should a real-time perception system react to overload?
-15. How would you validate calibration and synchronization before deployment?
+15. Derive the LiDAR spherical-to-Cartesian conversion for the chosen axes.
+16. Why does a rotating LiDAR require per-point motion compensation?
+17. Distinguish camera-LiDAR calibration from scan registration.
+18. Compare point-to-plane ICP and NDT, including initialization and degeneracy.
+19. Why must loop retrieval be followed by geometric verification?
+20. Trace one timestamp error through localization, occupancy, prediction, and
+    planning.
 
 ## Definition of done
 
@@ -327,6 +559,27 @@ Simulate a moving object with camera-like position and radar-like velocity obser
 - [ ] Transform composition/inversion has property-style tests.
 - [ ] Odometry states its alignment and detects degenerate motion.
 - [ ] Timestamp-aware fusion outperforms naive fusion in simulation.
-- [ ] At least eight production failures are reproduced or tested.
-- [ ] You can answer at least 12 of the 15 oral questions without notes.
+- [ ] LiDAR point generation preserves beam, return, time, frame, and unit metadata.
+- [ ] Deskew is validated on a known-motion geometric oracle.
+- [ ] At least two registration methods are compared over initial pose and overlap.
+- [ ] Calibration and registration are distinguished in code and documentation.
+- [ ] Loop closure includes geometric verification and a rejection test.
+- [ ] At least eight system failures are reproduced or tested.
+- [ ] You can answer at least 16 of the 20 review questions without notes.
 
+## Primary sources and further study
+
+- [Stanford CS231A course notes: camera models, stereo, flow, and optimal estimation](https://web.stanford.edu/class/cs231a/course_notes.html)
+- [ROS REP-105 coordinate-frame semantics](https://ros.org/reps/rep-0105.html)
+- [Ouster sensor data: range, signal, reflectivity, timestamps, and XYZ conversion](https://docs.ouster.com/sensor-docs/image_route1/image_route3/sensor_data/sensor-data.html)
+- [VoxelNet: learned voxel encoding for point-cloud detection](https://openaccess.thecvf.com/content_cvpr_2018/html/Zhou_VoxelNet_End-to-End_Learning_CVPR_2018_paper.html)
+- [PointPillars: fast pillar encoders](https://arxiv.org/abs/1812.05784)
+- [RangeNet++ reference implementation and paper](https://github.com/PRBonn/rangenet_lib)
+- [Besl and McKay: Iterative Closest Point](https://graphics.stanford.edu/courses/cs164-09-spring/Handouts/paper_icp.pdf)
+- [Biber and Straßer: Normal Distributions Transform](https://citeseerx.ist.psu.edu/document?doi=1f16244ce2e78881c7c96b33796a930ce73f7972&repid=rep1&type=pdf)
+- [CT-ICP: continuous-time LiDAR odometry](https://arxiv.org/abs/2109.12979)
+- [VINS-Mono: visual-inertial state estimation](https://arxiv.org/abs/1708.03852)
+- [LIO-SAM: tightly coupled LiDAR-inertial smoothing and mapping](https://github.com/TixiaoShan/LIO-SAM)
+- [FAST-LIO2: direct LiDAR-inertial odometry](https://arxiv.org/abs/2107.06829)
+- [ORB-SLAM3: visual, visual-inertial, and multi-map SLAM](https://arxiv.org/abs/2007.11898)
+- [GTSAM: factor graphs for smoothing and mapping](https://github.com/borglab/gtsam)

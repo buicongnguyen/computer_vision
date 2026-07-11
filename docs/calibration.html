@@ -131,6 +131,39 @@
       </article>
     </section>
 
+    <section aria-labelledby="online-calibration-heading">
+      <div class="section-heading"><div><p class="eyebrow">Dynamic and online calibration</p><h2 id="online-calibration-heading">Monitor continuously; update only when the geometry is observable</h2></div><p>A moving rig needs a trusted offline baseline, independent health signals, and a bounded correction policy—not an unconstrained six-degree-of-freedom optimizer on every frame.</p></div>
+      <div class="flow-strip wide" role="list" aria-label="Online calibration control flow">
+        <div role="listitem"><span>1</span><strong>Baseline</strong><small>target-based nominal</small></div>
+        <div role="listitem"><span>2</span><strong>Monitor</strong><small>time + residual health</small></div>
+        <div role="listitem"><span>3</span><strong>Gate</strong><small>motion/scene observability</small></div>
+        <div role="listitem"><span>4</span><strong>Refine</strong><small>bounded spatial/time delta</small></div>
+        <div role="listitem"><span>5</span><strong>Validate</strong><small>held-out/downstream checks</small></div>
+        <div role="listitem"><span>6</span><strong>Commit</strong><small>accept, freeze, or rollback</small></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Separate the operating modes</h3>
+          <ul>
+            <li><strong>Offline target calibration:</strong> establish intrinsics, rigid extrinsics, clock convention, covariance, and a versioned nominal state under controlled coverage.</li>
+            <li><strong>Online health monitoring:</strong> watch reprojection/edge residuals, timestamp innovations, overlap coverage, temperature/flex indicators, and downstream BEV disagreement without changing parameters.</li>
+            <li><strong>Bounded online refinement:</strong> estimate a small correction only after excitation and cross-modal agreement pass an observability gate.</li>
+            <li><strong>Joint spatiotemporal calibration:</strong> estimate extrinsic correction and clock offset together when motion makes them distinguishable; otherwise hold one fixed.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <h3>Use a nominal-plus-correction model</h3>
+          <div class="equation-block">
+            <span>T<sub>camera←lidar</sub>(t) = Exp(δξ(t)<sup>∧</sup>) T<sub>camera←lidar,0</sub></span>
+            <span>(δξ*, Δt*) = arg min Σ ρ(r<sub>k</sub>(δξ, Δt)) + ‖δξ‖²<sub>Σ⁻¹</sub></span>
+          </div>
+          <p>Constrain correction magnitude/rate and require diverse static geometry, sufficient translation/rotation, valid overlap, and enough depth. Dynamic actors, flat-road-only scenes, constant motion, modality-specific edges, and correlated time/extrinsic error can make a low loss misleading.</p>
+          <p><strong>State machine:</strong> healthy → suspect → shadow refinement → validated update. If observability or held-out checks fail, freeze the last-known-good parameters; if downstream metrics regress, rollback the calibration version and retain the evidence for offline diagnosis.</p>
+        </article>
+      </div>
+      <p class="section-note">See the <a href="autonomous-driving.html">autonomous-driving learning flow</a> for the downstream chain from synchronized sensors and calibration through localization, BEV/occupancy, prediction, planning, and control.</p>
+    </section>
+
     <section aria-labelledby="validation-heading">
       <div class="section-heading"><div><p class="eyebrow">Validation</p><h2 id="validation-heading">Read the shape of residuals</h2></div></div>
       <div class="diagnostic-grid">
@@ -179,6 +212,9 @@
         <li><a href="https://web.stanford.edu/class/cs231a/course_notes.html">Stanford CS231A self-contained course notes index</a></li>
         <li><a href="https://web.stanford.edu/class/cs231a/syllabus.html">Stanford CS231A syllabus</a></li>
         <li><a href="https://16385.courses.cs.cmu.edu/spring2026/">CMU 16-385 Spring 2026</a></li>
+        <li><a href="https://github.com/ethz-asl/kalibr">Kalibr: spatial and temporal calibration for camera/IMU systems</a></li>
+        <li><a href="https://arxiv.org/abs/2304.05530">SceneCalib: targetless camera-LiDAR calibration</a></li>
+        <li><a href="https://arxiv.org/abs/2504.01416">DF-Calib: online targetless LiDAR-camera calibration via depth flow</a></li>
         <li><a href="sources.html">Complete university course source map and attribution</a></li>
       </ul>
     </section>

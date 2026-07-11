@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A structured computer vision study guide covering theory, perception, calibration, BEV, modern models, coding practice, and applied experiments.">
+  <meta name="description" content="A structured computer vision study guide covering theory, perception, calibration, BEV, modern models, autonomous-driving systems, coding practice, and applied experiments.">
   <meta name="theme-color" content="#071019">
   <title>CV Systems Lab | Computer Vision Study Guide</title>
   <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/">
@@ -59,7 +59,7 @@
         <h1 id="hero-title">Understand the system.<br><span class="text-gradient">Practice the reasoning.</span></h1>
         <p class="hero-lede">
           A structured 24-week guide from image formation and geometry to 3D
-          perception, reconstruction, modern detectors, and deployment. Derive each
+          perception, autonomous systems, planning interfaces, modern models, and deployment. Derive each
           idea, compare the available methods, implement a baseline, and test where
           its assumptions fail.
         </p>
@@ -69,7 +69,7 @@
         </div>
         <ul class="hero-meta" aria-label="Program summary">
           <li><strong>24</strong><span>weeks</span></li>
-          <li><strong>11</strong><span>study areas</span></li>
+          <li><strong>12</strong><span>study areas</span></li>
           <li><strong>4</strong><span>applied projects</span></li>
         </ul>
       </div>
@@ -110,15 +110,15 @@
               <span>Core path</span>
             </div>
           </div>
-          <h3><span data-progress-count>0 / 8</span> checkpoints</h3>
-          <p data-progress-message>Complete 8 more checkpoints to close the core path.</p>
+          <h3><span data-progress-count>0 / 9</span> checkpoints</h3>
+          <p data-progress-message>Complete 9 more checkpoints to close the core path.</p>
         </div>
 
         <div class="progress-detail">
           <div class="progress-metrics" aria-label="Study metrics">
             <div class="metric-card">
               <span>Modules complete</span>
-              <strong data-progress-count>0 / 8</strong>
+              <strong data-progress-count>0 / 9</strong>
             </div>
             <div class="metric-card">
               <span>MCQ score</span>
@@ -126,7 +126,7 @@
             </div>
             <div class="metric-card">
               <span>Coding solved</span>
-              <strong data-coding-score>0 / 12</strong>
+              <strong data-coding-score>0 / 36</strong>
             </div>
           </div>
 
@@ -140,6 +140,7 @@
             <label class="milestone-toggle"><input type="checkbox" data-milestone="calibration"><span>Sensor calibration</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="bev"><span>BEV conversion</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="modern-cv"><span>Modern computer vision</span></label>
+            <label class="milestone-toggle"><input type="checkbox" data-milestone="autonomy"><span>Autonomous driving systems</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="practice"><span>MCQ practice</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="coding"><span>Coding drills</span></label>
             <label class="milestone-toggle"><input type="checkbox" data-milestone="projects"><span>Applied projects</span></label>
@@ -267,12 +268,38 @@
           <p>Monocular reconstruction, LingBot-Map, 3D detection, 3DGS, NVIDIA ArtiFixer, 3DGRUT, and emerging reconstruction methods.</p>
           <div class="card-meta"><span class="tag tag-violet">3D</span><span class="tag">recent</span></div>
         </a>
-        <a class="topic-card" href="sources.html">
+        <a class="topic-card" href="autonomous-driving.html">
           <span class="card-index">11</span>
+          <h3>Autonomous driving systems</h3>
+          <p>Connect sensors, timing, calibration, stereo, LiDAR, registration, SLAM, voxels, BEV, fusion, prediction, planning, end-to-end models, and closed-loop evaluation.</p>
+          <div class="card-meta"><span class="tag tag-lime">autonomy</span><span class="tag">full flow</span></div>
+        </a>
+        <a class="topic-card" href="sources.html">
+          <span class="card-index">12</span>
           <h3>Courses &amp; sources</h3>
           <p>Curated course and paper references from Stanford, Berkeley, Michigan, CMU, MIT, NVIDIA, and primary research.</p>
           <div class="card-meta"><span class="tag tag-cyan">primary</span><span class="tag">reference</span></div>
         </a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="autonomy-preview-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Autonomy dependency flow</p>
+          <h2 id="autonomy-preview-title">A driving decision is the end of a measurement chain</h2>
+          <p>Planning is not itself computer vision, but it defines which spatial state vision must estimate, how uncertainty must be represented, and which failures matter.</p>
+        </div>
+        <a class="text-link" href="autonomous-driving.html">Study the complete autonomy stack →</a>
+      </div>
+      <div class="flow-strip wide" role="list" aria-label="Sensor-to-planning autonomous-driving flow">
+        <div role="listitem"><span>1</span><strong>Sense</strong><small>camera · LiDAR · radar · IMU</small></div>
+        <div role="listitem"><span>2</span><strong>Align</strong><small>time · deskew · calibration</small></div>
+        <div role="listitem"><span>3</span><strong>Localize</strong><small>odometry · SLAM · maps</small></div>
+        <div role="listitem"><span>4</span><strong>Represent</strong><small>points · voxels · BEV</small></div>
+        <div role="listitem"><span>5</span><strong>Perceive</strong><small>objects · occupancy · tracks</small></div>
+        <div role="listitem"><span>6</span><strong>Predict</strong><small>motion · interaction · futures</small></div>
+        <div role="listitem"><span>7</span><strong>Plan &amp; validate</strong><small>trajectory · control · closed loop</small></div>
       </div>
     </section>
 

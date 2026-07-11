@@ -8,6 +8,7 @@
     { id: "calibration", label: "Sensor calibration", href: "calibration.html" },
     { id: "bev", label: "BEV conversion", href: "bev.html" },
     { id: "modern-cv", label: "Modern computer vision", href: "modern-cv.html" },
+    { id: "autonomy", label: "Autonomous driving systems", href: "autonomous-driving.html" },
     { id: "practice", label: "MCQ practice", href: "practice.html" },
     { id: "coding", label: "Coding drills", href: "coding.html" },
     { id: "projects", label: "Applied projects", href: "projects.html" }
@@ -36,7 +37,7 @@
       },
       coding: {
         solved: integer(source.coding && source.coding.solved, 0),
-        total: integer(source.coding && source.coding.total, 30)
+        total: integer(source.coding && source.coding.total, 36)
       },
       lastActivity: typeof source.lastActivity === "string" ? source.lastActivity : null
     };
@@ -135,7 +136,7 @@
 
   function setCodingSolved(solved, total) {
     var state = readProgress();
-    state.coding = { solved: integer(solved, 0), total: integer(total, 30) };
+    state.coding = { solved: integer(solved, 0), total: integer(total, 36) };
     return writeProgress(state);
   }
 

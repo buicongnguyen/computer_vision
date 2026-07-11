@@ -42,10 +42,10 @@ defend a metric choice against product behavior.
 
 | Week | Focus | Required artifact |
 |---|---|---|
-| 9 | Stereo, depth, point clouds, 3D boxes | Depth/point-cloud error analysis across distance |
-| 10 | Optical flow, tracking, Kalman filtering | Multi-object tracker with association ablations |
-| 11 | Pose, PnP, SLAM, bundle adjustment | Factor/pose graph design memo and toy optimizer |
-| 12 | Camera/LiDAR/IMU fusion and timing | Frame/time-alignment test and fusion design review |
+| 9 | Projection, IPM, stereo, depth and point clouds | Perspective/BEV comparison plus depth uncertainty across distance |
+| 10 | LiDAR returns, deskew, filtering, voxels and registration | Point-cloud front end plus ICP convergence and representation benchmark |
+| 11 | Tracking, dynamic calibration, odometry and SLAM | Factor-graph study with drift, loop closure and calibration-health faults |
+| 12 | Multimodal fusion, occupancy, prediction and planning contracts | Sensor-to-trajectory architecture and fault-propagation review |
 
 Advance project 03. Run the first full cross-topic review.
 
@@ -72,12 +72,29 @@ Choose one primary column and at least one assignment from another.
 
 | Week | Representation and data | Accelerated systems | 3D spatial perception |
 |---|---|---|---|
-| 17 | Large-scale retrieval/multimodal design | GPU execution and memory hierarchy | HD maps, localization, coordinate frames |
-| 18 | Data quality and weak/self supervision | CUDA kernels, occupancy, memory access | BEV/occupancy/world models |
-| 19 | Distributed training/inference economics | TensorRT, precision, fusion, dynamic shapes | Closed-loop simulation and scenario mining |
-| 20 | Responsible evaluation and launch | Nsight bottleneck report | Safety, redundancy, ODD and fallback |
+| 17 | Large-scale retrieval/multimodal design | GPU execution and memory hierarchy | Localization, maps, online calibration and SLAM |
+| 18 | Data quality and weak/self supervision | CUDA kernels, occupancy, memory access | BEV, voxels, occupancy and sensor fusion |
+| 19 | Distributed training/inference economics | TensorRT, precision, fusion, dynamic shapes | Prediction, planning, structured E2E and world models |
+| 20 | Responsible evaluation and launch | Nsight bottleneck report | Closed-loop simulation, safety, ODD and fallback |
 
 **Gate:** a 30-minute topic review with derivations, comparisons, and measurements.
+
+### Autonomous-driving specialization flow
+
+Follow this order; later stages assume the contracts from earlier stages:
+
+```text
+frames and time → camera/stereo/LiDAR signals → calibration and deskew
+→ point clouds and registration → localization/SLAM → voxels/BEV/occupancy
+→ detection/tracking → multimodal temporal fusion → motion forecasting
+→ behavior and motion planning → control → structured end-to-end models
+→ world/VLA models → closed-loop robustness and safety validation
+```
+
+Start with modular baselines so errors remain observable. Study planning-oriented
+joint models next, sensor-to-trajectory policies after that, and language/world
+models last. A learned explanation or photoreal future is not a geometry, dynamics,
+or safety proof.
 
 ## Phase 6 — Integration and synthesis (weeks 21-24)
 

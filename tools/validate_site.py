@@ -40,18 +40,19 @@ REQUIRED_PAGE_NAMES = (
     *EXPECTED_NAV_LINKS,
     "yolo-evolution.html",
     "current-topics.html",
+    "autonomous-driving.html",
 )
 
 QUIZ_DATA_FILE = "quiz-data.js"
 QUIZ_GLOBAL = "CV_QUIZ_QUESTIONS"
-QUIZ_EXPECTED_COUNT = 72
+QUIZ_EXPECTED_COUNT = 80
 QUIZ_REQUIRED_FIELDS = frozenset(
     {"id", "topic", "difficulty", "question", "choices", "answer", "explanation"}
 )
 
 CODING_DATA_FILE = "coding-data.js"
 CODING_GLOBAL = "CV_CODING_TASKS"
-CODING_EXPECTED_COUNT = 30
+CODING_EXPECTED_COUNT = 36
 CODING_REQUIRED_FIELDS = frozenset(
     {
         "id",
@@ -653,7 +654,7 @@ def validate_quiz_questions(
     questions: Sequence[object],
     source: Path = DOCS_DIR / QUIZ_DATA_FILE,
 ) -> list[ValidationIssue]:
-    """Validate the 72-question MCQ contract."""
+    """Validate the 80-question MCQ contract."""
 
     issues: list[ValidationIssue] = []
     if len(questions) != QUIZ_EXPECTED_COUNT:
@@ -741,7 +742,7 @@ def validate_coding_tasks(
     tasks: Sequence[object],
     source: Path = DOCS_DIR / CODING_DATA_FILE,
 ) -> list[ValidationIssue]:
-    """Validate the 30-exercise coding contract."""
+    """Validate the 36-exercise coding contract."""
 
     issues: list[ValidationIssue] = []
     if len(tasks) != CODING_EXPECTED_COUNT:

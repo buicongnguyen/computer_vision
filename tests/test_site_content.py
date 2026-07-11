@@ -23,7 +23,7 @@ def _assert_clean(issues: list[object]) -> None:
 def test_all_required_course_pages_exist() -> None:
     _assert_clean(validate_required_pages())
     required = {DOCS_DIR / name for name in REQUIRED_PAGE_NAMES}
-    assert len(required) == 11
+    assert len(required) == 12
     assert all(path.is_file() for path in required)
     assert set(EXPECTED_NAV_LINKS).issubset(REQUIRED_PAGE_NAMES)
 
@@ -77,16 +77,55 @@ def test_all_javascript_files_parse() -> None:
     _assert_clean(validate_javascript_syntax())
 
 
-def test_quiz_bank_has_72_unique_well_formed_questions() -> None:
+def test_autonomous_driving_learning_flow_is_integrated() -> None:
+    page = DOCS_DIR / "autonomous-driving.html"
+    source = page.read_text(encoding="utf-8")
+    required_ids = {
+        "scope",
+        "master-flow",
+        "sensor-frontends",
+        "geometry-registration",
+        "spatial-representations",
+        "localization-slam",
+        "prediction-planning",
+        "architecture-choices",
+        "evaluation",
+        "study-sequence",
+        "practice",
+        "sources",
+    }
+    missing_ids = {
+        element_id
+        for element_id in required_ids
+        if f'id="{element_id}"' not in source
+    }
+    assert not missing_ids
+
+    for page_name in ("index.html", "bev.html", "modern-cv.html"):
+        referring_source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
+        assert 'href="autonomous-driving.html' in referring_source
+
+
+def test_quiz_bank_has_80_unique_well_formed_questions() -> None:
     questions = load_quiz_questions()
-    assert len(questions) == QUIZ_EXPECTED_COUNT == 72
-    assert len({question["id"] for question in questions}) == 72
+    assert len(questions) == QUIZ_EXPECTED_COUNT == 80
+    assert len({question["id"] for question in questions}) == 80
+    autonomy_questions = [
+        question
+        for question in questions
+        if question["topic"] == "Autonomous Driving"
+    ]
+    assert len(autonomy_questions) == 8
     assert all(len(question["choices"]) == 4 for question in questions)
     _assert_clean(validate_quiz_questions(questions))
 
 
-def test_coding_bank_has_30_unique_well_formed_tasks() -> None:
+def test_coding_bank_has_36_unique_well_formed_tasks() -> None:
     tasks = load_coding_tasks()
-    assert len(tasks) == CODING_EXPECTED_COUNT == 30
-    assert len({task["id"] for task in tasks}) == 30
+    assert len(tasks) == CODING_EXPECTED_COUNT == 36
+    assert len({task["id"] for task in tasks}) == 36
+    autonomy_tasks = [
+        task for task in tasks if task["track"] == "Autonomous Driving"
+    ]
+    assert len(autonomy_tasks) == 6
     _assert_clean(validate_coding_tasks(tasks))

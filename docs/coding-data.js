@@ -272,5 +272,60 @@ window.CV_CODING_TASKS = [
     tests: ["Latency spike", "Camera schema change", "Prediction shift without quality loss", "Delayed critical-slice regression"],
     hints: ["Each alert needs an owner and response", "Use a state machine to avoid flapping"],
     evidence: "Dashboard specification, incident timeline, and revised regression gate."
+  },
+
+  {
+    id: "auto-lidar-cloud", title: "LiDAR Returns to a Metadata-Rich Point Cloud",
+    track: "Autonomous Driving", difficulty: "Intermediate", minutes: 90, language: "Python/NumPy or C++",
+    prompt: "Convert LiDAR range, azimuth, elevation, intensity, ring, and acquisition-time records into Cartesian points while retaining the metadata needed for later calibration, deskew, and filtering.",
+    contract: ["Declare angle units, axis convention, output frame, and range units", "Preserve intensity, ring, return identity, and per-point acquisition time", "Define invalid, saturated, zero, and out-of-range policies", "Return a validity mask instead of silently manufacturing geometry"],
+    tests: ["Returns on each declared coordinate axis", "Degree/radian and meter/unit sentinels", "Invalid and non-finite ranges", "Multiple rings, returns, and unsorted timestamps"],
+    hints: ["Write the spherical-to-Cartesian convention beside the implementation", "A point without its frame and acquisition time is incomplete sensor evidence"],
+    evidence: "Round-trip angle/range checks, a colored point-cloud plot, and a metadata-loss audit."
+  },
+  {
+    id: "auto-lidar-deskew", title: "Per-Point LiDAR Motion Deskew",
+    track: "Autonomous Driving", difficulty: "Advanced", minutes: 120, language: "Python/NumPy or C++",
+    prompt: "Transform every point in a moving LiDAR sweep from its acquisition pose to one declared reference time using an interpolated ego-pose trajectory.",
+    contract: ["Name every source, destination, sensor, ego, and reference-time frame", "Interpolate translation and rotation with an explicit SE(3) policy", "Reject or flag unsupported extrapolation and pose gaps", "Preserve all point metadata and return deskew validity"],
+    tests: ["Stationary-platform identity", "Known constant translation", "Known constant yaw rate", "Irregular point times and a missing pose interval"],
+    hints: ["Compose the sensor extrinsic on the correct side of the time-varying ego pose", "First generate a synthetic wall that should become straight at the reference time"],
+    evidence: "Before/after wall residuals plus error curves for pose-rate and clock-offset perturbations."
+  },
+  {
+    id: "auto-icp-point-plane", title: "Robust Point-to-Plane ICP",
+    track: "Autonomous Driving", difficulty: "Advanced", minutes: 150, language: "Python/NumPy or C++",
+    prompt: "Implement coarse-to-fine point-to-plane ICP with nearest-neighbor correspondence filtering, a robust residual weight, an SE(3) update, and explicit convergence and degeneracy reports.",
+    contract: ["Validate or normalize target normals", "Gate correspondence distance and reject invalid matches", "Use a declared robust loss and numerically stable linear solve", "Report conditioning, inlier support, convergence reason, and final transform direction"],
+    tests: ["Exact synthetic transform with adequate 3D structure", "Outliers and partial overlap", "Planar geometry with an unobservable motion component", "Bad normals and poor initialization"],
+    hints: ["Derive the small-angle point-to-plane Jacobian before vectorizing", "A low residual on degenerate geometry is not a trustworthy six-degree pose"],
+    evidence: "Convergence plots, basin-of-initialization study, and a failure table separating mismatch from geometric degeneracy."
+  },
+  {
+    id: "auto-rgb-lidar-project", title: "Time-Aware RGB–LiDAR Projection",
+    track: "Autonomous Driving", difficulty: "Advanced", minutes: 120, language: "Python/NumPy or C++",
+    prompt: "Project timestamped LiDAR points into a calibrated RGB image, resolve multiple points per pixel with a depth buffer, and expose spatial, temporal, and visibility validity separately.",
+    contract: ["Use frame-labeled extrinsics and an acquisition-time alignment policy", "Reject points behind the camera and outside the image", "Apply the declared distortion model or require rectified imagery", "Use nearest-depth visibility while retaining collision and validity diagnostics"],
+    tests: ["Hand-computed projection through a known transform", "Two depths landing on one pixel", "Behind-camera and border points", "Moving-platform fixture with a known time offset"],
+    hints: ["Projection agreement cannot distinguish every time error from every extrinsic error", "Raster visibility is not the same as LiDAR return visibility at occlusion boundaries"],
+    evidence: "Colored overlay, z-buffer collision audit, and residual-versus-range plots under independent time and extrinsic perturbations."
+  },
+  {
+    id: "auto-trajectory-collision", title: "Occupancy–Trajectory Collision Checker",
+    track: "Autonomous Driving", difficulty: "Intermediate", minutes: 100, language: "Python/NumPy or C++",
+    prompt: "Check a timestamped ego trajectory and oriented vehicle footprint against static or time-indexed occupancy while reporting first contact, clearance, unknown-space exposure, and out-of-grid state.",
+    contract: ["Declare world-to-grid axes, origin, resolution, cell-center convention, and time basis", "Define separate occupied, free, unknown, and outside policies", "Interpolate densely enough to prevent tunneling between waypoints", "Support footprint inflation and return the complete collision trace"],
+    tests: ["Clear path and direct collision", "Obstacle between sparse waypoints", "Rotated footprint at a grid boundary", "Unknown cells and a moving obstacle in temporal occupancy"],
+    hints: ["Transform footprint samples into grid coordinates at every evaluated pose", "Unknown is an evidence state, not automatically free or occupied"],
+    evidence: "Trajectory/occupancy visualization and a resolution, interpolation-step, and inflation sensitivity table."
+  },
+  {
+    id: "auto-closed-loop-eval", title: "Replayable Closed-Loop Scenario Evaluator",
+    track: "Autonomous Driving", difficulty: "Advanced", minutes: 150, language: "Python",
+    prompt: "Build a deterministic closed-loop simulator harness that repeatedly observes, invokes a policy, advances a simple vehicle/world model, injects configured perception faults, and scores behavior until termination.",
+    contract: ["Version scenario initial state, variation axes, random seed, policy, and dynamics", "Separate collision, progress, rule, comfort, intervention, fallback, and timeout metrics", "Record observations, actions, states, faults, and termination cause for replay", "Compare closed-loop outcomes with an open-loop action or trajectory metric on the same scenarios"],
+    tests: ["Nominal route completion", "Delayed obstacle observation with recovery or collision", "Seeded stochastic actor with exact replay", "Timeout, invalid action, and fallback termination"],
+    hints: ["The policy action must influence the next observation for the test to be closed loop", "Keep scenario success criteria independent of the policy under evaluation"],
+    evidence: "Scenario matrix showing at least one case where similar open-loop error produces different closed-loop outcomes, with a replayable incident trace."
   }
 ];

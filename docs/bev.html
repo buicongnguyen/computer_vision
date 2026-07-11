@@ -121,6 +121,35 @@
       </div>
     </section>
 
+    <section aria-labelledby="representation-heading">
+      <div class="section-heading"><div><p class="eyebrow">Representation decision</p><h2 id="representation-heading">Choose what geometry the task must preserve</h2></div><p>There is no globally best point-cloud or BEV representation. Start from sensor topology, vertical detail, range, task output, latency, memory, and deployment kernels; then test the failure mode created by the chosen discretization.</p></div>
+      <div class="content-card prose">
+        <p>For voxel origin <code>(x<sub>min</sub>, y<sub>min</sub>, z<sub>min</sub>)</code> and cell size <code>(v<sub>x</sub>, v<sub>y</sub>, v<sub>z</sub>)</code>:</p>
+        <div class="equation-block">
+          <span>i = floor((x − x<sub>min</sub>) / v<sub>x</sub>)</span>
+          <span>j = floor((y − y<sub>min</sub>) / v<sub>y</sub>)</span>
+          <span>k = floor((z − z<sub>min</sub>) / v<sub>z</sub>)</span>
+        </div>
+        <p>Halving all three cell dimensions creates up to eight times as many cells in the same dense volume. Sparse tensors avoid computing empty cells, but coordinate construction, hashing, feature density, and accelerator support still have costs.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Point cloud and spatial representation comparison">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Representation</span><span role="columnheader">Choose when</span><span role="columnheader">What it preserves</span><span role="columnheader">Failure / switch trigger</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Raw points</span><span role="cell">Local geometry, modest point count, point-wise labels</span><span role="cell">Original coordinates and per-return attributes without grid quantization</span><span role="cell">Irregular memory access/neighborhood cost grows; switch to sparse voxels or native range view for large scenes</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Pillars</span><span role="cell">Fast road-scene detection with efficient 2D convolution</span><span role="cell">Horizontal metric layout and learned within-column statistics</span><span role="cell">Collapsed height loses bridges/stacked structure; switch to sparse 3D voxels when vertical separation matters</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Sparse voxels</span><span role="cell">Large outdoor 3D scenes with meaningful height structure</span><span role="cell">Metric 3D locality while computing mainly occupied coordinates</span><span role="cell">Quantization, sparse-kernel portability, and coordinate overhead; use pillars when latency dominates</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Dense voxels</span><span role="cell">Small bounded volumes or genuinely dense occupancy</span><span role="cell">Simple regular 3D neighborhoods</span><span role="cell">Cubic memory/compute growth; switch to sparse voxels or multi-resolution occupancy for driving range</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Range image</span><span role="cell">LiDAR segmentation and fast processing in native scan topology</span><span role="cell">Beam/ring adjacency, return layers, and efficient 2D convolution</span><span role="cell">Azimuth seam, projection collisions, occlusion, and sensor-specific layout; switch when a shared metric frame is required</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2D BEV raster/features</span><span role="cell">Detection, mapping, tracking, fusion, and planning share a ground-aligned metric interface</span><span role="cell">Horizontal position, footprint, free-space/map context, multi-sensor alignment</span><span role="cell">Vertical collapse and unknown-space overconfidence; retain height channels or move to 3D occupancy</span></div>
+        <div class="evolution-row" role="row"><span role="cell">3D occupancy</span><span role="cell">Arbitrary obstacles, free/occupied/unknown space, scene completion, future flow</span><span role="cell">Volumetric structure beyond a fixed object vocabulary</span><span role="cell">Memory, label ambiguity, occlusion hallucination, class imbalance; use sparse/multi-resolution grids and calibrated unknown state</span></div>
+      </div>
+      <div class="card-grid">
+        <article class="content-card prose"><h3>Fast detection default</h3><p>Begin with pillars or a compact BEV encoder. Move to sparse 3D voxels only when vertical/detail gains justify measured latency and memory.</p></article>
+        <article class="content-card prose"><h3>Native LiDAR segmentation</h3><p>Begin with a range image when beam topology is stable. Audit seam, collision, dropped-return, and cross-sensor transfer behavior.</p></article>
+        <article class="content-card prose"><h3>Planning-facing world state</h3><p>Use BEV boxes/maps for compact known-agent reasoning; add observed/free/occupied/unknown 3D occupancy when unusual geometry and occlusion matter.</p></article>
+      </div>
+      <p class="section-note">Follow the complete sensor-to-control dependency chain on the <a href="autonomous-driving.html">autonomous-driving page</a>; representation quality must ultimately be judged at perception, prediction, planning, and closed-loop boundaries.</p>
+    </section>
+
     <section aria-labelledby="evolution-heading">
       <div class="section-heading"><div><p class="eyebrow">Development of BEV theory</p><h2 id="evolution-heading">Each method repairs an earlier assumption—and adds a new one</h2></div></div>
       <div class="evolution-table" role="table" aria-label="Evolution of BEV methods">
@@ -197,7 +226,12 @@
       <ul class="source-list">
         <li><a href="https://arxiv.org/abs/2008.05711">Lift, Splat, Shoot: Encoding Images from Arbitrary Camera Rigs by Implicitly Unprojecting to 3D</a></li>
         <li><a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf">BEVFormer: Learning Bird's-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers</a></li>
-        <li><a href="https://arxiv.org/abs/2205.13542">BEVFusion: A Simple and Robust LiDAR-Camera Fusion Framework</a></li>
+        <li><a href="https://arxiv.org/abs/2205.13542">BEVFusion: Multi-Task Multi-Sensor Fusion with Unified Bird's-Eye-View Representation</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_cvpr_2018/html/Zhou_VoxelNet_End-to-End_Learning_CVPR_2018_paper.html">VoxelNet: learned 3D voxel feature encoding</a></li>
+        <li><a href="https://arxiv.org/abs/1812.05784">PointPillars: fast pillar encoding for point-cloud detection</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_CVPR_2019/html/Choy_4D_Spatio-Temporal_ConvNets_Minkowski_Convolutional_Neural_Networks_CVPR_2019_paper.html">Minkowski sparse convolutions for 3D/4D data</a></li>
+        <li><a href="https://github.com/PRBonn/rangenet_lib">RangeNet++: range-image LiDAR segmentation</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/ICCV2023/html/Wei_SurroundOcc_Multi-camera_3D_Occupancy_Prediction_for_Autonomous_Driving_ICCV_2023_paper.html">SurroundOcc: multi-camera 3D occupancy</a></li>
         <li><a href="https://www.nuscenes.org/nuscenes">nuScenes official dataset and devkit</a></li>
         <li><a href="sources.html">Complete university course source map and attribution</a></li>
       </ul>

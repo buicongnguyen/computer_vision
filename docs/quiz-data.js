@@ -519,5 +519,63 @@ window.CV_QUIZ_QUESTIONS = [
     choices: ["The input distribution changed under the chosen detector, but quality impact still needs evidence", "The model is certainly wrong", "Retraining will certainly fix it", "The service is unavailable"],
     answer: 0,
     explanation: "Drift is an investigation signal, not proof of degraded task quality. Correlate with delayed labels, proxies, slices, model disagreement, and product or safety outcomes before choosing a response."
+  },
+
+  // Autonomous-driving systems
+  {
+    id: "auto-01", topic: "Autonomous Driving", difficulty: "Foundation",
+    question: "A calibrated inverse-perspective-mapping view places lane markings correctly on a flat road, but nearby cars stretch across the BEV image. What is the primary reason?",
+    choices: ["The camera must have zero focal length", "One homography is exact only for the chosen plane, so elevated vehicle pixels are intersected with the road incorrectly", "Bilinear interpolation removes object height", "A BEV grid cannot contain semantic classes"],
+    answer: 1,
+    explanation: "Ground-plane IPM applies a plane-induced homography. Road markings can map correctly while pixels from cars, curbs, slopes, and other off-plane structure are misplaced. Depth-aware lifting or measured 3D geometry is required when height matters."
+  },
+  {
+    id: "auto-02", topic: "Autonomous Driving", difficulty: "Intermediate",
+    question: "A rectified stereo matcher has approximately constant disparity uncertainty. Why does its metric depth become much less precise for distant objects?",
+    choices: ["The baseline becomes physically shorter with distance", "Rectification changes the camera clock", "Because Z = fB/d and |dZ/dd| = fB/d², small far-range disparities amplify the same disparity error", "Distant objects always have zero image contrast"],
+    answer: 2,
+    explanation: "Stereo depth is inversely proportional to disparity. As distance grows and disparity shrinks, a fixed subpixel matching error produces rapidly increasing metric depth uncertainty; results should therefore be evaluated by range and coverage."
+  },
+  {
+    id: "auto-03", topic: "Autonomous Driving", difficulty: "Advanced",
+    question: "A spinning LiDAR scans a wall while the vehicle turns, and transforming the whole sweep with one ego pose makes the wall appear curved. What is the correct first remedy?",
+    choices: ["Increase the detector confidence threshold", "Replace every intensity with its mean", "Apply image undistortion to the point coordinates", "Use each return's acquisition time to interpolate ego pose and transform all points to a declared reference time"],
+    answer: 3,
+    explanation: "A LiDAR sweep is not captured instantaneously. Deskewing uses per-return time and ego motion to express the points at a common reference time. The pose source, interpolation, transform direction, and extrapolation policy are part of the contract."
+  },
+  {
+    id: "auto-04", topic: "Autonomous Driving", difficulty: "Advanced",
+    question: "A team calls scan-to-map ICP at every frame 'camera–LiDAR calibration.' Which distinction is missing?",
+    choices: ["ICP estimates lens distortion only", "Scan-to-map registration estimates a changing sensor/map pose, while camera–LiDAR extrinsic calibration estimates a persistent cross-sensor transform and needs independently observable spatial and temporal constraints", "Calibration and registration are always identical because both use matrices", "Extrinsic calibration can be inferred from one motionless planar view without ambiguity"],
+    answer: 1,
+    explanation: "Registration aligns particular observations or estimates ego pose over time; extrinsic calibration estimates the fixed relationship between sensor frames. Safe online refinement also needs excitation, static constraints, separation from clock error, bounded updates, validation, and a freeze or rollback path when parameters are not observable."
+  },
+  {
+    id: "auto-05", topic: "Autonomous Driving", difficulty: "Intermediate",
+    question: "When are vertical pillars often a more efficient point-cloud representation than a fine 3D voxel grid?",
+    choices: ["When exact vertical surface reconstruction is the only objective", "When the point cloud has no coordinate frame", "When road-scene reasoning is mainly ground-plane oriented and reduced vertical resolution is acceptable for substantially lower sparse indexing and compute cost", "When every pillar is guaranteed to contain one point"],
+    answer: 2,
+    explanation: "Pillars collapse or encode the vertical column and suit many outdoor BEV tasks. Full 3D voxels retain height structure but grow in memory and compute; raw points and range images provide other trade-offs. The downstream query should choose the representation."
+  },
+  {
+    id: "auto-06", topic: "Autonomous Driving", difficulty: "Advanced",
+    question: "A place-recognition model proposes a SLAM loop closure between two visually similar intersections. What should happen before the constraint can influence the global map?",
+    choices: ["Accept it whenever descriptor similarity exceeds zero", "Delete all odometry constraints", "Rescale the map until the two poses coincide", "Geometrically verify consistent correspondences and pose, then add an uncertainty-aware robust constraint whose effect can be rejected or limited"],
+    answer: 3,
+    explanation: "Appearance retrieval proposes candidates; it does not prove geometric consistency. False loop closures can corrupt an entire map, so use geometric verification, inlier and degeneracy checks, realistic covariance, and a robust or switchable backend."
+  },
+  {
+    id: "auto-07", topic: "Autonomous Driving", difficulty: "Intermediate",
+    question: "A model consumes camera sequences, route text, and vehicle state and directly predicts a trajectory. Which description is justified by that interface alone?",
+    choices: ["It is multimodal by input type and end-to-end across the declared sensor-to-trajectory boundary, but those labels do not prove grounded language use, causal reasoning, calibration, or safety", "It is modular because it has only one loss", "It is a VLA model only if it reconstructs LiDAR waveforms", "It eliminates the need to define timestamps and coordinate frames"],
+    answer: 0,
+    explanation: "Multimodal describes the evidence types; end-to-end describes the jointly learned boundary. Neither term establishes what internal state is preserved or whether language affects action for the right reason. Evaluate modality ablations, grounding, uncertainty, failure recovery, and closed-loop behavior."
+  },
+  {
+    id: "auto-08", topic: "Autonomous Driving", difficulty: "Advanced",
+    question: "A learned planner lowers open-loop trajectory error on logged expert drives. Why is that insufficient evidence that it is safer in closed loop?",
+    choices: ["Open-loop metrics already include every possible intervention", "The planner's actions change future observations, so compounding error and recovery must be tested in interactive, replayable scenarios with collision, progress, rule, comfort, and fallback outcomes", "Closed-loop testing measures only GPU speed", "A lower trajectory error guarantees identical behavior under sensor faults"],
+    answer: 1,
+    explanation: "Logged open-loop evaluation holds the observation sequence fixed and cannot reveal feedback-induced distribution shift. Closed-loop evaluation tests how actions alter the next state, whether the system recovers, and whether small perception or planning errors compound into unsafe behavior."
   }
 ];

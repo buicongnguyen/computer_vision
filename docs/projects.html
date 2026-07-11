@@ -157,18 +157,19 @@
 
         <article class="content-card prose" id="autonomy-capstone">
           <div class="card-meta"><span class="tag tag-lime">System study 04</span><span class="tag">4–8 weeks</span></div>
-          <h3>Autonomy perception capstone</h3>
-          <p><strong>Question:</strong> can a multi-camera or multi-sensor system create a timely, uncertainty-aware spatial representation under realistic faults?</p>
+          <h3>Autonomous-driving systems capstone</h3>
+          <p><strong>Question:</strong> can a multi-camera or multi-sensor system turn uncertain measurements into a timely spatial state and a defensible motion trajectory under realistic faults?</p>
           <h4>Build</h4>
-          <p>Integrate calibration, temporal alignment, camera/LiDAR/radar evidence, BEV or occupancy, tracking, fault injection, deployment budgets, and a downstream interface.</p>
+          <p>Integrate calibration, temporal alignment, camera/LiDAR/radar evidence, localization, BEV or occupancy, tracking, motion prediction, a planning interface, fault injection, and deployment budgets. Compare at least one modular or optimization-based planning baseline with a learned alternative.</p>
           <h4>Required artifacts</h4>
           <ul>
-            <li>System architecture and coordinate/timing contract.</li>
+            <li>Sensor-to-control architecture and coordinate/timing contract.</li>
             <li>Baseline plus controlled fusion and temporal ablations.</li>
-            <li>Sensor-fault matrix and degraded-mode behavior.</li>
-            <li>Model/data cards, runbook, demo, and design-review recording.</li>
+            <li>Prediction/planning representation contract and collision checker.</li>
+            <li>Sensor-fault matrix, closed-loop scenarios, and degraded-mode behavior.</li>
           </ul>
-          <p><strong>Gate:</strong> defend accuracy, robustness, latency, memory, and safety trade-offs to perception, platform, and downstream reviewers.</p>
+          <p><strong>Gate:</strong> trace one failure from sensor time or geometry through perception, prediction, planning, and control; show which monitor detects it and which fallback limits harm.</p>
+          <p><a class="text-link" href="autonomous-driving.html">Use the complete autonomy learning flow →</a></p>
         </article>
       </div>
     </section>

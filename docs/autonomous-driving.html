@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A study-first autonomous-driving learning flow from synchronized camera, LiDAR, radar, GNSS and IMU measurements through calibration, localization, BEV and occupancy, prediction, planning, control and closed-loop evaluation.">
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/autonomous-driving.html">
+  <title>Autonomous-driving systems | CV Systems Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><span></span></span><span><strong>CV Systems Lab</strong><small>Computer vision study guide</small></span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle><span class="sr-only">Open navigation</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a><a href="perception.html" data-nav-link>Perception</a><a href="calibration.html" data-nav-link>Calibration</a><a href="bev.html" data-nav-link>BEV</a><a href="modern-cv.html" data-nav-link>Modern CV</a><a href="practice.html" data-nav-link>MCQ</a><a href="coding.html" data-nav-link>Coding</a><a href="projects.html" data-nav-link>Projects</a><a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions"><a class="github-link" href="https://github.com/buicongnguyen/computer_vision">GitHub</a><button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button></div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Autonomous-driving systems</span></nav>
+    <section class="page-hero">
+      <p class="eyebrow">Measurements → world state → safe motion → feedback</p>
+      <h1>Autonomous-driving systems learning flow</h1>
+      <p>Study autonomous driving as a dependency graph. Computer vision supplies calibrated spatial and temporal evidence; localization, prediction, planning, control, simulation, and safety engineering turn that evidence into a closed-loop system.</p>
+      <div><span class="tag">Sensor geometry</span><span class="tag">Localization &amp; SLAM</span><span class="tag">BEV &amp; occupancy</span><span class="tag">Prediction &amp; planning</span><span class="tag">End-to-end &amp; multimodal</span></div>
+    </section>
+
+    <aside class="callout">
+      <div><p class="eyebrow">Central rule</p><h2>Every learned block still has a physical contract</h2></div>
+      <p>Name frames, clocks, units, visibility, uncertainty, data age, output horizon, failure behavior, and the downstream consumer. A more capable model does not repair an undefined transform, stale observation, unobservable calibration update, or unsafe controller interface.</p>
+    </aside>
+
+    <section id="scope" aria-labelledby="scope-heading">
+      <div class="section-heading"><div><p class="eyebrow">Scope map</p><h2 id="scope-heading">What belongs to computer vision—and what must connect to it</h2></div><p>The boundaries overlap, but keeping them visible makes study order, debugging, and evaluation much clearer.</p></div>
+      <div class="evolution-table" role="table" aria-label="Autonomous driving subject boundaries">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Area</span><span role="columnheader">Central question</span><span role="columnheader">Typical methods</span><span role="columnheader">Why learn it here</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Vision &amp; perception</span><span role="cell">What is present and where?</span><span role="cell">Calibration, depth, flow, detection, segmentation, tracking, BEV, occupancy</span><span role="cell">This is the measurement-to-world-state core.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Localization &amp; SLAM</span><span role="cell">Where is the ego platform, and how did it move?</span><span role="cell">VO, VIO, LiDAR odometry, LIO, map matching, factor graphs, loop closure</span><span role="cell">Temporal fusion and map reasoning require ego pose.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Prediction</span><span role="cell">What futures are plausible?</span><span role="cell">Multi-hypothesis trajectories, occupancy flow, interaction and intent models</span><span role="cell">Perception estimates the present; a planner acts on futures.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Planning &amp; control</span><span role="cell">What should the vehicle do, and how will it execute?</span><span role="cell">Behavior state machines, search, optimization, MPC, learned policies, feedback control</span><span role="cell">Their input needs determine useful perception outputs and uncertainty.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">System assurance</span><span role="cell">When is behavior trustworthy inside the declared ODD?</span><span role="cell">Simulation, replay, fault injection, monitors, fallbacks, safety cases</span><span role="cell">Component accuracy alone cannot establish closed-loop behavior.</span></div>
+      </div>
+    </section>
+
+    <section id="master-flow" aria-labelledby="master-flow-heading">
+      <div class="section-heading"><div><p class="eyebrow">Fourteen-stage dependency map</p><h2 id="master-flow-heading">Follow evidence from photons and returns to actuation</h2></div><p>Arrows show prerequisites, not one mandatory software decomposition. Shared or end-to-end models may learn across several stages, but the contracts remain testable.</p></div>
+      <div class="flow-strip wide" role="list" aria-label="Autonomous driving master flow stages one through seven">
+        <div role="listitem"><span>1</span><strong>Specify</strong><small>ODD, route, outputs</small></div>
+        <div role="listitem"><span>2</span><strong>Sense</strong><small>camera/LiDAR/radar</small></div>
+        <div role="listitem"><span>3</span><strong>Time</strong><small>clocks, trigger, sync</small></div>
+        <div role="listitem"><span>4</span><strong>Calibrate</strong><small>intrinsic/extrinsic</small></div>
+        <div role="listitem"><span>5</span><strong>Decode</strong><small>pixels, returns, IMU</small></div>
+        <div role="listitem"><span>6</span><strong>Localize</strong><small>ego pose + covariance</small></div>
+        <div role="listitem"><span>7</span><strong>Align</strong><small>deskew + transform</small></div>
+      </div>
+      <div class="flow-strip wide" role="list" aria-label="Autonomous driving master flow stages eight through fourteen">
+        <div role="listitem"><span>8</span><strong>Represent</strong><small>points/BEV/occupancy</small></div>
+        <div role="listitem"><span>9</span><strong>Perceive</strong><small>objects/maps/tracks</small></div>
+        <div role="listitem"><span>10</span><strong>Predict</strong><small>future modes + flow</small></div>
+        <div role="listitem"><span>11</span><strong>Behave</strong><small>yield/merge/stop</small></div>
+        <div role="listitem"><span>12</span><strong>Plan</strong><small>feasible trajectory</small></div>
+        <div role="listitem"><span>13</span><strong>Control</strong><small>steer/brake/drive</small></div>
+        <div role="listitem"><span>14</span><strong>Learn</strong><small>monitor/replay/improve</small></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose"><h3>Fast support stream</h3><p>IMU, wheel odometry, GNSS, vehicle state, and map priors support localization and motion compensation. Their timestamps and reference frames are as important as their values.</p></article>
+        <article class="content-card prose"><h3>Feedback closes the graph</h3><p>Control changes vehicle pose, which changes the next observation. That feedback creates compounding error, recovery, and interaction effects that logged open-loop metrics cannot reproduce.</p></article>
+      </div>
+    </section>
+
+    <section id="sensor-frontends" aria-labelledby="sensor-frontends-heading">
+      <div class="section-heading"><div><p class="eyebrow">Sensor front ends</p><h2 id="sensor-frontends-heading">Turn raw signals into timestamped evidence</h2></div><p>Do not begin fusion with anonymous tensors. Preserve sensor physics and metadata until their downstream value has been measured.</p></div>
+      <div class="evolution-table" role="table" aria-label="Autonomous driving sensor comparison">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Sensor</span><span role="columnheader">Strong evidence</span><span role="columnheader">Essential front end</span><span role="columnheader">Dominant weakness / complement</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Monocular camera</span><span role="cell">Texture, color, semantics, angular detail</span><span role="cell">Demosaic/ISP contract, distortion, rolling shutter, exposure and timestamp</span><span role="cell">Depth ambiguity and lighting; add temporal geometry, stereo, or range sensing.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Stereo / multi-view</span><span role="cell">Metric depth from correspondence and baseline</span><span role="cell">Synchronized capture, rectification, disparity confidence and occlusion masks</span><span role="cell">Far-range error and weak/repeated texture; fuse motion or active range.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">LiDAR</span><span role="cell">Metric range, 3D surfaces, reflectance-like return attributes</span><span role="cell">Packet decode, beam calibration, return policy, per-point time, XYZ, deskew, filters</span><span role="cell">Sparse/distant returns, weather and motion distortion; fuse camera semantics and IMU.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Radar</span><span role="cell">Range, radial velocity and weather tolerance</span><span role="cell">Detection/cube processing, clutter and ambiguity handling, calibration and time</span><span role="cell">Lower angular resolution and multipath; fuse camera/LiDAR geometry.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">GNSS / IMU / wheels</span><span role="cell">Global reference and high-rate ego dynamics</span><span role="cell">Bias/noise models, time base, lever arms, preintegration and outage flags</span><span role="cell">Drift, multipath and slip; combine through a state estimator.</span></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>LiDAR signal → point-cloud flow</h3>
+          <p><code>emit → detect return → range/signal/return ID → packet time → calibrated beam angles → XYZ → deskew → filter → reference frame</code></p>
+          <div class="equation-block"><span>r = c Δt / 2</span><span>x = r cos φ cos θ &nbsp; · &nbsp; y = r cos φ sin θ &nbsp; · &nbsp; z = r sin φ</span></div>
+          <p>Keep ring/beam ID, return identity, intensity or signal field, validity, and acquisition time. A point without frame, units, and time is incomplete evidence.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Stereo depth and uncertainty</h3>
+          <div class="equation-block"><span>d = u<sub>L</sub> − u<sub>R</sub> &nbsp; · &nbsp; Z = fB / d</span><span>σ<sub>Z</sub> ≈ Z² σ<sub>d</sub> / (fB)</span></div>
+          <p>Far objects have small disparity, so nearly constant disparity error produces rapidly increasing metric-depth error. Report depth by range, texture, occlusion, and valid coverage—not one average.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="geometry-registration" aria-labelledby="geometry-registration-heading">
+      <div class="section-heading"><div><p class="eyebrow">Geometry and alignment</p><h2 id="geometry-registration-heading">Separate projection, calibration, registration, and motion compensation</h2></div><p>All four use transforms, but they estimate or apply different quantities.</p></div>
+      <div class="content-card prose">
+        <div class="equation-block">
+          <span><sup>A</sup>p = <sup>A</sup>T<sub>B</sub> <sup>B</sup>p</span>
+          <span>λ [u, v, 1]<sup>T</sup> = K [R | t] [X, Y, Z, 1]<sup>T</sup></span>
+          <span>X<sub>C</sub> = z K<sup>−1</sup> p̃</span>
+        </div>
+        <p>For camera–LiDAR projection use <code>λp̃ = K · T(camera←LiDAR) · p(LiDAR)</code>, then require positive camera depth, correct distortion state, image bounds, aligned acquisition time, and an occlusion-aware depth buffer.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Geometry operation choices">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Operation</span><span role="columnheader">Quantity</span><span role="columnheader">Choose when</span><span role="columnheader">Do not confuse it with</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Calibration</span><span role="cell">Persistent intrinsics, extrinsics and time relationship</span><span role="cell">Defining how sensor frames and measurements relate</span><span role="cell">A changing scan-to-map pose.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Deskew</span><span role="cell">Per-return motion to one reference time</span><span role="cell">A scan is acquired while the platform moves</span><span role="cell">Rigidly transforming a complete scan using one pose.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Registration</span><span role="cell">Relative pose between observations or observation and map</span><span role="cell">Estimating ego motion or local alignment</span><span role="cell">Cross-sensor extrinsic calibration.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Planar IPM</span><span role="cell">Plane-induced image ↔ ground homography</span><span role="cell">Road/lane features lie on one known plane</span><span role="cell">General 3D BEV; elevated objects are distorted.</span></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Deskew to a named time</h3>
+          <div class="equation-block"><span>p<sub>i@r</sub> = T<sub>world←sensor</sub>(t<sub>r</sub>)<sup>−1</sup> T<sub>world←sensor</sub>(t<sub>i</sub>) p<sub>i</sub></span></div>
+          <p>Interpolate a pose trajectory and declare transform direction, reference time, and extrapolation policy. Curved walls after deskew can indicate clock offset, pose error, or extrinsic error.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Registration choices</h3>
+          <ul>
+            <li><strong>Point-to-plane ICP / GICP:</strong> good initialization, overlap, normals, and local refinement.</li>
+            <li><strong>NDT:</strong> distribution-based local alignment with a smoother objective, but still geometry- and initialization-dependent.</li>
+            <li><strong>Global retrieval/features + local refinement:</strong> large initial error or relocalization.</li>
+            <li><strong>Continuous-time registration:</strong> motion during a scan cannot be neglected.</li>
+          </ul>
+          <p>RGB pixels are not metric 3D points; ICP needs stereo/RGB-D/learned metric depth or cross-modal features and a defensible objective.</p>
+        </article>
+      </div>
+      <p class="section-note">Build the transform foundation in <a href="calibration.html">calibration</a>, then compare planar and depth-aware conversion in <a href="bev.html">BEV</a>.</p>
+    </section>
+
+    <section id="spatial-representations" aria-labelledby="spatial-representations-heading">
+      <div class="section-heading"><div><p class="eyebrow">Representation decision</p><h2 id="spatial-representations-heading">Choose the world state from the downstream query</h2></div><p>No representation is universally best. Preserve the geometry, uncertainty, topology, and latency that the consumer needs.</p></div>
+      <div class="content-card prose">
+        <div class="equation-block"><span>i = floor((x − x<sub>min</sub>) / v<sub>x</sub>) &nbsp; · &nbsp; j = floor((y − y<sub>min</sub>) / v<sub>y</sub>) &nbsp; · &nbsp; k = floor((z − z<sub>min</sub>) / v<sub>z</sub>)</span></div>
+        <p>Halving all three voxel dimensions can create eight times as many dense cells. Sparse storage removes empty computation, not coordinate construction, hashing, feature-density, or accelerator costs.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Spatial representation choice table">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Representation</span><span role="columnheader">Best fit</span><span role="columnheader">Preserves</span><span role="columnheader">Switch when</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Raw points</span><span role="cell">Local geometry and point-wise tasks</span><span role="cell">Original metric coordinates and return attributes</span><span role="cell">Irregular neighborhoods dominate compute.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Range image</span><span role="cell">Fast native LiDAR segmentation</span><span role="cell">Beam/ring adjacency and scan topology</span><span role="cell">A shared metric frame or cross-sensor fusion matters more than native topology.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Pillars</span><span role="cell">Efficient road-scene 3D detection</span><span role="cell">Ground layout with learned column statistics</span><span role="cell">Bridges, stacked surfaces, or vertical detail matter.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Sparse voxels</span><span role="cell">Large 3D scenes with height structure</span><span role="cell">Metric 3D locality in occupied cells</span><span role="cell">Latency dominates and vertical compression is acceptable.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2D BEV features</span><span role="cell">Shared detection, maps, fusion, tracking and planning</span><span role="cell">Horizontal metric relationships and temporal alignment</span><span role="cell">Vertical or unknown-space structure is safety-relevant.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">3D occupancy + flow</span><span role="cell">Open-set geometry, free/occupied/unknown space and future motion</span><span role="cell">Volumetric state beyond a fixed object vocabulary</span><span role="cell">Memory/label ambiguity outweighs measured downstream benefit.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Objects + vector map</span><span role="cell">Compact semantic interaction and planning</span><span role="cell">Identity, class, lanes and topology</span><span role="cell">Unusual or amorphous obstacles are being discarded.</span></div>
+      </div>
+    </section>
+
+    <section id="localization-slam" aria-labelledby="localization-slam-heading">
+      <div class="section-heading"><div><p class="eyebrow">State estimation</p><h2 id="localization-slam-heading">Registration becomes odometry; global constraints make localization and SLAM</h2></div><p>Keep locally continuous control coordinates separate from globally corrected map coordinates.</p></div>
+      <div class="flow-strip wide" role="list" aria-label="Localization and SLAM flow">
+        <div role="listitem"><span>1</span><strong>Front end</strong><small>features/scan match</small></div>
+        <div role="listitem"><span>2</span><strong>Odometry</strong><small>local relative motion</small></div>
+        <div role="listitem"><span>3</span><strong>Fuse</strong><small>IMU/wheels/GNSS</small></div>
+        <div role="listitem"><span>4</span><strong>Retrieve</strong><small>map/place candidate</small></div>
+        <div role="listitem"><span>5</span><strong>Verify</strong><small>geometric inliers</small></div>
+        <div role="listitem"><span>6</span><strong>Optimize</strong><small>factor/pose graph</small></div>
+        <div role="listitem"><span>7</span><strong>Publish</strong><small>pose + covariance</small></div>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Localization method choices">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Estimator</span><span role="columnheader">Prefer when</span><span role="columnheader">Primary weakness</span><span role="columnheader">Required diagnostic</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Monocular VO</span><span role="cell">Minimal hardware and textured scenes</span><span role="cell">Scale ambiguity, light and texture</span><span role="cell">Parallax/cheirality and tracked-feature health.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Stereo VO</span><span role="cell">Metric visual motion at useful baseline</span><span role="cell">Depth weakens with range</span><span role="cell">Disparity coverage and range-sliced drift.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">VIO</span><span role="cell">High-rate state, gravity and metric scale</span><span role="cell">Bias, initialization, camera–IMU timing/extrinsics</span><span role="cell">Innovation and covariance consistency.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">LiDAR odometry / LIO</span><span role="cell">Lighting-independent metric geometry and fast motion</span><span role="cell">Degenerate/repeated geometry and tight time calibration</span><span role="cell">Conditioning, overlap, deskew and IMU-bias health.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">GNSS/INS/map localization</span><span role="cell">Road-scale global reference</span><span role="cell">Multipath, outages and map change</span><span role="cell">Gating, frame conversion and relocalization status.</span></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose"><h3>Frame tree</h3><p><code>earth → map → odom → ego/base → sensors</code></p><p><code>odom</code> stays locally continuous but may drift; <code>map</code> is globally meaningful but can jump after correction. A controller should not receive an unexplained global discontinuity.</p></article>
+        <article class="content-card prose"><h3>Loop-closure rule</h3><p>Appearance retrieval proposes a revisit; it does not prove it. Verify correspondences and pose, check degeneracy/inlier support, attach realistic uncertainty, and use a robust or rejectable graph constraint. A false closure can deform the complete map.</p></article>
+      </div>
+    </section>
+
+    <section id="prediction-planning" aria-labelledby="prediction-planning-heading">
+      <div class="section-heading"><div><p class="eyebrow">From state to action</p><h2 id="prediction-planning-heading">Prediction models possibilities; planning chooses one safe ego future</h2></div><p>“Planning” is a hierarchy, not a single steering output.</p></div>
+      <div class="flow-strip wide" role="list" aria-label="Prediction planning and control hierarchy">
+        <div role="listitem"><span>1</span><strong>Route</strong><small>destination/corridor</small></div>
+        <div role="listitem"><span>2</span><strong>Predict</strong><small>agent/scene futures</small></div>
+        <div role="listitem"><span>3</span><strong>Behavior</strong><small>yield/merge/pass</small></div>
+        <div role="listitem"><span>4</span><strong>Propose</strong><small>paths/trajectories</small></div>
+        <div role="listitem"><span>5</span><strong>Score</strong><small>risk/rules/comfort</small></div>
+        <div role="listitem"><span>6</span><strong>Control</strong><small>track trajectory</small></div>
+        <div role="listitem"><span>7</span><strong>Fallback</strong><small>limit/stop/recover</small></div>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Planning method choice table">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Planning form</span><span role="columnheader">Useful when</span><span role="columnheader">Strength</span><span role="columnheader">Critical test</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Rules + search / optimization</span><span role="cell">Constraints and map structure are explicit</span><span role="cell">Inspectability and hard feasibility constraints</span><span role="cell">Combinatorial interactions and hand-designed cost brittleness.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Learned proposals + classical scorer/MPC</span><span role="cell">Data should improve proposals while constraints stay explicit</span><span role="cell">Practical hybrid and controllable fallback</span><span role="cell">Proposal coverage under rare interactions.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Multi-query / multimode trajectories</span><span role="cell">Several ego futures are plausible</span><span role="cell">Represents alternatives before scoring</span><span role="cell">Mode collapse, probability calibration and selection stability.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Occupancy/cost-field planning</span><span role="cell">Open-set obstacles and space-time risk matter</span><span role="cell">Connects scene state directly to collision cost</span><span role="cell">Unknown-space policy and occupancy calibration.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Autoregressive / diffusion policy</span><span role="cell">Complex multimodal behavior needs a learned distribution</span><span role="cell">Flexible trajectory generation</span><span role="cell">Latency, constraint violations, stability and closed-loop recovery.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Direct actuator policy</span><span role="cell">A tightly defined research boundary justifies it</span><span role="cell">Shortest learned interface</span><span role="cell">Least inspectable; test dynamics shift, delay and independent safety limits.</span></div>
+      </div>
+      <div class="diagnostic-grid">
+        <article class="diagnostic-card"><h3>Prediction is multimodal</h3><p>A pedestrian can wait or cross; a vehicle can yield or merge. Evaluate coverage, probability calibration, miss/collision probability, map compliance, and rare modes—not only minimum displacement.</p></article>
+        <article class="diagnostic-card"><h3>Trajectory ≠ path</h3><p>A trajectory adds time, speed and acceleration. Collision checks must interpolate densely enough to prevent tunneling and include footprint, actuator delay, dynamics, comfort and unknown space.</p></article>
+        <article class="diagnostic-card"><h3>Human imitation ≠ safety</h3><p>Several actions can be safe. Low distance to one logged human trajectory can still collide, violate a rule, fail to recover, or become unstable after the policy changes future observations.</p></article>
+      </div>
+    </section>
+
+    <section id="architecture-choices" aria-labelledby="architecture-choices-heading">
+      <div class="section-heading"><div><p class="eyebrow">Modern architecture choices</p><h2 id="architecture-choices-heading">“End-to-end” and “multimodal” describe boundaries—not proof of capability</h2></div><p>Current systems increasingly share representations and training signals, while retaining explicit state, temporal memory, safety constraints, evaluators, or fallback paths.</p></div>
+      <div class="evolution-table" role="table" aria-label="Autonomous driving architecture comparison">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Architecture</span><span role="columnheader">Learned boundary</span><span role="columnheader">Why choose it</span><span role="columnheader">Main evidence required</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Modular</span><span role="cell">Separate perception, prediction, planning and control</span><span role="cell">Debuggable interfaces, targeted labels, independent fallbacks</span><span role="cell">Information loss, uncertainty and latency across boundaries.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Shared BEV multi-task</span><span role="cell">Common spatial encoder with several heads</span><span role="cell">Efficient sensor fusion and aligned geometry</span><span role="cell">Negative transfer, head calibration and sensor/head ablations.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Planning-oriented joint model</span><span role="cell">Planner loss trains through explicit perception/prediction heads</span><span role="cell">Optimizes representations for downstream behavior</span><span role="cell">Probe intermediate geometry, causality and closed-loop benefit.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Sensor → trajectory</span><span role="cell">Sequences and route/state directly produce waypoints or trajectory</span><span role="cell">Reduces manually designed interfaces</span><span role="cell">Shortcuts, data coverage, intervention and recovery tests.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Sensor → actuators</span><span role="cell">Images/signals directly produce steering/brake/throttle</span><span role="cell">Minimal declared pipeline</span><span role="cell">Dynamics/latency shift, interpretability and independent constraints.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Vision-language-action</span><span role="cell">Video/images + language/navigation/state → reasoning text and/or action</span><span role="cell">Rich instructions, semantics and reusable pretraining</span><span role="cell">Grounding, hallucination, metric geometry, latency and explanation faithfulness.</span></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Three meanings of multimodal</h3>
+          <ul>
+            <li><strong>Multi-sensor:</strong> camera, LiDAR, radar, IMU, GNSS or audio.</li>
+            <li><strong>Foundation multimodal:</strong> vision/video, language, route/map, ego state and action.</li>
+            <li><strong>Multimodal futures:</strong> several plausible predicted trajectories or scene futures.</li>
+          </ul>
+          <p>State which meaning applies. More modalities help only if time, calibration, availability, causal use, and degraded behavior are tested.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>What the recent research direction means</h3>
+          <p>Planning-oriented models such as UniAD and VAD connect spatial scene state to motion. Waymo’s EMMA and S4-Driver explore large multimodal models for reasoning and action. NVIDIA’s Alpamayo family explores reasoning vision-language-action models, while Cosmos world models support data generation and simulation.</p>
+          <p>The defensible conclusion is a trend toward shared learned world representations, temporal context, language/reasoning interfaces, world models, and closed-loop evaluation—not that one opaque model has made geometry, sensor diversity, safety monitors, or system validation unnecessary.</p>
+        </article>
+      </div>
+      <aside class="callout">
+        <div><p class="eyebrow">Interpret claims carefully</p><h2>Reasoning text and photorealistic video are outputs, not safety evidence</h2></div>
+        <p>An explanation can be plausible but causally unfaithful; a generated scene can look realistic but violate metric geometry, dynamics, sensor physics, or rare-event frequencies. Validate grounding, counterfactual response, geometric consistency, controllability, coverage, and downstream closed-loop behavior.</p>
+      </aside>
+    </section>
+
+    <section id="evaluation" aria-labelledby="evaluation-heading">
+      <div class="section-heading"><div><p class="eyebrow">Evidence ladder</p><h2 id="evaluation-heading">Evaluate from geometric oracles to faulted closed loop</h2></div><p>Advance only when each level’s assumptions and failure outputs are explicit.</p></div>
+      <div class="phase-grid">
+        <article class="phase-card"><span>Level 1</span><h3>Unit geometry</h3><p>Transform round trips, projection/back-projection, stereo oracle, voxel boundaries, deskewed synthetic wall.</p><strong>Gate: known cases pass with declared tolerance.</strong></article>
+        <article class="phase-card"><span>Level 2</span><h3>Components</h3><p>Perception, tracking, localization and prediction metrics with range, weather, motion, class and uncertainty slices.</p><strong>Gate: failures are decomposed, not hidden by averages.</strong></article>
+        <article class="phase-card"><span>Level 3</span><h3>Open-loop planning</h3><p>Trajectory error, collision proxy, rule/comfort cost, multimode coverage and calibration on fixed logs.</p><strong>Gate: limitations are stated; no safety conclusion yet.</strong></article>
+        <article class="phase-card"><span>Level 4</span><h3>Replay / counterfactual</h3><p>Deterministic scenarios, reactive actors where supported, policy changes and incident replay.</p><strong>Gate: actions influence future state.</strong></article>
+        <article class="phase-card"><span>Level 5</span><h3>Closed-loop faults</h3><p>Sensor loss, clock/extrinsic drift, ego-state error, compute delay, map change and recovery.</p><strong>Gate: fallback and termination are measurable.</strong></article>
+        <article class="phase-card"><span>Level 6</span><h3>Operational evidence</h3><p>Scenario coverage, shadow or controlled-vehicle testing, monitors, rollout/rollback and ODD safety argument.</p><strong>Gate: evidence matches the deployment claim.</strong></article>
+      </div>
+      <div class="metric-grid">
+        <article><strong>Geometry/localization</strong><span>reprojection, alignment, RPE/ATE, drift, covariance consistency, relocalization and false-loop rate</span></article>
+        <article><strong>Perception/world state</strong><span>3D detection, tracking, maps, free/occupied/unknown, occupancy flow, calibration and missing-sensor slices</span></article>
+        <article><strong>Prediction/planning</strong><span>mode coverage, probability calibration, collision, progress, rules, comfort, intervention and recovery</span></article>
+        <article><strong>System</strong><span>sensor-to-actuation p50/p95/p99, data age, drops, memory, power, fault-detection time and degraded-mode success</span></article>
+      </div>
+    </section>
+
+    <section id="study-sequence" aria-labelledby="study-sequence-heading">
+      <div class="section-heading"><div><p class="eyebrow">Recommended order</p><h2 id="study-sequence-heading">Build one dependency at a time, then close the loop</h2></div><p>Do not start with a giant end-to-end model. First create oracles and interfaces that let later learned systems be tested.</p></div>
+      <div class="evolution-table" role="table" aria-label="Autonomous driving study sequence">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Stage</span><span role="columnheader">Study</span><span role="columnheader">Build</span><span role="columnheader">Mastery gate</span></div>
+        <div class="evolution-row" role="row"><span role="cell">1 · Frames and cameras</span><span role="cell">SE(3), projection, distortion, homography, perspective and stereo</span><span role="cell">Transform tests, projection oracle and planar IPM</span><span role="cell">Every transform direction and unit is testable.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2 · Range sensing</span><span role="cell">LiDAR signals, beam geometry, radar velocity and sensor timing</span><span role="cell">Metadata-rich point cloud and deskewed scan</span><span role="cell">Injected clock/extrinsic faults are distinguishable.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">3 · Registration</span><span role="cell">ICP/GICP, NDT, robust estimation and degeneracy</span><span role="cell">Registration convergence/failure report</span><span role="cell">The system can refuse an unobservable pose.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">4 · Localization/SLAM</span><span role="cell">VO/VIO/LIO, factor graphs, maps and verified loop closure</span><span role="cell">Trajectory estimator with covariance and frame tree</span><span role="cell">Local drift and global corrections are measured separately.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">5 · Represent/perceive</span><span role="cell">Points, voxels, pillars, BEV, objects, maps, occupancy and tracking</span><span role="cell">At least two representation baselines</span><span role="cell">Choice is supported by quality/latency/failure evidence.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">6 · Predict/plan</span><span role="cell">Multimodal futures, behavior, motion optimization and control</span><span role="cell">Collision-aware planner on timestamped world state</span><span role="cell">Unknown, stale and uncertain inputs have policies.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">7 · Joint learning</span><span role="cell">Shared BEV, planning-oriented, sensor-to-trajectory and VLA models</span><span role="cell">Modular baseline versus one joint architecture</span><span role="cell">Ablations show which evidence causes improvement.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">8 · Closed loop</span><span role="cell">Simulation validity, faults, monitoring, fallback and data flywheel</span><span role="cell">Replayable scenario suite and incident report</span><span role="cell">Recovery and degradation are measured, not described.</span></div>
+      </div>
+    </section>
+
+    <section id="practice" class="next-actions" aria-labelledby="practice-heading">
+      <div><p class="eyebrow">Practice and implementation</p><h2 id="practice-heading">Turn every arrow into a testable artifact</h2></div>
+      <div class="action-grid">
+        <a class="action-card" href="practice.html"><span>Knowledge check</span><strong>Autonomous-driving MCQs</strong><small>Eight scenario questions on IPM, stereo, deskew, calibration, SLAM, representations, multimodal models and closed-loop evaluation.</small></a>
+        <a class="action-card" href="coding.html"><span>Implementation</span><strong>Six autonomy coding labs</strong><small>LiDAR points, deskew, point-to-plane ICP, RGB–LiDAR projection, trajectory collision and closed-loop replay.</small></a>
+        <a class="action-card" href="projects.html"><span>System study</span><strong>Sensor-to-trajectory capstone</strong><small>Compare a modular and learned path under calibration, sensor, localization and compute faults.</small></a>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose"><h3>Minimum experiment matrix</h3><ul><li>camera-only versus camera + range sensor;</li><li>correct versus perturbed spatial/time calibration;</li><li>points/pillars or sparse voxels versus BEV/occupancy;</li><li>modular planner versus one learned alternative;</li><li>open-loop score versus replayable closed-loop outcome.</li></ul></article>
+        <article class="content-card prose"><h3>Minimum evidence package</h3><ul><li>frame/time/data contracts and dependency diagram;</li><li>synthetic geometry oracles and real-data visual checks;</li><li>scenario-sliced metrics with latency/memory;</li><li>fault detection, degraded behavior and recovery;</li><li>one conclusion falsified or revised by the experiments.</li></ul></article>
+      </div>
+    </section>
+
+    <section id="sources" class="content-card prose" aria-labelledby="sources-heading">
+      <p class="eyebrow">Courses and primary references</p>
+      <h2 id="sources-heading">Sources at the end of this module</h2>
+      <p>This learning flow is an original synthesis. The sources below provide geometry, robotics, system architecture, planning-oriented learning, multimodal models, world models, and evaluation foundations.</p>
+      <ul class="source-list">
+        <li><a href="https://web.stanford.edu/class/cs231a/">Stanford CS231A: Computer Vision, From 3D Reconstruction to Recognition</a></li>
+        <li><a href="https://bulletin.stanford.edu/courses/2185453">Stanford CS237A: Principles of Robot Autonomy I</a></li>
+        <li><a href="https://ocw.mit.edu/courses/16-485-visual-navigation-for-autonomous-vehicles-vnav-fall-2020/pages/syllabus/">MIT 16.485: Visual Navigation for Autonomous Vehicles</a></li>
+        <li><a href="https://coursecatalog.web.cmu.edu/schools-colleges/schoolofcomputerscience/robotics/">CMU Robotics course catalog, including 16-833 Robot Localization and Mapping</a></li>
+        <li><a href="https://autowarefoundation.github.io/autoware-documentation/main/design/">Autoware system design documentation</a></li>
+        <li><a href="https://arxiv.org/abs/2203.17270">BEVFormer: spatiotemporal transformers for multi-camera BEV</a></li>
+        <li><a href="https://arxiv.org/abs/2205.13542">BEVFusion: unified camera–LiDAR BEV fusion</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2023/html/Hu_Planning-Oriented_Autonomous_Driving_CVPR_2023_paper.html">UniAD: planning-oriented autonomous driving</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/ICCV2023/html/Jiang_VAD_Vectorized_Scene_Representation_for_Efficient_Autonomous_Driving_ICCV_2023_paper.html">VAD: vectorized scene representation for driving</a></li>
+        <li><a href="https://waymo.com/blog/2024/10/introducing-emma/">Waymo EMMA: end-to-end multimodal model for autonomous driving</a></li>
+        <li><a href="https://waymo.com/research/s4-driver-scalable-self-supervised-driving-multimodal-large-language-model/">Waymo S4-Driver: self-supervised multimodal driving model</a></li>
+        <li><a href="https://developer.nvidia.com/blog/building-autonomous-vehicles-that-reason-with-nvidia-alpamayo/">NVIDIA Alpamayo: reasoning vision-language-action development</a></li>
+        <li><a href="https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3">NVIDIA Cosmos 3: reasoning, world and action models</a></li>
+        <li><a href="https://arxiv.org/abs/2106.11810">nuPlan: a closed-loop planning benchmark</a></li>
+        <li><a href="https://github.com/autonomousvision/navsim">NAVSIM: non-reactive autonomous-driving simulation and evaluation</a></li>
+        <li><a href="sources.html">Complete course map, research references and attribution</a></li>
+      </ul>
+    </section>
+
+    <label class="milestone-toggle"><input type="checkbox" data-milestone="autonomy"><span>Mark the autonomous-driving systems flow complete on this device</span></label>
+    <nav class="page-pagination" aria-label="Course pages"><a href="current-topics.html"><span>Previous</span><strong>Current 3D topics</strong></a><a href="sources.html"><span>Next</span><strong>Sources and attribution</strong></a></nav>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div class="footer-brand"><strong>CV Systems Lab</strong><p>Autonomy is a closed-loop dependency graph: measurements, state, decisions, action, and evidence.</p></div><nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="bev.html">BEV</a><a href="sources.html">Sources</a></nav></div></footer>
+  <script src="site.js"></script>
+</body>
+</html>

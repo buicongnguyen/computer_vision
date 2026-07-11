@@ -22,7 +22,7 @@ skills self-assessment, or private information.
   Ultralytics releases, and independent research branches.
 - A current-topics lesson on LingBot-Map, monocular streaming reconstruction,
   3D detection, 3D Gaussian Splatting, and recent NVIDIA reconstruction work.
-- 72 explained multiple-choice questions and 30 progressive coding exercises.
+- 80 explained multiple-choice questions and 36 progressive coding exercises.
 - Six applied projects with baselines, comparison gates, failure tests, and
   reproducibility requirements.
 - Official university course references and primary research sources.

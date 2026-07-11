@@ -119,6 +119,40 @@ Georgia Tech CS 6476 informs the theory-to-practice discipline: image formation,
 
 Access note: public course content requires an Ed Lessons account. The Spring 2026 syllabus says course work products must not be shared on public sites. This repository therefore links to the course and publishes only independently created work.
 
+## Robotics and autonomous-systems extensions
+
+The computer-vision courses above do not by themselves define a complete
+self-driving stack. The following official courses extend the study path from
+3D perception into state estimation, SLAM, planning, control, and uncertainty.
+
+### Stanford CS237A: Principles of Robot Autonomy I
+
+CS237A connects perception and localization with SLAM, nonlinear control,
+motion planning, and decision-making under uncertainty. It is the main Stanford
+reference for the autonomy layer that follows CS231A geometry.
+
+- [Official Stanford Bulletin description](https://bulletin.stanford.edu/courses/2185453)
+
+### MIT 16.485: Visual Navigation for Autonomous Vehicles
+
+MIT VNAV provides a rigorous bridge through multi-view geometry, calibration,
+visual-inertial navigation, place recognition, optimization on manifolds, and
+SLAM, with real-time ROS/OpenCV/C++ labs.
+
+- [Official MIT OpenCourseWare syllabus](https://ocw.mit.edu/courses/16-485-visual-navigation-for-autonomous-vehicles-vnav-fall-2020/pages/syllabus/)
+
+### Carnegie Mellon 16-833: Robot Localization and Mapping
+
+CMU 16-833 focuses on probabilistic localization, mapping, real-time inference,
+and scalable SLAM systems. The catalog description is used only to establish
+topic scope; no course assignments or solutions are reproduced.
+
+- [Official CMU Robotics catalog](https://coursecatalog.web.cmu.edu/schools-colleges/schoolofcomputerscience/robotics/)
+
+These courses inform original lessons and labs in this repository. They do not
+imply university authorship, endorsement, equivalent credit, or permission to
+republish restricted course assets.
+
 ## Reuse and attribution policy
 
 - Do not copy university slides, diagrams, assignment text, starter code, datasets, answer keys, or recordings into this repository unless the item has an explicit compatible license and that license is preserved.
@@ -127,4 +161,3 @@ Access note: public course content requires an Ed Lessons account. The Spring 20
 - Preserve the license and attribution of any separately reused open-source code or data.
 - Do not imply university authorship, affiliation, approval, or equivalence to university credit.
 - Keep all MCQs, coding tasks, tests, solutions, and project rubrics original so the public repository cannot serve as a solution bank for an active course.
-
