@@ -892,6 +892,12 @@
       </div>
     </section>
 
+    <aside class="callout" aria-labelledby="reasoning-companion-heading">
+      <div><p class="eyebrow">Reasoning companion</p><h2 id="reasoning-companion-heading">Trace why each code path accepts, rejects, degrades, or stops</h2></div>
+      <p>The companion lesson turns this system graph into a problem-framing loop, metadata data flow, callback sequence, runtime state machine, method decision tree, fault-propagation graph, and six guided trace prompts.</p>
+      <a class="button button-secondary" href="autonomy-reasoning.html">Open reasoning and code flows</a>
+    </aside>
+
     <section id="study-sequence" aria-labelledby="study-sequence-heading">
       <div class="section-heading"><div><p class="eyebrow">Recommended order</p><h2 id="study-sequence-heading">Build one dependency at a time, then close the loop</h2></div><p>Do not start with a giant end-to-end model. First create oracles and interfaces that let later learned systems be tested.</p></div>
       <div class="evolution-table" role="table" aria-label="Autonomous driving study sequence">
@@ -938,14 +944,15 @@
         <li><a href="https://waymo.com/research/s4-driver-scalable-self-supervised-driving-multimodal-large-language-model/">Waymo S4-Driver: self-supervised multimodal driving model</a></li>
         <li><a href="https://developer.nvidia.com/blog/building-autonomous-vehicles-that-reason-with-nvidia-alpamayo/">NVIDIA Alpamayo: reasoning vision-language-action development</a></li>
         <li><a href="https://developer.nvidia.com/blog/develop-physical-ai-reasoning-world-and-action-models-with-nvidia-cosmos-3">NVIDIA Cosmos 3: reasoning, world and action models</a></li>
-        <li><a href="https://arxiv.org/abs/2106.11810">nuPlan: a closed-loop planning benchmark</a></li>
-        <li><a href="https://github.com/autonomousvision/navsim">NAVSIM: non-reactive autonomous-driving simulation and evaluation</a></li>
+        <li><a href="https://docs.ros.org/en/rolling/p/message_filters/doc/index.html">ROS 2 message filters</a> and <a href="https://design.ros2.org/articles/node_lifecycle.html">managed-node lifecycle design</a>: synchronization and supervised runtime states</li>
+        <li><a href="https://autowarefoundation.github.io/autoware-documentation/main/design/autoware-architecture-v1/components/planning/">Autoware planning component design</a> and <a href="https://autowarefoundation.github.io/autoware-documentation/main/design/autoware-architecture-v1/interfaces/ad-api/features/fail-safe/">fail-safe/MRM design</a></li>
+        <li><a href="https://github.com/motional/nuplan-devkit">nuPlan devkit</a>, <a href="https://github.com/autonomousvision/navsim">NAVSIM devkit</a>, and <a href="https://arxiv.org/abs/2605.18059">Bench2Drive-Robust</a>: complementary planning and closed-loop evaluation evidence</li>
         <li><a href="sources.html">Complete course map, research references and attribution</a></li>
       </ul>
     </section>
 
     <label class="milestone-toggle"><input type="checkbox" data-milestone="autonomy"><span>Mark the autonomous-driving systems flow complete on this device</span></label>
-    <nav class="page-pagination" aria-label="Course pages"><a href="current-topics.html"><span>Previous</span><strong>Current 3D topics</strong></a><a href="sources.html"><span>Next</span><strong>Sources and attribution</strong></a></nav>
+    <nav class="page-pagination" aria-label="Course pages"><a href="current-topics.html"><span>Previous</span><strong>Current 3D topics</strong></a><a href="autonomy-reasoning.html"><span>Next</span><strong>Reasoning and code flow</strong></a></nav>
   </main>
 
   <footer class="site-footer"><div class="footer-shell"><div class="footer-brand"><strong>CV Systems Lab</strong><p>Autonomy is a closed-loop dependency graph: measurements, state, decisions, action, and evidence.</p></div><nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="bev.html">BEV</a><a href="sources.html">Sources</a></nav></div></footer>

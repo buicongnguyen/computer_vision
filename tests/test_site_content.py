@@ -25,7 +25,7 @@ def _assert_clean(issues: list[object]) -> None:
 def test_all_required_course_pages_exist() -> None:
     _assert_clean(validate_required_pages())
     required = {DOCS_DIR / name for name in REQUIRED_PAGE_NAMES}
-    assert len(required) == 12
+    assert len(required) == 13
     assert all(path.is_file() for path in required)
     assert set(EXPECTED_NAV_LINKS).issubset(REQUIRED_PAGE_NAMES)
 
@@ -108,17 +108,44 @@ def test_autonomous_driving_learning_flow_is_integrated() -> None:
         assert 'href="autonomous-driving.html' in referring_source
 
 
-def test_autonomous_driving_diagrams_are_accessible_and_responsive() -> None:
-    source = (DOCS_DIR / "autonomous-driving.html").read_text(encoding="utf-8")
-    styles = (DOCS_DIR / "styles.css").read_text(encoding="utf-8")
-    expected_diagrams = {
-        "closed-loop",
-        "sensor-alignment",
-        "geometry-transform",
-        "representation-choice",
-        "slam-factor-graph",
-        "planning-feedback",
+def test_autonomy_reasoning_learning_flow_is_integrated() -> None:
+    source = (DOCS_DIR / "autonomy-reasoning.html").read_text(encoding="utf-8")
+    required_ids = {
+        "problem-framing",
+        "thinking-loop",
+        "data-contract-flow",
+        "code-traces",
+        "sequence",
+        "state-machine",
+        "logic-decisions",
+        "fault-localization",
+        "answer-structure",
+        "practice",
+        "sources",
     }
+    missing_ids = {
+        element_id
+        for element_id in required_ids
+        if f'id="{element_id}"' not in source
+    }
+    assert not missing_ids
+
+    for page_name in (
+        "index.html",
+        "autonomous-driving.html",
+        "coding.html",
+        "sources.html",
+    ):
+        referring_source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
+        assert 'href="autonomy-reasoning.html' in referring_source
+
+
+def _assert_diagrams_are_accessible_and_responsive(
+    page_name: str,
+    expected_diagrams: set[str],
+) -> None:
+    source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
+    styles = (DOCS_DIR / "styles.css").read_text(encoding="utf-8")
     diagram_blocks = list(
         re.finditer(
             r'<figure\b[^>]*data-diagram="([^"]+)"[^>]*>(.*?)</figure>',
@@ -127,7 +154,7 @@ def test_autonomous_driving_diagrams_are_accessible_and_responsive() -> None:
         )
     )
     assert {match.group(1) for match in diagram_blocks} == expected_diagrams
-    assert len(diagram_blocks) == 6
+    assert len(diagram_blocks) == len(expected_diagrams)
 
     all_ids = re.findall(r'\bid="([^"]+)"', source)
     assert len(all_ids) == len(set(all_ids))
@@ -178,6 +205,40 @@ def test_autonomous_driving_diagrams_are_accessible_and_responsive() -> None:
         "@media (forced-colors: active)",
     ):
         assert required_rule in styles
+
+
+def test_autonomous_driving_diagrams_are_accessible_and_responsive() -> None:
+    expected_diagrams = {
+        "closed-loop",
+        "sensor-alignment",
+        "geometry-transform",
+        "representation-choice",
+        "slam-factor-graph",
+        "planning-feedback",
+    }
+    assert len(expected_diagrams) == 6
+    _assert_diagrams_are_accessible_and_responsive(
+        "autonomous-driving.html",
+        expected_diagrams,
+    )
+
+
+def test_autonomy_reasoning_diagrams_are_accessible_and_responsive() -> None:
+    expected_diagrams = {
+        "evidence-thinking",
+        "async-data-flow",
+        "typed-code-pipeline",
+        "runtime-sequence",
+        "health-fallback-state",
+        "crosswalk-behavior-state",
+        "question-decision-tree",
+        "overlay-debug-tree",
+    }
+    assert len(expected_diagrams) == 8
+    _assert_diagrams_are_accessible_and_responsive(
+        "autonomy-reasoning.html",
+        expected_diagrams,
+    )
 
 
 def test_quiz_bank_has_80_unique_well_formed_questions() -> None:

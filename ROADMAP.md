@@ -96,6 +96,35 @@ joint models next, sensor-to-trajectory policies after that, and language/world
 models last. A learned explanation or photoreal future is not a geometry, dynamics,
 or safety proof.
 
+### Autonomy reasoning protocol
+
+Use the same reasoning loop for a sensor transform, learned component, planner,
+or complete closed-loop experiment:
+
+```text
+question → measurable output and consumer → data/frame/time contract
+→ tiny hand-worked oracle → simplest observable baseline → failure hypotheses
+→ instrumented implementation → nominal and faulted evidence → decision
+→ explanation with rejected alternatives and remaining uncertainty
+```
+
+For each autonomy coding stage, produce six linked artifacts:
+
+1. a data-contract table naming shapes, units, frames, timestamps, validity, and
+   uncertainty;
+2. a data-flow or callback sequence showing buffer ownership and the order of
+   synchronization, compensation, transformation, inference, and validation;
+3. a runtime state machine with entry guards, degraded behavior, minimal-risk
+   behavior, recovery dwell, and termination conditions;
+4. a method decision record that removes infeasible options before comparing
+   quality, latency, compute, observability, and failure behavior;
+5. a fault-propagation trace connecting an injected cause to residuals, world
+   state, downstream decisions, monitoring, and fallback; and
+6. a corrected explanation stating which observation changed the conclusion.
+
+The companion visual guide is published at
+[`docs/autonomy-reasoning.html`](docs/autonomy-reasoning.html).
+
 ## Phase 6 — Integration and synthesis (weeks 21-24)
 
 | Week | Focus | Required artifact |

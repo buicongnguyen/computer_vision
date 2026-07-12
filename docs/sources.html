@@ -325,6 +325,9 @@
             <li><a href="https://bulletin.stanford.edu/courses/2185453">Stanford CS237A: Principles of Robot Autonomy I</a>.</li>
             <li><a href="https://ocw.mit.edu/courses/16-485-visual-navigation-for-autonomous-vehicles-vnav-fall-2020/pages/syllabus/">MIT Visual Navigation for Autonomous Vehicles</a>.</li>
             <li><a href="https://coursecatalog.web.cmu.edu/schools-colleges/schoolofcomputerscience/robotics/">CMU 16-833 Robot Localization and Mapping</a> and <a href="https://ros.org/reps/rep-0105.html">ROS REP-105 frame conventions</a>.</li>
+            <li><a href="https://docs.ros.org/en/rolling/p/message_filters/doc/index.html">ROS 2 message filters</a> for timestamp-based filtering, caching, sequencing, and synchronization.</li>
+            <li><a href="https://design.ros2.org/articles/node_lifecycle.html">ROS 2 managed-node lifecycle design</a> and the <a href="https://docs.ros.org/en/rolling/p/lifecycle/">official lifecycle demonstration</a> for supervised component state transitions.</li>
+            <li><a href="https://autowarefoundation.github.io/autoware-documentation/main/design/autoware-architecture-v1/components/planning/">Autoware planning design</a>, its <a href="https://autowarefoundation.github.io/autoware_universe/main/planning/planning_validator/autoware_planning_validator/">trajectory validator</a>, and <a href="https://autowarefoundation.github.io/autoware-documentation/main/design/autoware-architecture-v1/interfaces/ad-api/features/fail-safe/">fail-safe/MRM interface</a>.</li>
           </ul>
         </article>
         <article class="content-card prose">
@@ -340,9 +343,11 @@
           <ul>
             <li><a href="https://openaccess.thecvf.com/content/CVPR2023/html/Hu_Planning-Oriented_Autonomous_Driving_CVPR_2023_paper.html">UniAD</a>, <a href="https://openaccess.thecvf.com/content/ICCV2023/html/Jiang_VAD_Vectorized_Scene_Representation_for_Efficient_Autonomous_Driving_ICCV_2023_paper.html">VAD</a>, and <a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/a7afc9957f1190223763b6ea93218f98-Abstract-Conference.html">DriveTransformer</a>.</li>
             <li><a href="https://waymo.com/research/emma/">Waymo EMMA</a>, <a href="https://waymo.com/research/s4-driver-scalable-self-supervised-driving-multimodal-large-language-model/">S4-Driver</a>, and <a href="https://research.nvidia.com/publication/2025-10_alpamayo-r1">NVIDIA Alpamayo 1</a>.</li>
-            <li><a href="https://papers.nips.cc/paper_files/paper/2024/hash/32768f7faf1995026ef9821c696f3404-Abstract-Datasets_and_Benchmarks_Track.html">NAVSIM</a> and <a href="https://papers.nips.cc/paper_files/paper/2024/hash/017761f94a1cd66d01c041aff85492c4-Abstract-Datasets_and_Benchmarks_Track.html">Bench2Drive</a>.</li>
+            <li><a href="https://github.com/motional/nuplan-devkit">nuPlan</a> provides an official closed-loop planning devkit; <a href="https://github.com/autonomousvision/navsim">NAVSIM</a> provides data-driven non-reactive and newer pseudo-simulation evaluation; <a href="https://papers.nips.cc/paper_files/paper/2024/hash/017761f94a1cd66d01c041aff85492c4-Abstract-Datasets_and_Benchmarks_Track.html">Bench2Drive</a> evaluates closed-loop driving in CARLA.</li>
+            <li><a href="https://arxiv.org/abs/2605.18059">Bench2Drive-Robust</a> adds deployment perturbations such as camera-stream failures, ego-state errors, and inference delay to closed-loop evaluation.</li>
           </ul>
           <p><a class="text-link" href="autonomous-driving.html">Open the complete sensor-to-planning guide →</a></p>
+          <p><a class="text-link" href="autonomy-reasoning.html">Open the reasoning, sequence, state-machine, and code-flow guide →</a></p>
         </article>
       </div>
     </section>
@@ -380,7 +385,7 @@
         <a href="projects.html">Projects</a>
         <a href="sources.html" aria-current="page">Sources</a>
       </div>
-      <p>University sources checked 2026-07-11.</p>
+      <p>University and autonomy sources checked 2026-07-13.</p>
     </div>
   </footer>
 

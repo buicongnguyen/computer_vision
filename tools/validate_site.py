@@ -41,6 +41,7 @@ REQUIRED_PAGE_NAMES = (
     "yolo-evolution.html",
     "current-topics.html",
     "autonomous-driving.html",
+    "autonomy-reasoning.html",
 )
 
 QUIZ_DATA_FILE = "quiz-data.js"
