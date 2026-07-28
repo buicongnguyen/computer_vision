@@ -994,6 +994,24 @@ pre code {
   accent-color: var(--cyan-strong);
 }
 
+.milestone-toggle:has(input:disabled) {
+  cursor: default;
+}
+
+.milestone-toggle:has(input:disabled):hover {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.milestone-toggle small {
+  display: block;
+  margin-top: 0.14rem;
+  color: var(--faint);
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .next-step {
   display: flex;
   align-items: center;
@@ -3132,6 +3150,11 @@ body.reader-ready .header-shell {
   padding-inline: 20px;
 }
 
+body.reader-ready .header-actions {
+  grid-column: 3;
+  justify-self: end;
+}
+
 body.reader-ready .site-header {
   background: color-mix(in srgb, var(--bg-deep) 92%, transparent);
 }
@@ -3287,6 +3310,20 @@ body.reader-ready .site-header {
   white-space: nowrap;
 }
 
+.reader-nav-status {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.12rem 0.28rem;
+  color: var(--muted);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.6rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
 .reader-bookmark {
   display: grid;
   width: 30px;
@@ -3337,13 +3374,14 @@ body.reader-ready .site-header {
 
 .reader-overlay {
   position: fixed;
-  z-index: 80;
-  inset: var(--header-height) 0 0;
+  z-index: 101;
+  inset: 0;
   border: 0;
   background: rgba(1, 7, 12, 0.68);
-  cursor: default;
+  cursor: pointer;
   opacity: 0;
   pointer-events: none;
+  touch-action: none;
   transition: opacity 180ms ease;
 }
 

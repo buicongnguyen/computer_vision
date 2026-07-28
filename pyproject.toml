@@ -25,7 +25,7 @@ vision = [
 ]
 
 [tool.setuptools]
-packages = ["labs", "labs.reference"]
+packages = ["labs", "labs.exercises", "labs.reference", "tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

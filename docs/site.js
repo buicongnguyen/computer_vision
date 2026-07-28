@@ -2,67 +2,107 @@
   "use strict";
 
   var STORAGE_KEY = "computer-vision-study-progress-v1";
-  var MILESTONES = [
-    { id: "theory", label: "Theory foundations", href: "theory.html" },
-    { id: "perception", label: "Perception systems", href: "perception.html" },
-    { id: "calibration", label: "Sensor calibration", href: "calibration.html" },
-    { id: "bev", label: "BEV conversion", href: "bev.html" },
-    { id: "modern-cv", label: "Modern computer vision", href: "modern-cv.html" },
-    { id: "autonomy", label: "Autonomous driving systems", href: "autonomous-driving.html" },
-    { id: "practice", label: "MCQ practice", href: "practice.html" },
-    { id: "coding", label: "Coding drills", href: "coding.html" },
-    { id: "projects", label: "Applied projects", href: "projects.html" }
-  ];
+  var PROGRESS_VERSION = 2;
   var BOOKMARK_STORAGE_KEY = "computer-vision-bookmarks-v1";
+  var PRACTICE_STORAGE_KEY = "cv-academy-progress-v1";
   var QUIZ_QUESTION_COUNT = 80;
   var CODING_TASK_COUNT = 36;
-  var BOOK_CHAPTERS = [
+  var MOBILE_READER_QUERY = "(max-width: 1180px)";
+  var COURSE_CHAPTERS = [
     {
       title: "Start here",
       pages: [
-        { label: "Study hub", href: "index.html", number: "00" }
+        {
+          id: "study-hub",
+          label: "Study hub",
+          href: "index.html",
+          number: "00",
+          checkpoint: false
+        }
       ]
     },
     {
       title: "Part I · Foundations",
       pages: [
-        { label: "Theory foundations", href: "theory.html", number: "01" },
-        { label: "Perception systems", href: "perception.html", number: "02" },
-        { label: "Calibration", href: "calibration.html", number: "03" },
-        { label: "Bird's-eye view", href: "bev.html", number: "04" }
+        { id: "theory", label: "Theory foundations", href: "theory.html", number: "01", checkpoint: true },
+        { id: "perception", label: "Perception systems", href: "perception.html", number: "02", checkpoint: true },
+        { id: "calibration", label: "Calibration", progressLabel: "Sensor calibration", href: "calibration.html", number: "03", checkpoint: true },
+        { id: "bev", label: "Bird's-eye view", progressLabel: "BEV conversion", href: "bev.html", number: "04", checkpoint: true }
       ]
     },
     {
-      title: "Part II · Models & systems",
+      title: "Part II · Models & 3D",
       pages: [
-        { label: "Modern computer vision", href: "modern-cv.html", number: "05" },
-        { label: "YOLO evolution", href: "yolo-evolution.html", number: "06" },
-        { label: "Current 3D topics", href: "current-topics.html", number: "07" },
-        { label: "Autonomous driving", href: "autonomous-driving.html", number: "08" },
-        { label: "Autonomy reasoning", href: "autonomy-reasoning.html", number: "09" }
+        { id: "modern-cv", label: "Modern computer vision", href: "modern-cv.html", number: "05", checkpoint: true },
+        { id: "yolo-evolution", label: "YOLO evolution", href: "yolo-evolution.html", number: "06", checkpoint: true },
+        { id: "current-topics", label: "Current 3D topics", href: "current-topics.html", number: "07", checkpoint: false, status: "Optional" }
       ]
     },
     {
-      title: "Part III · Practice & evidence",
+      title: "Part III · Autonomous systems",
       pages: [
-        { label: "MCQ practice", href: "practice.html", number: "10" },
-        { label: "Coding practice", href: "coding.html", number: "11" },
-        { label: "Applied projects", href: "projects.html", number: "12" },
-        { label: "Sources & attribution", href: "sources.html", number: "13" }
+        { id: "autonomous-driving", label: "Autonomous-driving systems", href: "autonomous-driving.html", number: "08", checkpoint: true },
+        { id: "autonomy-reasoning", label: "Autonomy reasoning and code flow", href: "autonomy-reasoning.html", number: "09", checkpoint: true }
+      ]
+    },
+    {
+      title: "Part IV · Practice & evidence",
+      pages: [
+        { id: "practice", label: "MCQ practice", href: "practice.html", number: "10", checkpoint: true },
+        { id: "coding", label: "Coding practice", href: "coding.html", number: "11", checkpoint: true },
+        { id: "projects", label: "Applied projects", href: "projects.html", number: "12", checkpoint: true }
+      ]
+    },
+    {
+      title: "References",
+      pages: [
+        { id: "sources", label: "Sources & attribution", href: "sources.html", number: "13", checkpoint: false, status: "Reference" }
       ]
     }
   ];
+  var BOOK_CHAPTERS = COURSE_CHAPTERS.map(function (chapter) {
+    return {
+      title: chapter.title,
+      pages: chapter.pages.slice()
+    };
+  });
   var BOOK_PAGES = BOOK_CHAPTERS.reduce(function (pages, chapter) {
     return pages.concat(chapter.pages);
   }, []);
+  var MILESTONES = BOOK_PAGES.filter(function (page) {
+    return page.checkpoint;
+  }).map(function (page) {
+    return {
+      id: page.id,
+      label: page.progressLabel || page.label,
+      href: page.href
+    };
+  });
 
   function integer(value, fallback) {
     var number = Number(value);
     return Number.isFinite(number) && number >= 0 ? Math.floor(number) : fallback;
   }
 
-  function normalize(raw) {
+  function migrateProgress(raw) {
     var source = raw && typeof raw === "object" ? raw : {};
+    var completed = Array.isArray(source.completed)
+      ? source.completed.map(function (id) {
+          return id === "autonomy" ? "autonomous-driving" : id;
+        })
+      : [];
+
+    return {
+      version: PROGRESS_VERSION,
+      completed: completed,
+      quiz: source.quiz,
+      coding: source.coding,
+      lastActivity: source.lastActivity
+    };
+  }
+
+  function normalize(raw) {
+    var source = migrateProgress(raw);
     var allowed = MILESTONES.map(function (item) { return item.id; });
     var storedQuizTotal = integer(source.quiz && source.quiz.total, 0);
     var quizTotal = storedQuizTotal
@@ -79,7 +119,7 @@
       : [];
 
     return {
-      version: 1,
+      version: PROGRESS_VERSION,
       completed: completed,
       quiz: {
         correct: Math.min(
@@ -101,7 +141,27 @@
 
   function readProgress() {
     try {
-      return normalize(JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"));
+      var serialized = localStorage.getItem(STORAGE_KEY);
+      if (!serialized) {
+        return normalize({});
+      }
+
+      var stored = JSON.parse(serialized);
+      var next = normalize(stored);
+      var needsMigration = !stored
+        || typeof stored !== "object"
+        || Number(stored.version) !== PROGRESS_VERSION
+        || (Array.isArray(stored.completed)
+          && stored.completed.indexOf("autonomy") !== -1);
+
+      if (needsMigration) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch (error) {
+          /* The migrated state still remains usable for this page. */
+        }
+      }
+      return next;
     } catch (error) {
       return normalize({});
     }
@@ -203,6 +263,7 @@
     var empty = normalize({});
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PRACTICE_STORAGE_KEY);
     } catch (error) {
       /* The empty state is still rendered below. */
     }
@@ -315,6 +376,7 @@
     var link = document.createElement("a");
     var number = document.createElement("span");
     var label = document.createElement("span");
+    var status = document.createElement("span");
     var bookmark = document.createElement("button");
 
     row.className = "reader-nav-row";
@@ -334,6 +396,11 @@
     label.textContent = page.label;
     link.appendChild(number);
     link.appendChild(label);
+    if (page.status) {
+      status.className = "reader-nav-status";
+      status.textContent = page.status;
+      link.appendChild(status);
+    }
 
     bookmark.className = "reader-bookmark";
     bookmark.type = "button";
@@ -357,11 +424,11 @@
     var actions = document.querySelector(".header-actions");
     var main = document.querySelector("main#main-content");
     if (!header || !actions || !main) {
-      return;
+      return false;
     }
 
     var sidebar = document.createElement("aside");
-    var overlay = document.createElement("button");
+    var overlay = document.createElement("div");
     var toggle = document.createElement("button");
     var close = document.createElement("button");
     var search = document.createElement("input");
@@ -369,6 +436,10 @@
     var savedSection = document.createElement("section");
     var savedList = document.createElement("div");
     var savedEmpty = document.createElement("p");
+    var drawerMedia = window.matchMedia(MOBILE_READER_QUERY);
+    var backgroundInertState = [];
+    var focusOrigin = null;
+    var lastReaderFocus = null;
     var bookmarks = readBookmarks();
 
     sidebar.className = "reader-sidebar";
@@ -483,6 +554,37 @@
       filterNavigation(search.value);
     }
 
+    function ensureCurrentPageVisible() {
+      if (search.value.trim()) {
+        return;
+      }
+
+      var active = nav.querySelector('.reader-nav-link[aria-current="page"]');
+      var row = active && active.closest("[data-reader-row]");
+      var hiddenGroup = row && row.closest(".reader-nav-group[hidden]");
+      if (!row || row.hidden || hiddenGroup) {
+        return;
+      }
+
+      var sidebarBounds = sidebar.getBoundingClientRect();
+      var rowBounds = row.getBoundingClientRect();
+      var visibleTop = sidebarBounds.top + 8;
+      var visibleBottom = sidebarBounds.bottom - 8;
+      if (!sidebarBounds.height || !rowBounds.height) {
+        return;
+      }
+
+      if (rowBounds.top < visibleTop) {
+        sidebar.scrollTop -= visibleTop - rowBounds.top;
+      } else if (rowBounds.bottom > visibleBottom) {
+        sidebar.scrollTop += rowBounds.bottom - visibleBottom;
+      }
+    }
+
+    function requestActiveRowVisibility() {
+      window.requestAnimationFrame(ensureCurrentPageVisible);
+    }
+
     function filterNavigation(query) {
       var normalized = (query || "").trim().toLowerCase();
       nav.querySelectorAll(".reader-nav-group").forEach(function (group) {
@@ -510,35 +612,109 @@
     actions.insertBefore(toggle, actions.firstChild);
 
     overlay.className = "reader-overlay";
-    overlay.type = "button";
-    overlay.setAttribute("aria-label", "Close chapter navigation");
+    overlay.tabIndex = -1;
+    overlay.setAttribute("aria-hidden", "true");
     document.body.insertBefore(overlay, header.nextSibling);
     document.body.insertBefore(sidebar, overlay.nextSibling);
+    document.addEventListener("focusin", function (event) {
+      if (event.target === toggle || sidebar.contains(event.target)) {
+        lastReaderFocus = event.target;
+      }
+    });
+
+    function setInert(element, inert) {
+      element.inert = inert;
+      if (inert) {
+        element.setAttribute("inert", "");
+      } else {
+        element.removeAttribute("inert");
+      }
+    }
+
+    function setBackgroundIsolation(isolated) {
+      if (isolated) {
+        if (backgroundInertState.length) {
+          return;
+        }
+
+        backgroundInertState = Array.from(document.body.children)
+          .filter(function (element) {
+            return element !== sidebar
+              && element !== overlay
+              && element.tagName !== "SCRIPT"
+              && !element.classList.contains("reader-progress");
+          })
+          .map(function (element) {
+            var state = {
+              element: element,
+              inert: Boolean(element.inert),
+              hadAttribute: element.hasAttribute("inert")
+            };
+            setInert(element, true);
+            return state;
+          });
+        return;
+      }
+
+      backgroundInertState.forEach(function (state) {
+        state.element.inert = state.inert;
+        if (state.hadAttribute || state.inert) {
+          state.element.setAttribute("inert", "");
+        } else {
+          state.element.removeAttribute("inert");
+        }
+      });
+      backgroundInertState = [];
+    }
+
+    function restoreFocus(element) {
+      if (!element
+          || !element.isConnected
+          || element.inert
+          || !element.getClientRects().length) {
+        return;
+      }
+      element.focus({ preventScroll: true });
+    }
 
     function openSidebar() {
+      if (!drawerMedia.matches) {
+        return;
+      }
+
+      focusOrigin = document.activeElement;
       document.body.classList.add("reader-menu-open");
       toggle.setAttribute("aria-expanded", "true");
       toggle.setAttribute("aria-label", "Close chapter navigation");
       sidebar.setAttribute("data-open", "true");
       sidebar.removeAttribute("aria-hidden");
-      sidebar.inert = false;
-      close.focus();
+      sidebar.setAttribute("role", "dialog");
+      sidebar.setAttribute("aria-modal", "true");
+      setInert(sidebar, false);
+      close.focus({ preventScroll: true });
+      setBackgroundIsolation(true);
+      requestActiveRowVisibility();
     }
 
     function closeSidebar(returnFocus) {
+      var target = focusOrigin || toggle;
       document.body.classList.remove("reader-menu-open");
       toggle.setAttribute("aria-expanded", "false");
       toggle.setAttribute("aria-label", "Open chapter navigation");
       sidebar.removeAttribute("data-open");
-      if (window.innerWidth <= 1180) {
+      sidebar.removeAttribute("role");
+      sidebar.removeAttribute("aria-modal");
+      setBackgroundIsolation(false);
+      if (drawerMedia.matches) {
         sidebar.setAttribute("aria-hidden", "true");
-        sidebar.inert = true;
+        setInert(sidebar, true);
       } else {
         sidebar.removeAttribute("aria-hidden");
-        sidebar.inert = false;
+        setInert(sidebar, false);
       }
+      focusOrigin = null;
       if (returnFocus) {
-        toggle.focus();
+        restoreFocus(target);
       }
     }
 
@@ -552,7 +728,7 @@
     close.addEventListener("click", function () { closeSidebar(true); });
     overlay.addEventListener("click", function () { closeSidebar(true); });
     sidebar.addEventListener("click", function (event) {
-      if (event.target.closest("a") && window.innerWidth <= 1180) {
+      if (event.target.closest("a") && drawerMedia.matches) {
         closeSidebar(true);
       }
     });
@@ -560,8 +736,10 @@
       filterNavigation(search.value);
     });
     document.addEventListener("keydown", function (event) {
-      var menuOpen = document.body.classList.contains("reader-menu-open");
+      var menuOpen = drawerMedia.matches
+        && document.body.classList.contains("reader-menu-open");
       if (event.key === "Escape" && menuOpen) {
+        event.preventDefault();
         closeSidebar(true);
         return;
       }
@@ -591,16 +769,54 @@
         first.focus();
       }
     });
-    window.addEventListener("resize", function () {
-      if (window.innerWidth > 1180
-          || !document.body.classList.contains("reader-menu-open")) {
-        closeSidebar(false);
+
+    function handleDrawerModeChange() {
+      var focused = document.activeElement;
+      var priorReaderFocus = focused === document.body
+        ? lastReaderFocus
+        : focused;
+      var focusWasInSidebar = sidebar.contains(priorReaderFocus);
+      closeSidebar(false);
+      if (drawerMedia.matches) {
+        if (focusWasInSidebar) {
+          restoreFocus(toggle);
+        }
+        return;
+      }
+
+      requestActiveRowVisibility();
+      if (priorReaderFocus === toggle
+          || (focusWasInSidebar
+            && (priorReaderFocus === close
+              || !priorReaderFocus.getClientRects().length))) {
+        window.requestAnimationFrame(function () {
+          restoreFocus(
+            nav.querySelector('.reader-nav-link[aria-current="page"]') || search
+          );
+        });
+      }
+    }
+
+    if (typeof drawerMedia.addEventListener === "function") {
+      drawerMedia.addEventListener("change", handleDrawerModeChange);
+    } else {
+      drawerMedia.addListener(handleDrawerModeChange);
+    }
+
+    window.addEventListener("storage", function (event) {
+      if (event.key === BOOKMARK_STORAGE_KEY) {
+        bookmarks = readBookmarks();
+        renderNavigation();
       }
     });
 
     renderNavigation();
     closeSidebar(false);
     document.body.classList.add("reader-ready");
+    if (!drawerMedia.matches) {
+      requestActiveRowVisibility();
+    }
+    return true;
   }
 
   function initializePageContents() {
@@ -746,12 +962,15 @@
   function initializeBookReader() {
     var current = currentPageName();
     if (!BOOK_PAGES.some(function (page) { return page.href === current; })) {
-      return;
+      return false;
     }
-    initializeReaderNavigation(current);
+    if (!initializeReaderNavigation(current)) {
+      return false;
+    }
     initializePageContents();
     initializeBookPagination(current);
     initializeReadingProgress();
+    return true;
   }
 
   window.CVStudyProgress = {
@@ -760,13 +979,25 @@
     setQuizScore: setQuizScore,
     setCodingSolved: setCodingSolved,
     reset: resetProgress,
-    milestones: MILESTONES.slice()
+    milestones: MILESTONES.slice(),
+    chapters: BOOK_PAGES.map(function (page) {
+      return {
+        id: page.id,
+        label: page.label,
+        href: page.href,
+        number: page.number,
+        checkpoint: page.checkpoint,
+        status: page.status || null
+      };
+    })
   };
 
-  initializeNavigation();
+  var bookReaderInitialized = initializeBookReader();
+  if (!bookReaderInitialized) {
+    initializeNavigation();
+  }
   setCurrentNavigation();
   initializeProgress();
-  initializeBookReader();
 
   window.addEventListener("storage", function (event) {
     if (event.key === STORAGE_KEY) {

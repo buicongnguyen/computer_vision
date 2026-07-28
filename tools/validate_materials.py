@@ -16,6 +16,18 @@ REQUIRED = (
     "interview/README.md",
     "projects/PORTFOLIO_RUBRIC.md",
 )
+EXCLUDED_DIRECTORIES = {
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "build",
+    "dist",
+    "node_modules",
+    "playwright-report",
+    "test-results",
+}
 
 
 def local_target(raw: str) -> str | None:
@@ -31,7 +43,11 @@ def main() -> int:
         if not (ROOT / relative).is_file():
             failures.append(f"missing required file: {relative}")
 
-    markdown_files = sorted(ROOT.rglob("*.md"))
+    markdown_files = sorted(
+        path
+        for path in ROOT.rglob("*.md")
+        if not EXCLUDED_DIRECTORIES.intersection(path.relative_to(ROOT).parts)
+    )
     for source in markdown_files:
         if source.stat().st_size == 0:
             failures.append(f"empty Markdown file: {source.relative_to(ROOT)}")

@@ -288,6 +288,12 @@
   elements.resetSession.addEventListener("click", resetSession);
   elements.exportProgress.addEventListener("click", exportProgress);
   elements.clearProgress.addEventListener("click", clearProgress);
+  window.addEventListener("storage", (event) => {
+    if (event.key === storageKey) {
+      progress = loadProgress();
+      resetSession();
+    }
+  });
   renderScore();
   rebuildQueue(false);
   syncSharedProgress();

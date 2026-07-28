@@ -17,6 +17,36 @@ from tools.validate_site import (
     validate_required_pages,
 )
 
+CHECKPOINTS = (
+    ("theory", "theory.html"),
+    ("perception", "perception.html"),
+    ("calibration", "calibration.html"),
+    ("bev", "bev.html"),
+    ("modern-cv", "modern-cv.html"),
+    ("yolo-evolution", "yolo-evolution.html"),
+    ("autonomous-driving", "autonomous-driving.html"),
+    ("autonomy-reasoning", "autonomy-reasoning.html"),
+    ("practice", "practice.html"),
+    ("coding", "coding.html"),
+    ("projects", "projects.html"),
+)
+READER_ORDER = (
+    "index.html",
+    "theory.html",
+    "perception.html",
+    "calibration.html",
+    "bev.html",
+    "modern-cv.html",
+    "yolo-evolution.html",
+    "current-topics.html",
+    "autonomous-driving.html",
+    "autonomy-reasoning.html",
+    "practice.html",
+    "coding.html",
+    "projects.html",
+    "sources.html",
+)
+
 
 def _assert_clean(issues: list[object]) -> None:
     assert not issues, "\n" + format_issues(issues)
@@ -79,15 +109,14 @@ def test_all_javascript_files_parse() -> None:
     _assert_clean(validate_javascript_syntax())
 
 
-def test_book_reader_covers_the_complete_course_path() -> None:
+def test_book_reader_uses_one_complete_ordered_course_model() -> None:
     script = (DOCS_DIR / "site.js").read_text(encoding="utf-8")
     styles = (DOCS_DIR / "styles.css").read_text(encoding="utf-8")
-    chapter_config = script.split("var BOOK_CHAPTERS =", maxsplit=1)[1].split(
-        "var BOOK_PAGES =", maxsplit=1
-    )[0]
 
-    for page_name in ("index.html", *REQUIRED_PAGE_NAMES):
-        assert chapter_config.count(f'href: "{page_name}"') == 1
+    assert "var COURSE_CHAPTERS" in script
+    assert "var BOOK_CHAPTERS" in script
+    assert "var BOOK_PAGES" in script
+    assert "var MILESTONES" in script
 
     for behavior in (
         "initializeReaderNavigation",
@@ -109,21 +138,88 @@ def test_book_reader_covers_the_complete_course_path() -> None:
         assert selector in styles
 
 
-def test_reader_drawer_keeps_keyboard_focus_in_a_visible_control() -> None:
+def test_checkpoint_controls_match_the_canonical_mastery_path() -> None:
+    expected_ids = tuple(checkpoint_id for checkpoint_id, _ in CHECKPOINTS)
+    expected_set = set(expected_ids)
+    index = (DOCS_DIR / "index.html").read_text(encoding="utf-8")
+    index_ids = tuple(re.findall(r'data-milestone="([^"]+)"', index))
+    assert index_ids == expected_ids
+    assert "0 / 11" in index
+    assert "Complete 11 more checkpoints" in index
+    assert "0 / 9" not in index
+    assert "Complete 9 more checkpoints" not in index
+
+    all_controls: dict[str, list[str]] = {}
+    for page in DOCS_DIR.glob("*.html"):
+        all_controls[page.name] = re.findall(
+            r'data-milestone="([^"]+)"',
+            page.read_text(encoding="utf-8"),
+        )
+
+    found_ids = {
+        checkpoint_id
+        for page_ids in all_controls.values()
+        for checkpoint_id in page_ids
+    }
+    assert found_ids == expected_set
+    assert "autonomy" not in found_ids
+    assert all_controls["current-topics.html"] == []
+    assert all_controls["sources.html"] == []
+
+    manual_routes = dict(CHECKPOINTS)
+    manual_routes.pop("practice")
+    manual_routes.pop("coding")
+    for checkpoint_id, page_name in manual_routes.items():
+        assert all_controls[page_name] == [checkpoint_id]
+
+    automatic_controls = {
+        checkpoint_id: re.search(
+            rf'<input\b[^>]*data-milestone="{checkpoint_id}"[^>]*>',
+            index,
+        )
+        for checkpoint_id in ("practice", "coding")
+    }
+    assert all(
+        match and "disabled" in match.group(0)
+        for match in automatic_controls.values()
+    )
+
+
+def test_study_hub_cards_follow_reader_order_and_label_non_checkpoints() -> None:
+    index = (DOCS_DIR / "index.html").read_text(encoding="utf-8")
+    curriculum = index.split(
+        '<section class="section" aria-labelledby="curriculum-title">',
+        maxsplit=1,
+    )[1].split("</section>", maxsplit=1)[0]
+    card_routes = tuple(
+        re.findall(r'<a class="topic-card" href="([^"]+\.html)">', curriculum)
+    )
+
+    assert card_routes == READER_ORDER[1:]
+    assert tuple(re.findall(r'<span class="card-index">(\d+)</span>', curriculum)) == tuple(
+        f"{number:02d}" for number in range(1, 14)
+    )
+    assert "<h3>Current 3D topics</h3>" in curriculum
+    assert '<span class="tag">optional</span>' in curriculum
+    assert "<h3>Sources and attribution</h3>" in curriculum
+    assert '<span class="tag">reference</span>' in curriculum
+    assert "13 chapters" in index
+    assert "six system studies" in index.lower()
+
+
+def test_reader_runtime_has_accessible_single_controller_guards() -> None:
     script = (DOCS_DIR / "site.js").read_text(encoding="utf-8")
-    compact = re.sub(r"\s+", " ", script)
 
     for behavior in (
-        'if (event.key !== "Tab" || !menuOpen)',
-        'sidebar.querySelectorAll( \'a[href], button:not([disabled]), input:not([disabled])\' )',
-        "if (!sidebar.contains(document.activeElement))",
-        "event.shiftKey && document.activeElement === first",
-        "!event.shiftKey && document.activeElement === last",
-        "closeSidebar(true);",
-        'document.activeElement.classList.contains("reader-bookmark")',
-        "button.offsetParent !== null",
+        "MOBILE_READER_QUERY",
+        "setBackgroundIsolation",
+        'sidebar.setAttribute("aria-modal", "true")',
+        'sidebar.setAttribute("role", "dialog")',
+        "ensureCurrentPageVisible",
+        "initializeBookReader",
+        "initializeNavigation",
     ):
-        assert behavior in compact, behavior
+        assert behavior in script
 
 
 def test_autonomous_driving_learning_flow_is_integrated() -> None:
