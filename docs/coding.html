@@ -81,17 +81,117 @@
       <a class="button button-secondary" href="autonomy-reasoning.html#code-traces">Open the autonomy code traces</a>
     </aside>
 
-    <section class="content-card prose" aria-labelledby="workflow-heading">
-      <p class="eyebrow">Recommended workflow</p>
-      <h2 id="workflow-heading">Turn each exercise into a complete study cycle</h2>
-      <ol class="step-list">
-        <li><strong>Contract:</strong> state shapes, units, frames, boundary behavior, invalid-input policy, and complexity.</li>
-        <li><strong>Oracle:</strong> work a tiny example by hand and encode it as a test before implementation.</li>
-        <li><strong>Implementation:</strong> write the smallest correct baseline, then compare with a trusted library.</li>
-        <li><strong>Failure:</strong> construct a degenerate, noisy, empty, large, or asynchronous case that breaks a naive version.</li>
-        <li><strong>Measure:</strong> profile representative workloads and protect numerical/task quality.</li>
-        <li><strong>Explain:</strong> defend assumptions, rejected alternatives, production changes, and the current bottleneck.</li>
-      </ol>
+    <section aria-labelledby="workflow-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Recommended workflow</p><h2 id="workflow-heading">Turn each exercise into a complete study cycle</h2></div>
+        <p>Pass evidence gates in order; when one fails, return to the first broken contract instead of tuning the last line of code.</p>
+      </div>
+      <figure class="system-diagram system-diagram--wide" id="coding-feedback-figure" data-diagram="coding-feedback" data-diagram-kind="feedback" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable test-first coding workflow with diagnostic feedback">
+          <svg class="system-diagram__canvas" id="coding-feedback-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 590" aria-labelledby="coding-feedback-title" aria-describedby="coding-feedback-desc coding-feedback-caption">
+            <title id="coding-feedback-title">Test-first computer-vision coding workflow with feedback gates</title>
+            <desc id="coding-feedback-desc">The workflow moves from an explicit data contract to a hand-worked oracle, a smallest correct baseline, adversarial cases, representative measurement, and an evidence-based explanation. Failed correctness or regression gates route back to the first broken contract or implementation boundary. Optimization begins only after a bottleneck is measured.</desc>
+            <defs>
+              <marker id="coding-flow-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="coding-flow-feedback" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="coding-flow-safety" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="25" y="38">BUILD A CLAIM AND ITS EVIDENCE</text>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M175 130 H205"></path>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M355 130 H385"></path>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M535 130 H565"></path>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M715 130 H745"></path>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M895 130 H925"></path>
+
+            <rect class="diagram-node diagram-node--decision" x="25" y="75" width="150" height="110" rx="13"></rect>
+            <text class="diagram-title" x="100" y="107" text-anchor="middle">1 · Contract</text>
+            <text class="diagram-detail" x="100" y="132" text-anchor="middle">shape · dtype · frame</text>
+            <text class="diagram-detail" x="100" y="154" text-anchor="middle">units · invalid policy</text>
+            <text class="diagram-detail" x="100" y="176" text-anchor="middle">complexity boundary</text>
+
+            <rect class="diagram-node diagram-node--state" x="205" y="75" width="150" height="110" rx="13"></rect>
+            <text class="diagram-title" x="280" y="107" text-anchor="middle">2 · Oracle</text>
+            <text class="diagram-detail" x="280" y="132" text-anchor="middle">tiny hand-worked case</text>
+            <text class="diagram-detail" x="280" y="154" text-anchor="middle">known expected output</text>
+            <text class="diagram-detail" x="280" y="176" text-anchor="middle">test before code</text>
+
+            <rect class="diagram-node" x="385" y="75" width="150" height="110" rx="13"></rect>
+            <text class="diagram-title" x="460" y="107" text-anchor="middle">3 · Baseline</text>
+            <text class="diagram-detail" x="460" y="132" text-anchor="middle">smallest correct form</text>
+            <text class="diagram-detail" x="460" y="154" text-anchor="middle">readable intermediates</text>
+            <text class="diagram-detail" x="460" y="176" text-anchor="middle">trusted parity check</text>
+
+            <rect class="diagram-node diagram-node--safety" x="565" y="75" width="150" height="110" rx="13"></rect>
+            <text class="diagram-title" x="640" y="107" text-anchor="middle">4 · Challenge</text>
+            <text class="diagram-detail" x="640" y="132" text-anchor="middle">empty · degenerate</text>
+            <text class="diagram-detail" x="640" y="154" text-anchor="middle">noisy · large · async</text>
+            <text class="diagram-detail" x="640" y="176" text-anchor="middle">preserve the failure</text>
+
+            <rect class="diagram-node diagram-node--state" x="745" y="75" width="150" height="110" rx="13"></rect>
+            <text class="diagram-title" x="820" y="107" text-anchor="middle">5 · Measure</text>
+            <text class="diagram-detail" x="820" y="132" text-anchor="middle">quality · p50/p99</text>
+            <text class="diagram-detail" x="820" y="154" text-anchor="middle">memory · scale</text>
+            <text class="diagram-detail" x="820" y="176" text-anchor="middle">representative workload</text>
+
+            <rect class="diagram-node diagram-node--output" x="925" y="75" width="225" height="110" rx="13"></rect>
+            <text class="diagram-title" x="1037" y="107" text-anchor="middle">6 · Explain and decide</text>
+            <text class="diagram-detail" x="1037" y="132" text-anchor="middle">assumptions · alternatives</text>
+            <text class="diagram-detail" x="1037" y="154" text-anchor="middle">evidence · production delta</text>
+            <text class="diagram-detail" x="1037" y="176" text-anchor="middle">current bottleneck + limit</text>
+
+            <text class="diagram-lane-label" x="25" y="285">FAILED GATES LOCALIZE THE NEXT ACTION</text>
+            <rect class="diagram-node diagram-node--safety" x="95" y="305" width="260" height="105" rx="13"></rect>
+            <text class="diagram-title" x="225" y="338" text-anchor="middle">First failing boundary</text>
+            <text class="diagram-detail" x="225" y="364" text-anchor="middle">contract? oracle? transform?</text>
+            <text class="diagram-detail" x="225" y="386" text-anchor="middle">algorithm? invalid-input policy?</text>
+
+            <rect class="diagram-node diagram-node--decision" x="460" y="305" width="260" height="105" rx="13"></rect>
+            <text class="diagram-title" x="590" y="338" text-anchor="middle">Controlled optimization</text>
+            <text class="diagram-detail" x="590" y="364" text-anchor="middle">only after a measured bottleneck</text>
+            <text class="diagram-detail" x="590" y="386" text-anchor="middle">change one mechanism at a time</text>
+
+            <rect class="diagram-node diagram-node--safety" x="825" y="305" width="260" height="105" rx="13"></rect>
+            <text class="diagram-title" x="955" y="338" text-anchor="middle">Regression gate</text>
+            <text class="diagram-detail" x="955" y="364" text-anchor="middle">oracle + edge cases + task quality</text>
+            <text class="diagram-detail" x="955" y="386" text-anchor="middle">latency · memory · determinism</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#coding-flow-safety)" d="M280 185 V285 H225 V300"></path>
+            <text class="diagram-edge-label" x="290" y="240">oracle mismatch</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#coding-flow-safety)" d="M640 185 V260 H330 V300"></path>
+            <text class="diagram-edge-label" x="515" y="248">edge case fails</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#coding-flow-feedback)" d="M95 357 H45 V190 H95"></path>
+            <text class="diagram-edge-label" x="52" y="245">revise contract</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#coding-flow-feedback)" d="M355 357 H410 V190 H455"></path>
+            <text class="diagram-edge-label" x="365" y="340">repair baseline</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#coding-flow-arrow)" d="M820 185 V240 H590 V300"></path>
+            <text class="diagram-edge-label" x="650" y="228">proven bottleneck</text>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M720 357 H820"></path>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#coding-flow-feedback)" d="M955 305 V245 H850 V190"></path>
+            <text class="diagram-edge-label" x="865" y="233">pass → remeasure</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#coding-flow-safety)" d="M825 385 V445 H225 V415"></path>
+            <text class="diagram-edge-label" x="430" y="438">regression → preserve and localize</text>
+
+            <rect class="diagram-node diagram-node--output" x="395" y="485" width="390" height="75" rx="13"></rect>
+            <text class="diagram-title" x="590" y="515" text-anchor="middle">Durable evidence package</text>
+            <text class="diagram-detail" x="590" y="539" text-anchor="middle">contract · tests · benchmark · failure case · comparison · rationale</text>
+            <path class="diagram-edge" marker-end="url(#coding-flow-arrow)" d="M1037 185 V450 H785 V480"></path>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#coding-flow-feedback)" d="M395 522 H20 V130"></path>
+            <text class="diagram-edge-label" x="30" y="505">new failure or unjustified claim starts the next cycle</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Test-first coding workflow for small screens">
+          <li><span class="diagram-mobile-transition">Before implementation</span><strong>Write the data contract and a hand-worked oracle</strong><small>Specify shapes, dtype, frames, units, invalid behavior, complexity, and one tiny expected result.</small></li>
+          <li><span class="diagram-mobile-transition">Oracle defined →</span><strong>Implement the smallest readable baseline</strong><small>Expose intermediates and compare them with a trusted implementation where possible.</small></li>
+          <li><span class="diagram-mobile-transition">Baseline passes →</span><strong>Construct an empty, degenerate, noisy, large, or asynchronous failure</strong><small>Keep every discovered failure as a regression test.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">If correctness fails →</span><strong>Find the first broken contract, oracle, transform, or algorithm boundary</strong><small>Return there; do not compensate by tuning a later threshold.</small></li>
+          <li><span class="diagram-mobile-transition">Correctness holds →</span><strong>Measure quality, p50/p99 latency, memory, and scaling</strong><small>Optimize only a measured bottleneck, one mechanism at a time.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">After optimization →</span><strong>Re-run the complete regression gate</strong><small>Reject a faster result that breaks the oracle, edge cases, task quality, determinism, or memory budget.</small></li>
+          <li class="is-support"><span class="diagram-mobile-transition">Gate passes →</span><strong>Explain the decision and preserve the evidence package</strong><small>Record assumptions, alternatives, tests, benchmark, failure case, production delta, and current limit.</small></li>
+        </ul>
+        <figcaption id="coding-feedback-caption"><span><strong>Correctness comes before speed, and evidence comes before confidence:</strong> every failed gate routes to a named boundary; every accepted optimization must survive the original oracle and new failure cases.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the coding loop →</span></figcaption>
+      </figure>
     </section>
 
     <nav class="page-pagination" aria-label="Course pages">

@@ -105,10 +105,109 @@
       <div class="mastery-grid" id="mastery-grid"></div>
     </section>
 
-    <aside class="callout">
-      <div><p class="eyebrow">Use MCQs correctly</p><h2>Recall is the start, not the finish</h2></div>
-      <p>For every miss, state the mechanism, write a counterexample to the wrong option, and implement or derive the idea. Continue in <a href="coding.html">coding practice</a> or return to the relevant theory page.</p>
-    </aside>
+    <section aria-labelledby="mcq-reasoning-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Use MCQs correctly</p><h2 id="mcq-reasoning-heading">Eliminate by invariant; choose by mechanism and condition</h2></div>
+        <p>Recall starts the answer. A durable answer also explains why the nearest distractor fails and when it would become true.</p>
+      </div>
+      <figure class="system-diagram system-diagram--wide" id="mcq-reasoning-figure" data-diagram="mcq-reasoning" data-diagram-kind="decision" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable MCQ reasoning and review decision graph">
+          <svg class="system-diagram__canvas" id="mcq-reasoning-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 830" aria-labelledby="mcq-reasoning-title" aria-describedby="mcq-reasoning-desc mcq-reasoning-caption">
+            <title id="mcq-reasoning-title">Decision graph for answering and reviewing computer-vision MCQs</title>
+            <desc id="mcq-reasoning-desc">The graph parses the requested output and qualifiers, removes choices that violate frames, units, time, observability, causality, or stated constraints, routes the remaining choices through mechanism, trade-off, or diagnosis tests, and produces a conditional answer. Correct answers require explaining the nearest distractor; missed answers create a counterexample and return to the relevant theory or coding exercise before spaced recall.</desc>
+            <defs>
+              <marker id="mcq-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="mcq-support" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="mcq-feedback" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="mcq-safety" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-node diagram-node--decision" x="400" y="25" width="380" height="75" rx="13"></rect>
+            <text class="diagram-title" x="590" y="55" text-anchor="middle">Parse the requested output and condition</text>
+            <text class="diagram-detail" x="590" y="79" text-anchor="middle">best · first · metric · frame · sensor · failure · deployment constraint</text>
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M590 100 V140"></path>
+
+            <rect class="diagram-node diagram-node--state" x="425" y="140" width="330" height="75" rx="13"></rect>
+            <text class="diagram-title" x="590" y="169" text-anchor="middle">Restate the claim before comparing models</text>
+            <text class="diagram-detail" x="590" y="193" text-anchor="middle">observable evidence → required quantity → operating constraints</text>
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M590 215 V250"></path>
+
+            <path class="diagram-node diagram-node--safety" d="M590 250 L770 325 L590 400 L410 325 Z"></path>
+            <text class="diagram-title" x="590" y="309" text-anchor="middle">Hard invariant violated?</text>
+            <text class="diagram-detail" x="590" y="334" text-anchor="middle">frame · units · time · causality · observability</text>
+            <text class="diagram-detail" x="590" y="356" text-anchor="middle">validity · resource limit · stated assumption</text>
+
+            <rect class="diagram-node diagram-node--safety" x="865" y="280" width="265" height="90" rx="13"></rect>
+            <text class="diagram-title" x="997" y="313" text-anchor="middle">Eliminate that option</text>
+            <text class="diagram-detail" x="997" y="338" text-anchor="middle">name the exact broken invariant</text>
+            <text class="diagram-detail" x="997" y="359" text-anchor="middle">then test the remaining choices</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#mcq-safety)" d="M770 325 H860"></path>
+            <text class="diagram-edge-label" x="795" y="313">yes</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#mcq-feedback)" d="M997 280 V235 H770 V275"></path>
+            <text class="diagram-edge-label" x="820" y="225">repeat</text>
+
+            <rect class="diagram-node diagram-node--decision" x="435" y="435" width="310" height="70" rx="13"></rect>
+            <text class="diagram-title" x="590" y="464" text-anchor="middle">Choose the matching reasoning test</text>
+            <text class="diagram-detail" x="590" y="487" text-anchor="middle">mechanism · trade-off · diagnosis / evidence</text>
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M590 400 V430"></path>
+            <text class="diagram-edge-label" x="606" y="420">no invariant violation</text>
+
+            <rect class="diagram-node" x="25" y="545" width="250" height="100" rx="13"></rect>
+            <text class="diagram-title" x="150" y="577" text-anchor="middle">Mechanism question</text>
+            <text class="diagram-detail" x="150" y="602" text-anchor="middle">trace input → operation → output</text>
+            <text class="diagram-detail" x="150" y="624" text-anchor="middle">predict one failure</text>
+
+            <rect class="diagram-node diagram-node--decision" x="465" y="545" width="250" height="100" rx="13"></rect>
+            <text class="diagram-title" x="590" y="577" text-anchor="middle">“Which is better?”</text>
+            <text class="diagram-detail" x="590" y="602" text-anchor="middle">recover objective + constraints</text>
+            <text class="diagram-detail" x="590" y="624" text-anchor="middle">state the switch condition</text>
+
+            <rect class="diagram-node diagram-node--state" x="905" y="545" width="250" height="100" rx="13"></rect>
+            <text class="diagram-title" x="1030" y="577" text-anchor="middle">Diagnosis / evidence</text>
+            <text class="diagram-detail" x="1030" y="602" text-anchor="middle">find the first bad boundary</text>
+            <text class="diagram-detail" x="1030" y="624" text-anchor="middle">choose the falsifying test</text>
+
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M500 505 V525 H150 V540"></path>
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M590 505 V540"></path>
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M680 505 V525 H1030 V540"></path>
+
+            <rect class="diagram-node diagram-node--output" x="445" y="695" width="290" height="110" rx="13"></rect>
+            <text class="diagram-title" x="590" y="727" text-anchor="middle">Conditional answer</text>
+            <text class="diagram-detail" x="590" y="752" text-anchor="middle">choice + mechanism + condition</text>
+            <text class="diagram-detail" x="590" y="774" text-anchor="middle">nearest alternative + switch point</text>
+            <text class="diagram-detail" x="590" y="796" text-anchor="middle">submit, then review every option</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#mcq-support)" d="M150 645 V670 H500 V690"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#mcq-support)" d="M590 645 V690"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#mcq-support)" d="M1030 645 V670 H680 V690"></path>
+
+            <rect class="diagram-node diagram-node--safety" x="25" y="705" width="325" height="90" rx="13"></rect>
+            <text class="diagram-title" x="187" y="736" text-anchor="middle">If missed</text>
+            <text class="diagram-detail" x="187" y="761" text-anchor="middle">write a counterexample</text>
+            <text class="diagram-detail" x="187" y="783" text-anchor="middle">return to theory, derivation, or code</text>
+
+            <rect class="diagram-node diagram-node--state" x="830" y="705" width="325" height="90" rx="13"></rect>
+            <text class="diagram-title" x="992" y="736" text-anchor="middle">If correct</text>
+            <text class="diagram-detail" x="992" y="761" text-anchor="middle">explain the nearest distractor</text>
+            <text class="diagram-detail" x="992" y="783" text-anchor="middle">revisit after roughly 1, 7, and 21 days</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#mcq-safety)" d="M445 750 H355"></path>
+            <path class="diagram-edge" marker-end="url(#mcq-arrow)" d="M735 750 H825"></path>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="MCQ reasoning and review logic for small screens">
+          <li><span class="diagram-mobile-transition">Parse first</span><strong>Restate the requested output and every qualifier</strong><small>“Best,” “first,” metric, frame, sensor, failure mode, and deployment constraint change the answer.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">For each option</span><strong>Eliminate hard-invariant violations</strong><small>Name the broken frame, units, time, causality, observability, validity, resource, or stated-assumption contract.</small></li>
+          <li><span class="diagram-mobile-transition">For a mechanism question →</span><strong>Trace input → operation → output and predict a failure</strong><small>A memorized model name is not a causal explanation.</small></li>
+          <li><span class="diagram-mobile-transition">For “which is better?” →</span><strong>Recover the objective and constraints</strong><small>Choose conditionally and state what would make the nearest alternative better.</small></li>
+          <li><span class="diagram-mobile-transition">For diagnosis or evidence →</span><strong>Find the first bad boundary and its falsifying test</strong><small>Prefer the cause that predicts the residual’s direction, magnitude, and condition.</small></li>
+          <li class="is-support"><span class="diagram-mobile-transition">Submit</span><strong>Give the choice, mechanism, condition, and nearest alternative</strong><small>Then explain why every distractor fails under the stated assumptions.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">If missed →</span><strong>Write a counterexample and return to theory, derivation, or code</strong><small>Continue in <a href="coding.html">coding practice</a> or the linked chapter before retrying.</small></li>
+          <li><span class="diagram-mobile-transition">If correct →</span><strong>Explain the closest distractor and schedule recall</strong><small>Revisit after roughly 1, 7, and 21 days; confidence without explanation is not mastery.</small></li>
+        </ul>
+        <figcaption id="mcq-reasoning-caption"><span><strong>A strong answer is conditional and falsifiable:</strong> it names the mechanism that makes the choice work, the invariant that removes the distractor, and the condition that would change the decision. For a deeper worked tree, use <a href="autonomy-reasoning.html#logic-decisions">Autonomy reasoning</a>.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the answer graph →</span></figcaption>
+      </figure>
+    </section>
 
     <nav class="page-pagination" aria-label="Course pages">
       <a href="modern-cv.html"><span>Previous</span><strong>Modern CV</strong></a>

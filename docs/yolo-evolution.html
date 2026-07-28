@@ -705,17 +705,100 @@
         </div>
       </div>
 
-      <div class="content-card prose">
-        <h3>Decision tree</h3>
-        <ol class="step-list">
-          <li><strong>Must categories change at inference?</strong> If yes, test YOLOE / YOLOE-26 for text, visual, or prompt-free modes and YOLO-World for text-conditioned open vocabulary. If labels are fixed and domain-specific, continue with a closed-set detector.</li>
-          <li><strong>Must the exported graph avoid class-wise NMS?</strong> If yes, begin with YOLOv10 or the YOLO26 one-to-one path. Verify top-k support and output semantics in the target runtime. If no, dense YOLOv8, v9, YOLO11, v12, v13, or the YOLO26 NMS path remain candidates.</li>
-          <li><strong>Is the bottleneck CPU, mobile, or accelerator compatibility?</strong> Start from a small convolutional model with proven export support. YOLO26 removes DFL and NMS from its default path; YOLO11 or v8 can be simpler mature baselines. Do not assume attention is fast outside the GPU and kernel measured by its paper.</li>
-          <li><strong>Are tiny objects the dominant measured error?</strong> Compare resolution, tiling, P2 features, label quality, STAL, and temporal aggregation. Select the cheapest change that improves AP<sub>S</sub> and downstream recall without unacceptable false positives.</li>
-          <li><strong>Does complex cross-object context dominate?</strong> Add YOLOv12 and v13 as controlled candidates. Area attention models pairwise relations over areas; HyperACE models learned many-to-many relations. Keep the simpler FPN/PAN baseline until an ablation shows domain benefit.</li>
-          <li><strong>Is reproducibility or ecosystem maturity the strongest constraint?</strong> Prefer a pinned, well-supported repository and export path over a newer preprint. Record code commit, weights, license, preprocessing, and post-processing before comparing metrics.</li>
-        </ol>
-      </div>
+      <figure class="system-diagram system-diagram--wide" id="yolo-selection-figure" data-diagram="yolo-selection" data-diagram-kind="decision" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable constraint-first detector selection graph">
+          <svg class="system-diagram__canvas" id="yolo-selection-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 690" aria-labelledby="yolo-selection-title" aria-describedby="yolo-selection-desc yolo-selection-caption">
+            <title id="yolo-selection-title">Constraint-first graph for selecting a YOLO-family detector candidate</title>
+            <desc id="yolo-selection-desc">The graph starts from the required output and deployment contract, applies vocabulary, post-processing, target-runtime, and measured-error filters independently, intersects the surviving candidates, and decides only after a same-data target-runtime Pareto comparison. The branches are simultaneous filters rather than one exclusive version ladder.</desc>
+            <defs>
+              <marker id="yolo-select-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="yolo-select-support" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="yolo-select-safety" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-node diagram-node--decision" x="345" y="25" width="490" height="85" rx="13"></rect>
+            <text class="diagram-title" x="590" y="57" text-anchor="middle">Freeze the output and deployment contract</text>
+            <text class="diagram-detail" x="590" y="82" text-anchor="middle">vocabulary · box semantics · latency · memory · runtime · license</text>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M590 110 V155"></path>
+
+            <rect class="diagram-node diagram-node--state" x="390" y="155" width="400" height="75" rx="13"></rect>
+            <text class="diagram-title" x="590" y="185" text-anchor="middle">Apply all independent rejection filters</text>
+            <text class="diagram-detail" x="590" y="208" text-anchor="middle">one “yes” does not cancel the other constraints</text>
+
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M470 230 V265 H145 V300"></path>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M550 230 V265 H435 V300"></path>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M630 230 V265 H725 V300"></path>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M710 230 V265 H1015 V300"></path>
+
+            <rect class="diagram-node diagram-node--decision" x="25" y="300" width="240" height="95" rx="13"></rect>
+            <text class="diagram-title" x="145" y="331" text-anchor="middle">Vocabulary changes?</text>
+            <text class="diagram-detail" x="145" y="356" text-anchor="middle">fixed labels vs text / visual</text>
+            <text class="diagram-detail" x="145" y="378" text-anchor="middle">prompted or prompt-free</text>
+
+            <rect class="diagram-node diagram-node--decision" x="315" y="300" width="240" height="95" rx="13"></rect>
+            <text class="diagram-title" x="435" y="331" text-anchor="middle">NMS-free export required?</text>
+            <text class="diagram-detail" x="435" y="356" text-anchor="middle">one-to-one / top-k support</text>
+            <text class="diagram-detail" x="435" y="378" text-anchor="middle">or dense output + NMS</text>
+
+            <rect class="diagram-node diagram-node--decision" x="605" y="300" width="240" height="95" rx="13"></rect>
+            <text class="diagram-title" x="725" y="331" text-anchor="middle">Which runtime rejects it?</text>
+            <text class="diagram-detail" x="725" y="356" text-anchor="middle">CPU · mobile · GPU · NPU</text>
+            <text class="diagram-detail" x="725" y="378" text-anchor="middle">operator and exporter support</text>
+
+            <rect class="diagram-node diagram-node--decision" x="895" y="300" width="240" height="95" rx="13"></rect>
+            <text class="diagram-title" x="1015" y="331" text-anchor="middle">Which slice is failing?</text>
+            <text class="diagram-detail" x="1015" y="356" text-anchor="middle">tiny objects · context</text>
+            <text class="diagram-detail" x="1015" y="378" text-anchor="middle">domain shift · calibration</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#yolo-select-support)" d="M145 395 V435"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#yolo-select-support)" d="M435 395 V435"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#yolo-select-support)" d="M725 395 V435"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#yolo-select-support)" d="M1015 395 V435"></path>
+
+            <rect class="diagram-node diagram-node--output" x="25" y="435" width="240" height="115" rx="13"></rect>
+            <text class="diagram-title" x="145" y="466" text-anchor="middle">Vocabulary candidates</text>
+            <text class="diagram-detail" x="145" y="492" text-anchor="middle">changing: YOLOE / YOLO-World</text>
+            <text class="diagram-detail" x="145" y="514" text-anchor="middle">fixed: mature closed-set family</text>
+            <text class="diagram-detail" x="145" y="536" text-anchor="middle">test unknown + prompt behavior</text>
+
+            <rect class="diagram-node diagram-node--output" x="315" y="435" width="240" height="115" rx="13"></rect>
+            <text class="diagram-title" x="435" y="466" text-anchor="middle">Decode candidates</text>
+            <text class="diagram-detail" x="435" y="492" text-anchor="middle">NMS-free: v10 / YOLO26 E2E</text>
+            <text class="diagram-detail" x="435" y="514" text-anchor="middle">NMS allowed: dense paths</text>
+            <text class="diagram-detail" x="435" y="536" text-anchor="middle">verify exported semantics</text>
+
+            <rect class="diagram-node diagram-node--output" x="605" y="435" width="240" height="115" rx="13"></rect>
+            <text class="diagram-title" x="725" y="466" text-anchor="middle">Runtime candidates</text>
+            <text class="diagram-detail" x="725" y="492" text-anchor="middle">start with proven small conv</text>
+            <text class="diagram-detail" x="725" y="514" text-anchor="middle">add attention only if kernels fit</text>
+            <text class="diagram-detail" x="725" y="536" text-anchor="middle">profile the target, not the paper</text>
+
+            <rect class="diagram-node diagram-node--output" x="895" y="435" width="240" height="115" rx="13"></rect>
+            <text class="diagram-title" x="1015" y="466" text-anchor="middle">Error-driven candidates</text>
+            <text class="diagram-detail" x="1015" y="492" text-anchor="middle">tiny: labels / tile / P2 / STAL</text>
+            <text class="diagram-detail" x="1015" y="514" text-anchor="middle">context: v12 / v13 ablation</text>
+            <text class="diagram-detail" x="1015" y="536" text-anchor="middle">fix data before adding novelty</text>
+
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M145 550 V600 H390"></path>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M435 550 V580 H500 V600"></path>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M725 550 V580 H680 V600"></path>
+            <path class="diagram-edge" marker-end="url(#yolo-select-arrow)" d="M1015 550 V600 H790"></path>
+
+            <rect class="diagram-node diagram-node--safety" x="390" y="600" width="400" height="70" rx="13"></rect>
+            <text class="diagram-title" x="590" y="628" text-anchor="middle">Intersect survivors; benchmark the deployed system</text>
+            <text class="diagram-detail" x="590" y="651" text-anchor="middle">same data · exported engine · p50/p95/p99 · memory · AP slices · calibration</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Constraint-first detector selection logic for small screens">
+          <li><span class="diagram-mobile-transition">Start</span><strong>Freeze the output and deployment contract</strong><small>Vocabulary, box semantics, latency, memory, runtime, hardware, license, and post-processing boundary.</small></li>
+          <li><span class="diagram-mobile-transition">If categories change at inference →</span><strong>Test an open-vocabulary branch</strong><small>Begin with YOLOE or YOLO-World; measure seen/unseen AP, prompt sensitivity, unknown handling, export, and latency. Otherwise retain a closed-set baseline.</small></li>
+          <li><span class="diagram-mobile-transition">If class-wise NMS is disallowed →</span><strong>Test a one-to-one deploy path</strong><small>Begin with YOLOv10 or YOLO26 E2E and verify top-k/output semantics. If NMS is acceptable, dense paths remain candidates.</small></li>
+          <li><span class="diagram-mobile-transition">If CPU, mobile, or operator support is the bottleneck →</span><strong>Start with a proven small convolutional export</strong><small>Add attention-heavy candidates only after measuring their actual kernels on the target runtime.</small></li>
+          <li><span class="diagram-mobile-transition">If a measured slice dominates →</span><strong>Change the cheapest relevant mechanism first</strong><small>Tiny objects: labels, resolution, tiling, P2, STAL, or time. Context: controlled v12/v13 comparison against a simple neck.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">Decision gate</span><strong>Intersect every surviving branch and benchmark the complete deployed pipeline</strong><small>Choose from the same-data accuracy–latency–memory Pareto frontier; a version name cannot pass this gate.</small></li>
+        </ul>
+        <figcaption id="yolo-selection-caption"><span><strong>This is an intersection of filters, not a version ladder:</strong> the winner must satisfy vocabulary, decoding, hardware, failure-slice, reproducibility, and deployment evidence together.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the selection graph →</span></figcaption>
+      </figure>
 
       <div class="table-wrap table-wrap-wide">
         <table>

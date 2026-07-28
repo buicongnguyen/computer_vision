@@ -36,6 +36,18 @@ const ALL_CHAPTERS = [
   "projects.html",
   "sources.html"
 ];
+const DIAGRAM_PAGES = {
+  "autonomous-driving.html": 6,
+  "autonomy-reasoning.html": 8,
+  "bev.html": 2,
+  "calibration.html": 2,
+  "coding.html": 1,
+  "current-topics.html": 1,
+  "modern-cv.html": 2,
+  "perception.html": 1,
+  "practice.html": 1,
+  "yolo-evolution.html": 1
+};
 let staticServer;
 
 test.beforeAll(async () => {
@@ -367,5 +379,255 @@ test("non-book pages use only the legacy navigation controller", async ({ page }
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(nav).not.toHaveAttribute("data-open", "true");
   await expect(toggle).toBeFocused();
+  expect(failures).toEqual([]);
+});
+
+test("every learning diagram has responsive, overflow-aware desktop and mobile views", async ({
+  page
+}) => {
+  const failures = monitorFirstPartyFailures(page);
+  await page.setViewportSize({ width: 1280, height: 900 });
+
+  for (const [pageName, diagramCount] of Object.entries(DIAGRAM_PAGES)) {
+    await page.goto(`/docs/${pageName}`);
+    const figures = page.locator("[data-diagram]");
+    await expect(figures).toHaveCount(diagramCount);
+    await expect
+      .poll(async () => {
+        return figures.evaluateAll((items) => {
+          return items.every((figure) => figure.hasAttribute("data-overflow"));
+        });
+      })
+      .toBe(true);
+
+    const desktopState = await figures.evaluateAll((items) => {
+      return items.map((figure) => {
+        const viewport = figure.querySelector(".system-diagram__viewport");
+        const fallback = figure.querySelector(".diagram-mobile-flow");
+        const hint = figure.querySelector(".system-diagram__hint");
+        const renderedWidth = viewport.offsetWidth || viewport.clientWidth;
+        const actualOverflow = viewport.scrollWidth - renderedWidth > 2;
+        return {
+          actualOverflow,
+          declaredOverflow: figure.dataset.overflow === "true",
+          fallbackDisplay: getComputedStyle(fallback).display,
+          hintDisplay: getComputedStyle(hint).display,
+          label: viewport.getAttribute("aria-label"),
+          tabIndex: viewport.getAttribute("tabindex"),
+          viewportDisplay: getComputedStyle(viewport).display
+        };
+      });
+    });
+
+    for (const state of desktopState) {
+      expect(state.viewportDisplay).not.toBe("none");
+      expect(state.fallbackDisplay).toBe("none");
+      expect(state.declaredOverflow).toBe(state.actualOverflow);
+      if (state.actualOverflow) {
+        expect(state.hintDisplay).not.toBe("none");
+        expect(state.label).toMatch(/^Scrollable\b/);
+        expect(state.tabIndex).toBe("0");
+      } else {
+        expect(state.hintDisplay).toBe("none");
+        expect(state.label).not.toMatch(/^Scrollable\b/);
+        expect(state.tabIndex).toBeNull();
+      }
+    }
+    expect(
+      await page.evaluate(() => {
+        return (
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth + 1
+        );
+      })
+    ).toBe(true);
+
+    const colorsBefore = await figures.first().evaluate((figure) => {
+      const node = figure.querySelector(".diagram-node");
+      const edge = figure.querySelector(".diagram-edge");
+      const title = figure.querySelector(".diagram-title");
+      return {
+        fill: node ? getComputedStyle(node).fill : "",
+        stroke: edge ? getComputedStyle(edge).stroke : "",
+        text: title ? getComputedStyle(title).fill : ""
+      };
+    });
+    for (const value of Object.values(colorsBefore)) {
+      expect(value).not.toBe("");
+      expect(value).not.toBe("none");
+      expect(value).not.toBe("rgba(0, 0, 0, 0)");
+    }
+    await page.locator("[data-theme-toggle]").click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    const colorsAfter = await figures.first().evaluate((figure) => {
+      const node = figure.querySelector(".diagram-node");
+      const title = figure.querySelector(".diagram-title");
+      return {
+        fill: node ? getComputedStyle(node).fill : "",
+        text: title ? getComputedStyle(title).fill : ""
+      };
+    });
+    expect(colorsAfter.fill).not.toBe(colorsBefore.fill);
+    expect(colorsAfter.text).not.toBe(colorsBefore.text);
+    await page.locator("[data-theme-toggle]").click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect
+      .poll(async () => {
+        return figures.evaluateAll((items) => {
+          return items.every(
+            (figure) => figure.getAttribute("data-overflow") === "false"
+          );
+        });
+      })
+      .toBe(true);
+    const mobileState = await figures.evaluateAll((items) => {
+      return items.map((figure) => {
+        const viewport = figure.querySelector(".system-diagram__viewport");
+        const fallback = figure.querySelector(".diagram-mobile-flow");
+        return {
+          fallbackDisplay: getComputedStyle(fallback).display,
+          fallbackText: fallback.textContent.trim(),
+          tabIndex: viewport.getAttribute("tabindex"),
+          viewportDisplay: getComputedStyle(viewport).display
+        };
+      });
+    });
+    for (const state of mobileState) {
+      expect(state.viewportDisplay).toBe("none");
+      expect(state.fallbackDisplay).toBe("grid");
+      expect(state.fallbackText.length).toBeGreaterThan(40);
+      expect(state.tabIndex).toBeNull();
+    }
+    expect(
+      await page.evaluate(() => {
+        return (
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth + 1
+        );
+      })
+    ).toBe(true);
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+  }
+  expect(failures).toEqual([]);
+});
+
+test("rendered SVG labels stay inside every diagram viewBox", async ({ page }) => {
+  const failures = monitorFirstPartyFailures(page);
+  await page.setViewportSize({ width: 1400, height: 1000 });
+  const clippedLabels = [];
+
+  for (const pageName of Object.keys(DIAGRAM_PAGES)) {
+    await page.goto(`/docs/${pageName}`);
+    const pageFailures = await page.locator("[data-diagram-svg]").evaluateAll(
+      (svgs, currentPage) => {
+        const tolerance = 1;
+        return svgs.flatMap((svg) => {
+          const bounds = svg.viewBox.baseVal;
+          return [...svg.querySelectorAll("text")].flatMap((label) => {
+            const box = label.getBBox();
+            if (!box.width && !box.height) return [];
+            const outside =
+              box.x < bounds.x - tolerance ||
+              box.y < bounds.y - tolerance ||
+              box.x + box.width > bounds.x + bounds.width + tolerance ||
+              box.y + box.height > bounds.y + bounds.height + tolerance;
+            if (!outside) return [];
+            return [
+              {
+                page: currentPage,
+                diagram: svg.id,
+                text: label.textContent.trim(),
+                box: {
+                  x: Math.round(box.x),
+                  y: Math.round(box.y),
+                  width: Math.round(box.width),
+                  height: Math.round(box.height)
+                },
+                viewBox: {
+                  x: bounds.x,
+                  y: bounds.y,
+                  width: bounds.width,
+                  height: bounds.height
+                }
+              }
+            ];
+          });
+        });
+      },
+      pageName
+    );
+    clippedLabels.push(...pageFailures);
+  }
+
+  expect(clippedLabels).toEqual([]);
+  expect(failures).toEqual([]);
+});
+
+test("a clipped diagram exposes its hint and supports keyboard panning", async ({
+  page
+}) => {
+  const failures = monitorFirstPartyFailures(page);
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto("/docs/autonomous-driving.html");
+
+  const figure = page.locator('[data-diagram="closed-loop"]');
+  const viewport = figure.locator(".system-diagram__viewport");
+  await expect(figure).toHaveAttribute("data-overflow", "true");
+  await expect(viewport).toHaveAttribute("tabindex", "0");
+  await expect(figure.locator(".system-diagram__hint")).toBeVisible();
+
+  await viewport.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(async () => viewport.evaluate((element) => element.scrollLeft))
+    .toBeGreaterThan(0);
+  await expect(figure).toHaveAttribute(
+    "data-scroll-position",
+    /middle|end/
+  );
+
+  await viewport.evaluate((element) => {
+    element.scrollLeft = element.scrollWidth;
+    element.dispatchEvent(new Event("scroll"));
+  });
+  await expect(figure).toHaveAttribute("data-scroll-position", "end");
+  expect(failures).toEqual([]);
+});
+
+test("complex diagrams print the structured summary instead of a tiny wide SVG", async ({
+  page
+}) => {
+  const failures = monitorFirstPartyFailures(page);
+  await page.goto("/docs/modern-cv.html");
+  await page.emulateMedia({ media: "print" });
+
+  const figures = page.locator('[data-print-view="summary"]');
+  await expect(figures).toHaveCount(2);
+  for (const figure of await figures.all()) {
+    await expect(figure.locator(".system-diagram__viewport")).toBeHidden();
+    await expect(figure.locator(".diagram-mobile-flow")).toBeVisible();
+    const printStyles = await figure
+      .locator(".diagram-mobile-flow li")
+      .first()
+      .evaluate((element) => ({
+        background: getComputedStyle(element).backgroundColor,
+        color: getComputedStyle(element).color,
+        itemBreakInside: getComputedStyle(element).breakInside,
+        figureBreakInside: getComputedStyle(
+          element.closest(".system-diagram")
+        ).breakInside,
+        captionBreakInside: getComputedStyle(
+          element.closest(".system-diagram").querySelector("figcaption")
+        ).breakInside
+      }));
+    expect(printStyles.background).toBe("rgb(255, 255, 255)");
+    expect(printStyles.color).toBe("rgb(17, 17, 17)");
+    expect(printStyles.itemBreakInside).toBe("avoid");
+    expect(printStyles.figureBreakInside).toBe("auto");
+    expect(printStyles.captionBreakInside).toBe("avoid");
+  }
   expect(failures).toEqual([]);
 });

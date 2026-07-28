@@ -2085,6 +2085,7 @@ details > :not(summary) {
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scrollbar-gutter: stable;
+  touch-action: pan-x pan-y pinch-zoom;
   padding: clamp(0.85rem, 2vw, 1.4rem);
   background-image:
     linear-gradient(var(--line) 1px, transparent 1px),
@@ -2137,6 +2138,10 @@ details > :not(summary) {
   font-weight: 500;
 }
 
+.system-diagram[data-overflow="true"] .system-diagram__hint {
+  display: inline;
+}
+
 .diagram-lane {
   fill: color-mix(in srgb, var(--surface-2) 88%, transparent);
   stroke: var(--line);
@@ -2159,6 +2164,12 @@ details > :not(summary) {
 .diagram-node--state {
   fill: color-mix(in srgb, var(--violet) 8%, var(--surface-2));
   stroke: var(--violet);
+}
+
+.diagram-node--runtime {
+  fill: color-mix(in srgb, var(--muted) 7%, var(--surface-2));
+  stroke: var(--muted);
+  stroke-dasharray: 7 5;
 }
 
 .diagram-node--decision {
@@ -2303,17 +2314,66 @@ details > :not(summary) {
   color: var(--text);
 }
 
-.diagram-mobile-flow li + li {
+.diagram-mobile-flow--sequence li + li {
   margin-top: 1.5rem;
 }
 
-.diagram-mobile-flow li + li::before {
+.diagram-mobile-flow--sequence li + li::before {
   position: absolute;
   top: -1.4rem;
   left: 50%;
   transform: translateX(-50%);
   color: var(--cyan);
   content: "↓";
+}
+
+.diagram-mobile-flow--graph {
+  gap: 0.75rem;
+}
+
+.diagram-mobile-flow--graph li + li {
+  margin-top: 0;
+}
+
+.diagram-mobile-flow--graph li[data-relation]::before {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--cyan);
+  content: attr(data-relation);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.diagram-mobile-flow--graph li.is-support[data-relation]::before {
+  color: var(--violet);
+}
+
+.diagram-mobile-flow--graph li.is-safety[data-relation]::before {
+  color: var(--danger);
+}
+
+.diagram-mobile-transition {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--cyan);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.diagram-mobile-flow li.is-support .diagram-mobile-transition {
+  color: var(--violet);
+}
+
+.diagram-mobile-flow li.is-safety .diagram-mobile-transition {
+  color: var(--danger);
 }
 
 .diagram-mobile-flow li.is-support {
@@ -2913,10 +2973,6 @@ input[type="search"] {
 }
 
 @media (max-width: 1050px) {
-  .system-diagram__hint {
-    display: inline;
-  }
-
   .flow-list,
   .flow-list-compact,
   .algorithm-grid {
@@ -3052,7 +3108,8 @@ input[type="search"] {
   .diagram-node,
   .diagram-pose,
   .diagram-landmark,
-  .diagram-factor {
+  .diagram-factor,
+  .diagram-bar {
     fill: Canvas;
     stroke: CanvasText;
   }
@@ -3061,6 +3118,22 @@ input[type="search"] {
   .diagram-axis,
   .diagram-gridline {
     stroke: LinkText;
+  }
+
+  .diagram-arrowhead,
+  .diagram-arrowhead--support,
+  .diagram-arrowhead--feedback,
+  .diagram-arrowhead--safety {
+    fill: LinkText;
+  }
+
+  .diagram-kicker,
+  .diagram-lane-label,
+  .diagram-title,
+  .diagram-detail,
+  .diagram-edge-label,
+  .diagram-axis-label {
+    fill: CanvasText;
   }
 }
 
@@ -3103,6 +3176,49 @@ input[type="search"] {
     display: none;
   }
 
+  .system-diagram[data-print-view="summary"] .system-diagram__viewport {
+    display: none;
+  }
+
+  .system-diagram[data-print-view="summary"] {
+    break-inside: auto;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-flow,
+  .system-diagram[data-print-view="summary"] .diagram-mobile-bars {
+    display: grid;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-flow li,
+  .system-diagram[data-print-view="summary"] figcaption {
+    break-inside: avoid;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-flow li {
+    border-color: #555;
+    background: #fff;
+    color: #111;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-flow small,
+  .system-diagram[data-print-view="summary"] .diagram-mobile-bars {
+    color: #333;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-flow--graph li[data-relation]::before,
+  .system-diagram[data-print-view="summary"] .diagram-mobile-transition,
+  .system-diagram[data-print-view="summary"] .diagram-mobile-bars strong {
+    color: #111;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-flow--sequence li + li::before {
+    color: #222;
+  }
+
+  .system-diagram[data-print-view="summary"] .diagram-mobile-bars span {
+    background: #777;
+  }
+
   .diagram-lane,
   .diagram-node,
   .diagram-pose,
@@ -3122,6 +3238,30 @@ input[type="search"] {
   .diagram-axis-label,
   .diagram-lane-label {
     fill: #333;
+  }
+
+  .diagram-edge,
+  .diagram-edge--support,
+  .diagram-edge--feedback,
+  .diagram-edge--safety,
+  .diagram-axis {
+    stroke: #222;
+  }
+
+  .diagram-gridline {
+    stroke: #aaa;
+  }
+
+  .diagram-arrowhead,
+  .diagram-arrowhead--support,
+  .diagram-arrowhead--feedback,
+  .diagram-arrowhead--safety {
+    fill: #222;
+  }
+
+  .diagram-bar {
+    fill: #ddd;
+    stroke: #333;
   }
 }
 

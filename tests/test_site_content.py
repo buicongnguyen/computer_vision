@@ -283,20 +283,62 @@ def test_autonomy_reasoning_learning_flow_is_integrated() -> None:
         assert 'href="autonomy-reasoning.html' in referring_source
 
 
+DIAGRAM_MANIFEST = {
+    "autonomous-driving.html": {
+        "closed-loop": "flow",
+        "sensor-alignment": "flow",
+        "geometry-transform": "geometry",
+        "representation-choice": "decision",
+        "slam-factor-graph": "graph",
+        "planning-feedback": "flow",
+    },
+    "autonomy-reasoning.html": {
+        "evidence-thinking": "flow",
+        "async-data-flow": "flow",
+        "typed-code-pipeline": "data-flow",
+        "runtime-sequence": "sequence",
+        "health-fallback-state": "state",
+        "crosswalk-behavior-state": "state",
+        "question-decision-tree": "decision",
+        "overlay-debug-tree": "decision",
+    },
+    "bev.html": {
+        "bev-lift-splat": "data-flow",
+        "bev-representation-decision": "decision",
+    },
+    "calibration.html": {
+        "calibration-projection": "data-flow",
+        "online-calibration-state": "state",
+    },
+    "coding.html": {"coding-feedback": "feedback"},
+    "current-topics.html": {"lingbot-streaming": "feedback"},
+    "modern-cv.html": {
+        "detr-set-prediction": "training-inference",
+        "world-model-closed-loop": "feedback",
+    },
+    "perception.html": {"tracking-lifecycle": "state"},
+    "practice.html": {"mcq-reasoning": "decision"},
+    "yolo-evolution.html": {"yolo-selection": "decision"},
+}
+
+
 def _assert_diagrams_are_accessible_and_responsive(
     page_name: str,
-    expected_diagrams: set[str],
+    expected_diagrams: dict[str, str],
 ) -> None:
     source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
     styles = (DOCS_DIR / "styles.css").read_text(encoding="utf-8")
     diagram_blocks = list(
         re.finditer(
-            r'<figure\b[^>]*data-diagram="([^"]+)"[^>]*>(.*?)</figure>',
+            (
+                r'<figure\b(?P<before>[^>]*)data-diagram="(?P<name>[^"]+)"'
+                r'(?P<after>[^>]*)>(?P<body>.*?)</figure>'
+            ),
             source,
             flags=re.DOTALL,
         )
     )
-    assert {match.group(1) for match in diagram_blocks} == expected_diagrams
+    assert {match.group("name") for match in diagram_blocks} == set(expected_diagrams)
     assert len(diagram_blocks) == len(expected_diagrams)
 
     all_ids = re.findall(r'\bid="([^"]+)"', source)
@@ -304,7 +346,14 @@ def _assert_diagrams_are_accessible_and_responsive(
     known_ids = set(all_ids)
 
     for match in diagram_blocks:
-        diagram_name, block = match.groups()
+        diagram_name = match.group("name")
+        figure_markup = match.group("before") + match.group("after")
+        block = match.group("body")
+        kind = re.search(r'data-diagram-kind="([^"]+)"', figure_markup)
+        assert kind, diagram_name
+        assert kind.group(1) == expected_diagrams[diagram_name]
+        assert 'data-print-view="summary"' in figure_markup
+
         viewport = re.search(
             r'<div\b([^>]*)class="[^"]*system-diagram__viewport[^"]*"([^>]*)>',
             block,
@@ -321,7 +370,14 @@ def _assert_diagrams_are_accessible_and_responsive(
         assert "data-diagram-svg" in svg_markup
         assert 'role="img"' in svg_markup
         assert 'focusable="false"' in svg_markup
-        assert re.search(r'viewBox="(?:-?\d+(?:\.\d+)?\s+){3}-?\d+(?:\.\d+)?"', svg_markup)
+        view_box = re.search(
+            r'viewBox="(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+'
+            r'(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)"',
+            svg_markup,
+        )
+        assert view_box, diagram_name
+        assert float(view_box.group(3)) > 0
+        assert float(view_box.group(4)) > 0
 
         labelled = re.search(r'aria-labelledby="([^"]+)"', svg_markup)
         described = re.search(r'aria-describedby="([^"]+)"', svg_markup)
@@ -335,53 +391,108 @@ def _assert_diagrams_are_accessible_and_responsive(
         assert any(token.endswith("-desc") for token in described.group(1).split())
         assert any(token.endswith("-caption") for token in described.group(1).split())
         assert re.search(r'<desc\s+id="[^"]+">\s*[^<]+\s*</desc>', block)
-        assert re.search(r'<figcaption\s+id="[^"]+">.*?[^<\s].*?</figcaption>', block, re.DOTALL)
-        assert re.search(r'<ol\s+class="diagram-mobile-flow"\s+aria-label="[^"]+">', block)
+        assert re.search(
+            r'<figcaption\s+id="[^"]+">.*?<strong>[^<]+</strong>.*?</figcaption>',
+            block,
+            re.DOTALL,
+        )
+
+        mobile = re.search(
+            (
+                r'<(?:ol|ul)\b(?P<before>[^>]*)class="(?P<classes>[^"]*'
+                r'\bdiagram-mobile-flow\b[^"]*)"(?P<after>[^>]*)>'
+            ),
+            block,
+        )
+        assert mobile, diagram_name
+        mobile_markup = mobile.group("before") + mobile.group("after")
+        mobile_classes = set(mobile.group("classes").split())
+        assert re.search(r'aria-label="[^"]+"', mobile_markup)
+        assert mobile_classes.intersection(
+            {"diagram-mobile-flow--graph", "diagram-mobile-flow--sequence"}
+        )
+        if expected_diagrams[diagram_name] == "sequence":
+            assert "diagram-mobile-flow--sequence" in mobile_classes
+        if expected_diagrams[diagram_name] in {
+            "decision",
+            "feedback",
+            "graph",
+            "state",
+            "training-inference",
+        }:
+            assert "diagram-mobile-flow--graph" in mobile_classes
+        if "diagram-mobile-flow--graph" in mobile_classes:
+            mobile_list = re.search(
+                r'<(?:ol|ul)\b[^>]*\bdiagram-mobile-flow--graph\b[^>]*>'
+                r"(?P<body>.*?)</(?:ol|ul)>",
+                block,
+                flags=re.DOTALL,
+            )
+            assert mobile_list, diagram_name
+            assert (
+                'data-relation="' in mobile_list.group("body")
+                or "diagram-mobile-transition" in mobile_list.group("body")
+            ), f"{diagram_name} loses branch relations in its mobile summary"
+
+        svg_block = re.search(r"<svg\b.*?</svg>", block, flags=re.DOTALL)
+        assert svg_block, diagram_name
+        marker_ids = set(
+            re.findall(r'<marker\b[^>]*id="([^"]+)"', svg_block.group(0))
+        )
+        marker_references = set(
+            re.findall(r'url\(#([^)]+)\)', svg_block.group(0))
+        )
+        assert marker_references.issubset(marker_ids), (
+            diagram_name,
+            marker_references.difference(marker_ids),
+        )
         assert not re.search(r'(?:fill|stroke)="#[0-9a-fA-F]{3,8}"', block)
+        assert not re.search(r'<(?:svg|path|rect|circle|polygon|text)\b[^>]*style=', block)
 
     for required_rule in (
         ".system-diagram__viewport",
         ".system-diagram__canvas",
         ".diagram-mobile-flow",
+        ".diagram-mobile-flow--graph",
+        ".diagram-mobile-flow--sequence",
         ".diagram-edge--feedback",
+        '[data-overflow="true"]',
         "@media (max-width: 620px)",
         "@media (forced-colors: active)",
+        "@media print",
     ):
         assert required_rule in styles
 
 
-def test_autonomous_driving_diagrams_are_accessible_and_responsive() -> None:
-    expected_diagrams = {
-        "closed-loop",
-        "sensor-alignment",
-        "geometry-transform",
-        "representation-choice",
-        "slam-factor-graph",
-        "planning-feedback",
+def test_all_diagrams_match_the_accessible_responsive_manifest() -> None:
+    pages_with_diagrams = {
+        path.name
+        for path in DOCS_DIR.glob("*.html")
+        if 'data-diagram="' in path.read_text(encoding="utf-8")
     }
-    assert len(expected_diagrams) == 6
-    _assert_diagrams_are_accessible_and_responsive(
-        "autonomous-driving.html",
-        expected_diagrams,
-    )
+    assert pages_with_diagrams == set(DIAGRAM_MANIFEST)
+    assert sum(len(diagrams) for diagrams in DIAGRAM_MANIFEST.values()) == 25
+    for page_name, expected_diagrams in DIAGRAM_MANIFEST.items():
+        _assert_diagrams_are_accessible_and_responsive(
+            page_name,
+            expected_diagrams,
+        )
 
 
-def test_autonomy_reasoning_diagrams_are_accessible_and_responsive() -> None:
-    expected_diagrams = {
-        "evidence-thinking",
-        "async-data-flow",
-        "typed-code-pipeline",
-        "runtime-sequence",
-        "health-fallback-state",
-        "crosswalk-behavior-state",
-        "question-decision-tree",
-        "overlay-debug-tree",
-    }
-    assert len(expected_diagrams) == 8
-    _assert_diagrams_are_accessible_and_responsive(
-        "autonomy-reasoning.html",
-        expected_diagrams,
-    )
+def test_diagram_pages_stay_inside_static_rendering_budgets() -> None:
+    for page_name in DIAGRAM_MANIFEST:
+        source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
+        assert len(source.encode("utf-8")) < 180_000, page_name
+        assert len(re.findall(r"<[A-Za-z][^>]*>", source)) < 1_900, page_name
+        assert (
+            len(
+                re.findall(
+                    r"<(?:path|rect|circle|ellipse|line|polyline|polygon|text)\b",
+                    source,
+                )
+            )
+            < 850
+        ), page_name
 
 
 def test_quiz_bank_has_80_unique_well_formed_questions() -> None:

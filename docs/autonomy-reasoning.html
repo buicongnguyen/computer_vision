@@ -58,7 +58,7 @@
 
     <section id="thinking-loop" aria-labelledby="thinking-loop-heading">
       <div class="section-heading"><div><p class="eyebrow">Flow of thinking</p><h2 id="thinking-loop-heading">Turn every answer into a falsifiable engineering claim</h2></div><p>The loop returns to assumptions when evidence does not match the predicted mechanism.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="evidence-thinking-figure" data-diagram="evidence-thinking">
+      <figure class="system-diagram system-diagram--wide" id="evidence-thinking-figure" data-diagram="evidence-thinking" data-diagram-kind="flow" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable evidence-driven engineering thinking loop">
           <svg class="system-diagram__canvas" id="evidence-thinking-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 560" aria-labelledby="evidence-thinking-title" aria-describedby="evidence-thinking-desc evidence-thinking-caption">
             <title id="evidence-thinking-title">The evidence-driven engineering thinking loop</title>
@@ -83,14 +83,22 @@
             <path class="diagram-edge diagram-edge--feedback" marker-end="url(#thinking-feedback)" d="M30 290 H15 V55 H115 V75"></path><text class="diagram-edge-label" x="26" y="52">next problem</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Evidence-driven thinking loop for small screens"><li><strong>Restate output</strong><small>Name the required result and success criterion.</small></li><li><strong>Declare contract and assumptions</strong><small>Frame, time, units, validity, uncertainty and what is observable.</small></li><li><strong>Create an oracle</strong><small>Build the smallest case with known truth.</small></li><li><strong>Implement one stage</strong><small>Protect the transformation with invariant and boundary tests.</small></li><li><strong>Inject one fault</strong><small>Predict and measure the residual pattern.</small></li><li class="is-safety"><strong>If unsupported, revise one hypothesis</strong><small>Change the contract, assumption or implementation—not everything.</small></li><li><strong>If supported, explain conditionally</strong><small>State the choice, mechanism, condition and trade-off.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Evidence-driven thinking loop for small screens">
+          <li data-relation="Reason and test"><strong>Restate output</strong><small>Name the required result and success criterion.</small></li>
+          <li><strong>Declare contract and assumptions</strong><small>Frame, time, units, validity, uncertainty and what is observable.</small></li>
+          <li><strong>Create an oracle</strong><small>Build the smallest case with known truth.</small></li>
+          <li><strong>Implement one stage</strong><small>Protect the transformation with invariant and boundary tests.</small></li>
+          <li><strong>Inject one fault</strong><small>Predict and measure the residual pattern.</small></li>
+          <li class="is-safety" data-relation="Unsupported branch"><strong>If unsupported, revise one hypothesis</strong><small>Change the contract, assumption or implementation—not everything.</small></li>
+          <li data-relation="Supported branch"><strong>If supported, explain conditionally</strong><small>State the choice, mechanism, condition and trade-off.</small></li>
+        </ol>
         <figcaption id="evidence-thinking-caption"><span><strong>A correct answer is a supported claim:</strong> begin with the output contract and return to assumptions when evidence disagrees.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the loop →</span></figcaption>
       </figure>
     </section>
 
     <section id="data-contract-flow" aria-labelledby="data-contract-flow-heading">
       <div class="section-heading"><div><p class="eyebrow">Flow of data</p><h2 id="data-contract-flow-heading">The payload plane and the trust plane must travel together</h2></div><p>“Latest message from each sensor” is not a synchronization policy: it can combine observations of different physical scenes.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="async-data-flow-figure" data-diagram="async-data-flow">
+      <figure class="system-diagram system-diagram--wide" id="async-data-flow-figure" data-diagram="async-data-flow" data-diagram-kind="flow" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable asynchronous sensor data-flow and health-supervision graph">
           <svg class="system-diagram__canvas" id="async-data-flow-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 620" aria-labelledby="async-data-flow-title" aria-describedby="async-data-flow-desc async-data-flow-caption">
             <title id="async-data-flow-title">Asynchronous sensor data-flow with health supervision</title>
@@ -117,7 +125,15 @@
             <path class="diagram-edge diagram-edge--safety" marker-end="url(#async-safety)" d="M580 537 H685"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#async-safety)" d="M900 537 H975"></path><path class="diagram-edge diagram-edge--support" marker-end="url(#async-support)" d="M1030 375 V455 H1060 V495"></path>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Asynchronous data-flow for small screens"><li><strong>Timestamped producers</strong><small>Never overwrite sensor capture time with arrival time.</small></li><li><strong>Bounded per-sensor queues</strong><small>Order by sensor time and declare the overload/drop policy.</small></li><li><strong>Contract gate</strong><small>Check schema, clocks, age, skew, transform version and pose coverage.</small></li><li><strong>Align at t_ref</strong><small>Interpolate pose, deskew, transform and preserve validity.</small></li><li><strong>Parallel sensor frontends</strong><small>Features keep their frame and reference time.</small></li><li><strong>Fusion and immutable snapshot</strong><small>Publish WorldState with version, uncertainty and missing-sensor mask.</small></li><li class="is-safety"><strong>Health side path</strong><small>Instrumented stages report age, drops, validity and latency; the safety decision and WorldState jointly gate planning.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Asynchronous data-flow for small screens">
+          <li data-relation="Payload plane"><strong>Timestamped producers</strong><small>Never overwrite sensor capture time with arrival time.</small></li>
+          <li><strong>Bounded per-sensor queues</strong><small>Order by sensor time and declare the overload/drop policy.</small></li>
+          <li><strong>Contract gate</strong><small>Check schema, clocks, age, skew, transform version and pose coverage.</small></li>
+          <li><strong>Align at t_ref</strong><small>Interpolate pose, deskew, transform and preserve validity.</small></li>
+          <li data-relation="Parallel branches"><strong>Parallel sensor frontends</strong><small>Features keep their frame and reference time.</small></li>
+          <li><strong>Fusion and immutable snapshot</strong><small>Publish WorldState with version, uncertainty and missing-sensor mask.</small></li>
+          <li class="is-safety" data-relation="Health plane"><strong>Health side path</strong><small>Instrumented stages report age, drops, validity and latency; the safety decision and WorldState jointly gate planning.</small></li>
+        </ol>
         <figcaption id="async-data-flow-caption"><span><strong>Two planes travel together:</strong> payload creates the world state; metadata and health determine whether planning may trust it.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the data flow →</span></figcaption>
       </figure>
       <div class="evolution-table" role="table" aria-label="Timestamp alignment policy choices">
@@ -131,7 +147,7 @@
 
     <section id="code-traces" aria-labelledby="code-traces-heading">
       <div class="section-heading"><div><p class="eyebrow">Flow of code</p><h2 id="code-traces-heading">Make frame, time and validity part of the type contract</h2></div><p>Ambiguous arrays make geometry bugs global. Typed stages localize the first violated invariant.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="typed-code-pipeline-figure" data-diagram="typed-code-pipeline">
+      <figure class="system-diagram system-diagram--wide" id="typed-code-pipeline-figure" data-diagram="typed-code-pipeline" data-diagram-kind="data-flow" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable typed LiDAR-to-collision code pipeline">
           <svg class="system-diagram__canvas" id="typed-code-pipeline-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 540" aria-labelledby="typed-code-pipeline-title" aria-describedby="typed-code-pipeline-desc typed-code-pipeline-caption">
             <title id="typed-code-pipeline-title">Typed LiDAR-to-collision code pipeline</title>
@@ -153,7 +169,7 @@
             <path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M290 215 V330"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M475 215 V330"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M660 215 V280 H520 V330"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M845 215 V280 H550 V330"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M1050 215 H1160 V490 H405 V425"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M660 420 V450 H500 V425"></path><path class="diagram-edge diagram-edge--safety" marker-end="url(#code-safety)" d="M865 420 V470 H520 V425"></path>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Typed code pipeline for small screens"><li><strong>Packet + metadata</strong><small>Range, angles, return ID, point time, frame and calibration version.</small></li><li><strong>Validate returns</strong><small>Finite values, legal ranges, units and explicit validity mask.</small></li><li><strong>Cartesian points in LiDAR frame</strong><small>Axis convention and acquisition time remain attached.</small></li><li><strong>Deskew to ego/reference time</strong><small>Require pose coverage and valid transforms.</small></li><li><strong>Voxelize deterministically</strong><small>Half-open bounds, explicit reducer and point counts.</small></li><li><strong>Infer free/occupied/unknown</strong><small>Preserve origin, resolution, confidence and validity.</small></li><li><strong>Check timestamped trajectory</strong><small>Return first contact, clearance, unknown exposure and trace.</small></li><li class="is-safety"><strong>Any invalid contract → TypedError</strong><small>Never silently manufacture valid-looking data.</small></li></ol>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Typed code pipeline and global error branch for small screens"><li data-relation="Main value path · input"><strong>Packet + metadata</strong><small>Range, angles, return ID, point time, frame and calibration version.</small></li><li data-relation="Then validate"><strong>Validate returns</strong><small>Finite values, legal ranges, units and explicit validity mask.</small></li><li data-relation="Then convert"><strong>Cartesian points in LiDAR frame</strong><small>Axis convention and acquisition time remain attached.</small></li><li data-relation="Then align time and frame"><strong>Deskew to ego/reference time</strong><small>Require pose coverage and valid transforms.</small></li><li data-relation="Then discretize"><strong>Voxelize deterministically</strong><small>Half-open bounds, explicit reducer and point counts.</small></li><li data-relation="Then infer spatial state"><strong>Infer free/occupied/unknown</strong><small>Preserve origin, resolution, confidence and validity.</small></li><li data-relation="Then query the trajectory"><strong>Check timestamped trajectory</strong><small>Return first contact, clearance, unknown exposure and trace.</small></li><li class="is-safety" data-relation="Global branch from every stage"><strong>Any invalid contract → TypedError</strong><small>Every stage can reject with stage, reason, indices, and recovery policy; never manufacture valid-looking data.</small></li></ul>
         <figcaption id="typed-code-pipeline-caption"><span><strong>Code becomes easier to reason about when types carry geometry:</strong> each transition has a testable input, output and rejection reason.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the code flow →</span></figcaption>
       </figure>
       <div class="split-section">
@@ -175,7 +191,7 @@
 
     <section id="sequence" aria-labelledby="sequence-heading">
       <div class="section-heading"><div><p class="eyebrow">Sequence diagram</p><h2 id="sequence-heading">One runtime cycle has several clocks and one deadline</h2></div><p>Timestamp, arrival time and processing time answer different questions. A correct algorithm with the wrong time can still be physically wrong.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="runtime-sequence-figure" data-diagram="runtime-sequence">
+      <figure class="system-diagram system-diagram--wide" id="runtime-sequence-figure" data-diagram="runtime-sequence" data-diagram-kind="sequence" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable autonomous-driving runtime sequence diagram">
           <svg class="system-diagram__canvas" id="runtime-sequence-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 680" aria-labelledby="runtime-sequence-title" aria-describedby="runtime-sequence-desc runtime-sequence-caption">
             <title id="runtime-sequence-title">One autonomous-driving runtime cycle as a sequence</title>
@@ -203,14 +219,14 @@
             <path class="diagram-edge diagram-edge--feedback" marker-end="url(#sequence-feedback)" d="M1125 625 H1145 V655 H95 V635"></path><text class="diagram-edge-label" x="500" y="650">Action changes the next observation distribution</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Runtime sequence for small screens"><li><strong>Sensors stamp asynchronous evidence</strong><small>Capture time is distinct from arrival and processing time.</small></li><li><strong>Estimator publishes a pose spline</strong><small>Transforms are queryable at the observation time.</small></li><li><strong>Planner requests t_ref with a deadline</strong><small>The synchronizer must not wait indefinitely.</small></li><li><strong>Buffer validates and aligns</strong><small>Select, interpolate, deskew, transform and compute age/skew.</small></li><li><strong>World model publishes one snapshot</strong><small>Tracks, occupancy, map and uncertainty share t_ref.</small></li><li><strong>Planner proposes a trajectory</strong><small>Pose, velocity, acceleration, horizon and feasibility are explicit.</small></li><li class="is-safety"><strong>Safety accepts or substitutes fallback</strong><small>Check freshness, collision, dynamics and command timing.</small></li><li><strong>Action changes the next observation</strong><small>The closed loop creates interaction and compounding error.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--sequence" aria-label="Runtime sequence for small screens"><li><strong>Sensors stamp asynchronous evidence</strong><small>Capture time is distinct from arrival and processing time.</small></li><li><strong>Estimator publishes a pose spline</strong><small>Transforms are queryable at the observation time.</small></li><li><strong>Planner requests t_ref with a deadline</strong><small>The synchronizer must not wait indefinitely.</small></li><li><strong>Buffer validates and aligns</strong><small>Select, interpolate, deskew, transform and compute age/skew.</small></li><li><strong>World model publishes one snapshot</strong><small>Tracks, occupancy, map and uncertainty share t_ref.</small></li><li><strong>Planner proposes a trajectory</strong><small>Pose, velocity, acceleration, horizon and feasibility are explicit.</small></li><li class="is-safety"><strong>Safety accepts or substitutes fallback</strong><small>Check freshness, collision, dynamics and command timing.</small></li><li><strong>Action changes the next observation</strong><small>The closed loop creates interaction and compounding error.</small></li></ol>
         <figcaption id="runtime-sequence-caption"><span><strong>Timestamp ≠ arrival time ≠ processing time:</strong> a runtime cycle is valid only when its snapshot and command meet the declared temporal contract.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the sequence →</span></figcaption>
       </figure>
     </section>
 
     <section id="state-machine" aria-labelledby="state-machine-heading">
       <div class="section-heading"><div><p class="eyebrow">State-machine diagrams</p><h2 id="state-machine-heading">Use memory and guarded transitions instead of frame-by-frame reactions</h2></div><p>Hysteresis prevents oscillation; hard faults bypass degraded operation when delay would be unsafe.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="health-fallback-state-figure" data-diagram="health-fallback-state">
+      <figure class="system-diagram system-diagram--wide" id="health-fallback-state-figure" data-diagram="health-fallback-state" data-diagram-kind="state" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable operational health and fallback state machine">
           <svg class="system-diagram__canvas" id="health-fallback-state-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 540" aria-labelledby="health-fallback-state-title" aria-describedby="health-fallback-state-desc health-fallback-state-caption">
             <title id="health-fallback-state-title">Operational data-health and fallback state machine</title>
@@ -233,11 +249,18 @@
             <path class="diagram-edge diagram-edge--safety" marker-end="url(#health-safety)" d="M1065 320 Q980 430 850 325"></path><text class="diagram-edge-label" x="930" y="410">check fails</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Health and fallback state machine for small screens"><li><strong>INIT</strong><small>Require valid calibration, synchronized clocks, bounded pose covariance and N valid snapshots.</small></li><li><strong>NOMINAL</strong><small>Run the full declared ODD capability.</small></li><li class="is-support"><strong>Soft fault → DEGRADED</strong><small>Reduce speed, enlarge margins and disable the dependent feature.</small></li><li class="is-safety"><strong>Hard/persistent fault → MINIMAL RISK</strong><small>Controlled stop or emergency action; latch the cause.</small></li><li><strong>Stopped + cause clear → RECOVERY</strong><small>Require reset and repeated clock, calibration, actuator and perception checks.</small></li><li class="is-safety"><strong>Recovery failure → remain stopped</strong><small>A single healthy frame cannot clear a persistent fault.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Health and fallback state machine for small screens">
+          <li data-relation="Initial state"><strong>INIT</strong><small>Require valid calibration, synchronized clocks, bounded pose covariance and N valid snapshots.</small></li>
+          <li data-relation="Ready transition"><strong>NOMINAL</strong><small>Run the full declared ODD capability.</small></li>
+          <li class="is-support" data-relation="Soft-fault transition"><strong>Soft fault → DEGRADED</strong><small>Reduce speed, enlarge margins and disable the dependent feature.</small></li>
+          <li class="is-safety" data-relation="Hard-fault transition"><strong>Hard/persistent fault → MINIMAL RISK</strong><small>Controlled stop or emergency action; latch the cause.</small></li>
+          <li data-relation="Guarded recovery"><strong>Stopped + cause clear → RECOVERY</strong><small>Require reset and repeated clock, calibration, actuator and perception checks.</small></li>
+          <li class="is-safety" data-relation="Failed guard"><strong>Recovery failure → remain stopped</strong><small>A single healthy frame cannot clear a persistent fault.</small></li>
+        </ol>
         <figcaption id="health-fallback-state-caption"><span><strong>Recovery is a guarded transition:</strong> hysteresis and repeated healthy evidence prevent unsafe frame-by-frame mode changes.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the state machine →</span></figcaption>
       </figure>
 
-      <figure class="system-diagram system-diagram--wide" id="crosswalk-behavior-state-figure" data-diagram="crosswalk-behavior-state">
+      <figure class="system-diagram system-diagram--wide" id="crosswalk-behavior-state-figure" data-diagram="crosswalk-behavior-state" data-diagram-kind="state" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable occluded-crosswalk behavior state machine">
           <svg class="system-diagram__canvas" id="crosswalk-behavior-state-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 610" aria-labelledby="crosswalk-behavior-state-title" aria-describedby="crosswalk-behavior-state-desc crosswalk-behavior-state-caption">
             <title id="crosswalk-behavior-state-title">Behavior state machine for an occluded crosswalk</title>
@@ -264,14 +287,22 @@
             <path class="diagram-edge diagram-edge--safety" marker-end="url(#crosswalk-safety)" d="M565 470 Q610 150 685 145"></path><text class="diagram-edge-label" x="588" y="335">full stop + cause latched</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Occluded-crosswalk state machine for small screens"><li><strong>CRUISE → APPROACH</strong><small>Crosswalk enters the route corridor; lower speed and request visibility.</small></li><li><strong>APPROACH</strong><small>Repeated clear evidence permits PROCEED; occupancy or occlusion enters YIELD.</small></li><li><strong>YIELD → STOPPED</strong><small>Stop at the line; critical TTC enters EMERGENCY BRAKE.</small></li><li><strong>STOPPED → CREEP</strong><small>After dwell, move only if the creep path is free and visibility remains blocked.</small></li><li><strong>CREEP</strong><small>New risk returns to YIELD; recovered visibility and repeated clearance permit PROCEED.</small></li><li><strong>PROCEED → CRUISE</strong><small>Only after the rear footprint clears the crosswalk.</small></li><li class="is-safety"><strong>Any moving state → EMERGENCY BRAKE</strong><small>Hard TTC guard overrides the normal behavior sequence.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Occluded-crosswalk state machine for small screens">
+          <li data-relation="Normal transition"><strong>CRUISE → APPROACH</strong><small>Crosswalk enters the route corridor; lower speed and request visibility.</small></li>
+          <li data-relation="Clear / blocked branches"><strong>APPROACH</strong><small>Repeated clear evidence permits PROCEED; occupancy or occlusion enters YIELD.</small></li>
+          <li><strong>YIELD → STOPPED</strong><small>Stop at the line; critical TTC enters EMERGENCY BRAKE.</small></li>
+          <li><strong>STOPPED → CREEP</strong><small>After dwell, move only if the creep path is free and visibility remains blocked.</small></li>
+          <li data-relation="Feedback transitions"><strong>CREEP</strong><small>New risk returns to YIELD; recovered visibility and repeated clearance permit PROCEED.</small></li>
+          <li><strong>PROCEED → CRUISE</strong><small>Only after the rear footprint clears the crosswalk.</small></li>
+          <li class="is-safety" data-relation="Safety override"><strong>Any moving state → EMERGENCY BRAKE</strong><small>Hard TTC guard overrides the normal behavior sequence.</small></li>
+        </ol>
         <figcaption id="crosswalk-behavior-state-caption"><span><strong>Unknown space is not free space:</strong> detector scores provide evidence, while memory, visibility, legal guards and emergency transitions determine behavior.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the behavior states →</span></figcaption>
       </figure>
     </section>
 
     <section id="logic-decisions" aria-labelledby="logic-decisions-heading">
       <div class="section-heading"><div><p class="eyebrow">Logic decision tree</p><h2 id="logic-decisions-heading">Eliminate unjustified answers before comparing plausible ones</h2></div><p>Advanced distractors are often conditionally true claims with the condition removed.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="question-decision-tree-figure" data-diagram="question-decision-tree">
+      <figure class="system-diagram system-diagram--wide" id="question-decision-tree-figure" data-diagram="question-decision-tree" data-diagram-kind="decision" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable decision tree for answering system questions">
           <svg class="system-diagram__canvas" id="question-decision-tree-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 770" aria-labelledby="question-decision-tree-title" aria-describedby="question-decision-tree-desc question-decision-tree-caption">
             <title id="question-decision-tree-title">Decision tree for answering computer-vision system questions</title>
@@ -293,7 +324,15 @@
             <rect class="diagram-node diagram-node--output" x="400" y="650" width="380" height="85" rx="13"></rect><text class="diagram-title" x="590" y="681" text-anchor="middle">Answer conditionally</text><text class="diagram-detail" x="590" y="706" text-anchor="middle">choice + mechanism + boundary</text><text class="diagram-detail" x="590" y="727" text-anchor="middle">reject closest distractor</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Question decision tree for small screens"><li><strong>Restate exactly what is asked</strong><small>Choice, diagnosis, architecture label or evidence?</small></li><li class="is-safety"><strong>Eliminate hard-invariant violations</strong><small>Frame, time, units, causality, observability, validity, uncertainty and safety.</small></li><li><strong>For method choice</strong><small>Recover objective and constraints; reject “always best” answers.</small></li><li><strong>For diagnosis</strong><small>Find the first bad boundary and match mechanism to symptom.</small></li><li><strong>For architecture labels</strong><small>Infer only from declared inputs, outputs and training boundary.</small></li><li><strong>For evidence</strong><small>Match geometry, perception, planning or safety claim to the correct evaluation level.</small></li><li><strong>Answer conditionally</strong><small>Choose, state mechanism and condition, then reject the closest distractor’s broken assumption.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Question decision tree for small screens">
+          <li data-relation="Question root"><strong>Restate exactly what is asked</strong><small>Choice, diagnosis, architecture label or evidence?</small></li>
+          <li class="is-safety" data-relation="Hard-invariant gate"><strong>Eliminate hard-invariant violations</strong><small>Frame, time, units, causality, observability, validity, uncertainty and safety.</small></li>
+          <li data-relation="Method-choice branch"><strong>For method choice</strong><small>Recover objective and constraints; reject “always best” answers.</small></li>
+          <li data-relation="Diagnosis branch"><strong>For diagnosis</strong><small>Find the first bad boundary and match mechanism to symptom.</small></li>
+          <li data-relation="Architecture branch"><strong>For architecture labels</strong><small>Infer only from declared inputs, outputs and training boundary.</small></li>
+          <li data-relation="Evidence branch"><strong>For evidence</strong><small>Match geometry, perception, planning or safety claim to the correct evaluation level.</small></li>
+          <li data-relation="Converged answer"><strong>Answer conditionally</strong><small>Choose, state mechanism and condition, then reject the closest distractor’s broken assumption.</small></li>
+        </ol>
         <figcaption id="question-decision-tree-caption"><span><strong>Use a different test for each question type:</strong> the final answer states both why the choice works and when it stops being true.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the decision tree →</span></figcaption>
       </figure>
       <div class="evolution-table" role="table" aria-label="Claim to evidence matching">
@@ -307,7 +346,7 @@
 
     <section id="fault-localization" aria-labelledby="fault-localization-heading">
       <div class="section-heading"><div><p class="eyebrow">Causal debugging</p><h2 id="fault-localization-heading">Diagnose the shape of the residual before changing parameters</h2></div><p>A cause is credible when it predicts error direction and magnitude, not when random tuning improves one image.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="overlay-debug-tree-figure" data-diagram="overlay-debug-tree">
+      <figure class="system-diagram system-diagram--wide" id="overlay-debug-tree-figure" data-diagram="overlay-debug-tree" data-diagram-kind="decision" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable camera-LiDAR overlay debugging tree">
           <svg class="system-diagram__canvas" id="overlay-debug-tree-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 670" aria-labelledby="overlay-debug-tree-title" aria-describedby="overlay-debug-tree-desc overlay-debug-tree-caption">
             <title id="overlay-debug-tree-title">Causal diagnosis tree for camera–LiDAR misalignment</title>
@@ -331,7 +370,16 @@
             <rect class="diagram-node diagram-node--output" x="230" y="605" width="720" height="50" rx="12"></rect><text class="diagram-title" x="590" y="636" text-anchor="middle">Predict residual → inject one fault → compare → confirm/reject → regression test</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Camera-LiDAR debugging tree for small screens"><li><strong>Bad overlay</strong><small>Describe residual direction, magnitude, location and motion dependence.</small></li><li><strong>Motion-dependent</strong><small>Inspect clocks, point times, pose interpolation, deskew and rolling shutter.</small></li><li><strong>Near-constant offset</strong><small>Test transform direction/axes together with principal point, crop and resized-intrinsic hypotheses.</small></li><li><strong>Edge-growing error</strong><small>Inspect distortion, aspect/resized intrinsics, focal length and camera-model mismatch.</small></li><li><strong>Occlusion-boundary error</strong><small>Inspect depth ordering, z-buffering, point sparsity and dynamic surfaces.</small></li><li><strong>Range/height trend</strong><small>Inspect pitch, ground assumption, scale and dynamic objects.</small></li><li><strong>No structure</strong><small>Inspect invalid values, units, frame IDs and mixed data.</small></li><li class="is-support"><strong>Confirm causally</strong><small>Inject one predicted fault into a known-good case and compare the residual pattern.</small></li></ol>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Camera-LiDAR debugging tree for small screens">
+          <li data-relation="Observed symptom"><strong>Bad overlay</strong><small>Describe residual direction, magnitude, location and motion dependence.</small></li>
+          <li data-relation="Motion-dependent branch"><strong>Motion-dependent</strong><small>Inspect clocks, point times, pose interpolation, deskew and rolling shutter.</small></li>
+          <li data-relation="Constant-offset branch"><strong>Near-constant offset</strong><small>Test transform direction/axes together with principal point, crop and resized-intrinsic hypotheses.</small></li>
+          <li data-relation="Spatial-pattern branches"><strong>Edge-growing error</strong><small>Inspect distortion, aspect/resized intrinsics, focal length and camera-model mismatch.</small></li>
+          <li><strong>Occlusion-boundary error</strong><small>Inspect depth ordering, z-buffering, point sparsity and dynamic surfaces.</small></li>
+          <li><strong>Range/height trend</strong><small>Inspect pitch, ground assumption, scale and dynamic objects.</small></li>
+          <li><strong>No structure</strong><small>Inspect invalid values, units, frame IDs and mixed data.</small></li>
+          <li class="is-support" data-relation="Causal check"><strong>Confirm causally</strong><small>Inject one predicted fault into a known-good case and compare the residual pattern.</small></li>
+        </ol>
         <figcaption id="overlay-debug-tree-caption"><span><strong>Debug by prediction, not parameter search:</strong> each candidate cause must explain the spatial and temporal structure of the error.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the debugging tree →</span></figcaption>
       </figure>
       <div class="evolution-table" role="table" aria-label="Closed-loop perturbation matrix">

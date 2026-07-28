@@ -349,6 +349,96 @@
     return window.location.pathname.split("/").pop() || "index.html";
   }
 
+  function initializeDiagrams() {
+    var OVERFLOW_TOLERANCE = 2;
+    var diagrams = Array.from(document.querySelectorAll("[data-diagram]")).map(
+      function (figure) {
+        var viewport = figure.querySelector(".system-diagram__viewport");
+        if (!viewport) {
+          return null;
+        }
+
+        var scrollLabel = viewport.getAttribute("aria-label") || "Scrollable diagram";
+        var staticLabel = scrollLabel.replace(/^Scrollable\b[\s:–—-]*/i, "");
+        return {
+          figure: figure,
+          viewport: viewport,
+          canvas: viewport.querySelector("[data-diagram-svg]"),
+          scrollLabel: scrollLabel,
+          staticLabel: staticLabel || "Diagram"
+        };
+      }
+    ).filter(Boolean);
+
+    if (!diagrams.length) {
+      return;
+    }
+
+    var animationFrame = 0;
+
+    function updateDiagram(diagram) {
+      var viewport = diagram.viewport;
+      var visibleWidth = viewport.offsetWidth || viewport.clientWidth;
+      var maximumScroll = Math.max(0, viewport.scrollWidth - visibleWidth);
+      var overflows = maximumScroll > OVERFLOW_TOLERANCE;
+      var position = "none";
+
+      if (overflows) {
+        if (viewport.scrollLeft <= OVERFLOW_TOLERANCE) {
+          position = "start";
+        } else if (viewport.scrollLeft >= maximumScroll - OVERFLOW_TOLERANCE) {
+          position = "end";
+        } else {
+          position = "middle";
+        }
+      }
+
+      diagram.figure.setAttribute("data-overflow", String(overflows));
+      diagram.figure.setAttribute("data-scroll-position", position);
+      viewport.setAttribute(
+        "aria-label",
+        overflows ? diagram.scrollLabel : diagram.staticLabel
+      );
+
+      if (overflows) {
+        viewport.setAttribute("tabindex", "0");
+      } else {
+        viewport.removeAttribute("tabindex");
+      }
+    }
+
+    function updateAllDiagrams() {
+      animationFrame = 0;
+      diagrams.forEach(updateDiagram);
+    }
+
+    function scheduleUpdate() {
+      if (!animationFrame) {
+        animationFrame = window.requestAnimationFrame(updateAllDiagrams);
+      }
+    }
+
+    diagrams.forEach(function (diagram) {
+      diagram.viewport.addEventListener("scroll", function () {
+        updateDiagram(diagram);
+      }, { passive: true });
+    });
+
+    if (typeof window.ResizeObserver === "function") {
+      var observer = new window.ResizeObserver(scheduleUpdate);
+      diagrams.forEach(function (diagram) {
+        observer.observe(diagram.viewport);
+        if (diagram.canvas) {
+          observer.observe(diagram.canvas);
+        }
+      });
+    } else {
+      window.addEventListener("resize", scheduleUpdate);
+    }
+
+    scheduleUpdate();
+  }
+
   function readBookmarks() {
     try {
       var stored = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY) || "[]");
@@ -996,6 +1086,7 @@
   if (!bookReaderInitialized) {
     initializeNavigation();
   }
+  initializeDiagrams();
   setCurrentNavigation();
   initializeProgress();
 

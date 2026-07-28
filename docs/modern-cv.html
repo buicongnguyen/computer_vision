@@ -272,13 +272,103 @@ Lset = Σᵢ [ Lclass(cᵢ, ĉσ̂(i))
         <p>The Hungarian assignment makes duplicates expensive: only one query can own a target. The decoder therefore learns both <em>what</em> an object is and <em>which query</em> should claim it.</p>
 
         <h3>Mechanism trace</h3>
-        <ol>
-          <li>The backbone converts the image into spatial features.</li>
-          <li>Position information prevents permutation-invariant attention from losing layout.</li>
-          <li>Object queries cross-attend to features and compete to explain the target set.</li>
-          <li>Bipartite matching creates a discrete training assignment.</li>
-          <li>Classification and box losses update matched pairs; unmatched queries learn “no object.”</li>
-        </ol>
+        <figure class="system-diagram system-diagram--wide" id="detr-set-prediction-figure" data-diagram="detr-set-prediction" data-diagram-kind="training-inference" data-print-view="summary">
+          <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable DETR training and inference data-flow diagram">
+            <svg class="system-diagram__canvas" id="detr-set-prediction-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 600" aria-labelledby="detr-set-prediction-title" aria-describedby="detr-set-prediction-desc detr-set-prediction-caption">
+              <title id="detr-set-prediction-title">DETR shared prediction path with separate training and inference branches</title>
+              <desc id="detr-set-prediction-desc">An image becomes positioned backbone features. A transformer decoder combines those features with learned object queries to emit an unordered prediction set. During training only, ground-truth objects and predictions form a cost matrix for Hungarian one-to-one assignment; matched pairs receive class and box losses while unmatched queries receive the no-object loss. Inference reads the prediction set directly through a score or top-k policy without Hungarian matching or non-maximum suppression.</desc>
+              <defs>
+                <marker id="detr-shared-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+                <marker id="detr-training-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+                <marker id="detr-inference-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              </defs>
+
+              <rect class="diagram-lane" x="20" y="45" width="1140" height="205" rx="16"></rect>
+              <rect class="diagram-lane" x="20" y="295" width="850" height="280" rx="16"></rect>
+              <rect class="diagram-lane" x="890" y="295" width="270" height="280" rx="16"></rect>
+              <text class="diagram-lane-label" x="35" y="34">SHARED FOR TRAINING + INFERENCE</text>
+              <text class="diagram-lane-label" x="35" y="284">TRAINING ONLY · DEFINE OWNERSHIP</text>
+              <text class="diagram-lane-label" x="905" y="284">INFERENCE ONLY</text>
+
+              <path class="diagram-edge" marker-end="url(#detr-shared-arrow)" d="M180 125 H220"></path>
+              <path class="diagram-edge" marker-end="url(#detr-shared-arrow)" d="M410 125 H610"></path>
+              <path class="diagram-edge" marker-end="url(#detr-shared-arrow)" d="M800 125 H850"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#detr-training-arrow)" d="M580 207 H595 Q610 207 610 175"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#detr-training-arrow)" d="M950 170 V265 H325 V330"></path>
+              <path class="diagram-edge diagram-edge--feedback" marker-end="url(#detr-inference-arrow)" d="M1015 170 V340"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#detr-training-arrow)" d="M190 375 H235"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#detr-training-arrow)" d="M415 375 H460"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#detr-training-arrow)" d="M650 365 H675 Q690 365 690 355"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#detr-training-arrow)" d="M650 385 H675 Q690 385 690 470"></path>
+              <text class="diagram-edge-label" x="505" y="112" text-anchor="middle">spatial tokens + position</text>
+              <text class="diagram-edge-label" x="500" y="246" text-anchor="middle">query input</text>
+              <text class="diagram-edge-label" x="635" y="253" text-anchor="middle">predictions</text>
+              <text class="diagram-edge-label" x="212" y="362" text-anchor="middle">targets</text>
+              <text class="diagram-edge-label" x="670" y="305" text-anchor="middle">matched</text>
+              <text class="diagram-edge-label" x="676" y="453" text-anchor="end">unmatched</text>
+
+              <rect class="diagram-node diagram-node--sensor" x="30" y="80" width="150" height="90" rx="13"></rect>
+              <text class="diagram-title" x="105" y="114" text-anchor="middle">Image</text>
+              <text class="diagram-detail" x="105" y="141" text-anchor="middle">pixels + mask</text>
+
+              <rect class="diagram-node diagram-node--state" x="220" y="80" width="190" height="90" rx="13"></rect>
+              <text class="diagram-title" x="315" y="111" text-anchor="middle">Backbone + encoder</text>
+              <text class="diagram-detail" x="315" y="137" text-anchor="middle">features + positions</text>
+              <text class="diagram-detail" x="315" y="157" text-anchor="middle">multi-scale in variants</text>
+
+              <rect class="diagram-node" x="420" y="180" width="160" height="55" rx="12"></rect>
+              <text class="diagram-title" x="500" y="204" text-anchor="middle">Object queries</text>
+              <text class="diagram-detail" x="500" y="224" text-anchor="middle">learned slots</text>
+
+              <rect class="diagram-node diagram-node--decision" x="610" y="80" width="190" height="95" rx="13"></rect>
+              <text class="diagram-title" x="705" y="111" text-anchor="middle">Transformer decoder</text>
+              <text class="diagram-detail" x="705" y="137" text-anchor="middle">queries attend to image</text>
+              <text class="diagram-detail" x="705" y="157" text-anchor="middle">and compete for objects</text>
+
+              <rect class="diagram-node diagram-node--output" x="850" y="80" width="200" height="90" rx="13"></rect>
+              <text class="diagram-title" x="950" y="111" text-anchor="middle">Prediction set</text>
+              <text class="diagram-detail" x="950" y="137" text-anchor="middle">{class, box}<tspan baseline-shift="sub">1…Q</tspan></text>
+              <text class="diagram-detail" x="950" y="157" text-anchor="middle">unordered · fixed slots</text>
+
+              <rect class="diagram-node diagram-node--sensor" x="30" y="340" width="160" height="70" rx="12"></rect>
+              <text class="diagram-title" x="110" y="369" text-anchor="middle">Ground-truth set</text>
+              <text class="diagram-detail" x="110" y="393" text-anchor="middle">objects · no order</text>
+
+              <rect class="diagram-node diagram-node--state" x="235" y="330" width="180" height="90" rx="13"></rect>
+              <text class="diagram-title" x="325" y="361" text-anchor="middle">Pairwise cost matrix</text>
+              <text class="diagram-detail" x="325" y="387" text-anchor="middle">class + L1 + IoU</text>
+              <text class="diagram-detail" x="325" y="407" text-anchor="middle">every target ↔ query</text>
+
+              <rect class="diagram-node diagram-node--decision" x="460" y="330" width="190" height="90" rx="13"></rect>
+              <text class="diagram-title" x="555" y="361" text-anchor="middle">Hungarian assignment</text>
+              <text class="diagram-detail" x="555" y="387" text-anchor="middle">minimum-cost 1:1 match</text>
+              <text class="diagram-detail" x="555" y="407" text-anchor="middle">discrete ownership</text>
+
+              <rect class="diagram-node diagram-node--output" x="690" y="315" width="160" height="80" rx="12"></rect>
+              <text class="diagram-title" x="770" y="344" text-anchor="middle">Matched losses</text>
+              <text class="diagram-detail" x="770" y="368" text-anchor="middle">class + box + IoU</text>
+
+              <rect class="diagram-node diagram-node--safety" x="690" y="435" width="160" height="80" rx="12"></rect>
+              <text class="diagram-title" x="770" y="464" text-anchor="middle">Unmatched queries</text>
+              <text class="diagram-detail" x="770" y="488" text-anchor="middle">learn “no object”</text>
+
+              <rect class="diagram-node diagram-node--output" x="915" y="340" width="220" height="120" rx="14"></rect>
+              <text class="diagram-title" x="1025" y="373" text-anchor="middle">Deploy outputs</text>
+              <text class="diagram-detail" x="1025" y="400" text-anchor="middle">score / top-k policy</text>
+              <text class="diagram-detail" x="1025" y="424" text-anchor="middle">no Hungarian matching</text>
+              <text class="diagram-detail" x="1025" y="448" text-anchor="middle">no canonical NMS</text>
+            </svg>
+          </div>
+          <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="DETR training and inference branches for small screens">
+            <li data-relation="Shared prediction path" data-mobile-branch="shared"><strong>Shared prediction path</strong><small>Image → positioned backbone features → decoder → unordered set of class-and-box predictions.</small></li>
+            <li class="is-support" data-relation="Independent query input" data-mobile-branch="shared-support"><strong>Query input</strong><small>Learned object queries are slots that cross-attend to image features; they are not produced by the backbone.</small></li>
+            <li class="is-support" data-relation="Training branch" data-mobile-branch="training"><strong>Training branch · assign ownership</strong><small>Predictions and the unordered ground-truth set form a pairwise cost matrix; Hungarian matching chooses one query per target.</small></li>
+            <li class="is-support" data-relation="Matched branch" data-mobile-branch="training-matched"><strong>Training branch · matched</strong><small>Matched pairs receive classification, box and IoU losses.</small></li>
+            <li class="is-safety" data-relation="Unmatched branch" data-mobile-branch="training-unmatched"><strong>Training branch · unmatched</strong><small>Unused queries learn the “no object” class instead of creating duplicate positives.</small></li>
+            <li data-relation="Inference branch" data-mobile-branch="inference"><strong>Inference branch</strong><small>Read the prediction set with a score or top-k policy; canonical DETR runs neither Hungarian matching nor NMS here.</small></li>
+          </ul>
+          <figcaption id="detr-set-prediction-caption"><span><strong>Assumption:</strong> the matching cost, query capacity, and no-object weight encode the intended ownership problem. <strong>Failure:</strong> poor cost balance or weak small-object features can destabilize assignments; production code may add score policies even though canonical DETR does not require NMS.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the branches →</span></figcaption>
+        </figure>
 
         <h3>Where the clean abstraction becomes engineering work</h3>
         <p>Vanilla global attention can be expensive at high resolution, sparse small objects may receive weak gradients, and early matching can be unstable. Multi-scale features, deformable sampling, denoising queries, stronger initialization, and iterative box refinement address parts of the problem, but each reintroduces design choices. “End to end” does not mean “free of heuristics”; it means the interfaces and losses have moved.</p>
@@ -466,6 +556,114 @@ ẑt+1 ~ pθ(zt+1 | zt, at)
         <p>Training may combine representation, prediction, reconstruction, reward, value, or action losses:</p>
         <pre><code>L = λrep Lrepresentation + λdyn Lprediction
   + λtask Ltask + λunc Luncertainty</code></pre>
+
+        <figure class="system-diagram system-diagram--wide" id="world-model-closed-loop-figure" data-diagram="world-model-closed-loop" data-diagram-kind="feedback" data-print-view="summary">
+          <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable world-model open-loop, closed-loop, and training data-flow diagram">
+            <svg class="system-diagram__canvas" id="world-model-closed-loop-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 660" aria-labelledby="world-model-closed-loop-title" aria-describedby="world-model-closed-loop-desc world-model-closed-loop-caption">
+              <title id="world-model-closed-loop-title">Action-conditioned world model with open-loop rollout, closed-loop correction, and training targets</title>
+              <desc id="world-model-closed-loop-desc">The current observation is encoded into a latent belief. A planner proposes candidate action sequences. Action-conditioned dynamics rolls each sequence forward and prediction heads decode its consequences, which return to the planner for scoring. Only then does the planner select the first action of one feasible sequence and execute it in the real environment. Open-loop rollout reuses predicted latent states with later candidate actions, while closed-loop operation encodes the next real observation before the next decision. A separate training lane compares predictions with observed targets and updates model parameters.</desc>
+              <defs>
+                <marker id="world-runtime-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+                <marker id="world-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+                <marker id="world-training-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              </defs>
+
+              <rect class="diagram-lane" x="20" y="45" width="1140" height="390" rx="16"></rect>
+              <rect class="diagram-lane" x="20" y="475" width="1140" height="160" rx="16"></rect>
+              <text class="diagram-lane-label" x="35" y="34">RUNTIME · ACTION CHANGES THE NEXT OBSERVATION</text>
+              <text class="diagram-lane-label" x="35" y="464">TRAINING ONLY · TARGETS, ERROR, PARAMETER UPDATE</text>
+
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M165 117 H195"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M335 117 H365"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M495 117 H525"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M675 117 H705"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M825 117 H875"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M985 160 V195"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M575 160 V275"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M430 160 V250 H850 V280"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M725 332 H765"></path>
+              <path class="diagram-edge" marker-end="url(#world-runtime-arrow)" d="M935 332 H970"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#world-training-arrow)" d="M1140 332 H1150 V180 H625 V165"></path>
+              <path class="diagram-edge diagram-edge--feedback" marker-end="url(#world-feedback-arrow)" d="M850 380 V420 H945 V350 H940"></path>
+              <path class="diagram-edge diagram-edge--feedback" marker-end="url(#world-feedback-arrow)" d="M875 240 H400 V425 H95 V165"></path>
+              <text class="diagram-edge-label" x="850" y="66" text-anchor="middle">execute selected a<tspan baseline-shift="sub">t</tspan> only</text>
+              <text class="diagram-edge-label" x="620" y="225" text-anchor="middle">z<tspan baseline-shift="sub">t</tspan> conditions every rollout</text>
+              <text class="diagram-edge-label" x="860" y="194" text-anchor="middle">score predicted futures before execution</text>
+              <text class="diagram-edge-label" x="795" y="412">OPEN LOOP · ẑ<tspan baseline-shift="sub">t+k</tspan> + later a<tspan baseline-shift="sub">t+k</tspan></text>
+              <text class="diagram-edge-label" x="185" y="417">CLOSED LOOP · observe and encode again</text>
+
+              <rect class="diagram-node diagram-node--sensor" x="25" y="75" width="140" height="85" rx="13"></rect>
+              <text class="diagram-title" x="95" y="107" text-anchor="middle">Observation o<tspan baseline-shift="sub">t</tspan></text>
+              <text class="diagram-detail" x="95" y="134" text-anchor="middle">pixels · sensors</text>
+
+              <rect class="diagram-node diagram-node--state" x="195" y="75" width="140" height="85" rx="13"></rect>
+              <text class="diagram-title" x="265" y="107" text-anchor="middle">Encoder</text>
+              <text class="diagram-detail" x="265" y="134" text-anchor="middle">compress evidence</text>
+
+              <rect class="diagram-node diagram-node--state" x="365" y="75" width="130" height="85" rx="13"></rect>
+              <text class="diagram-title" x="430" y="107" text-anchor="middle">Latent z<tspan baseline-shift="sub">t</tspan></text>
+              <text class="diagram-detail" x="430" y="134" text-anchor="middle">belief state</text>
+
+              <rect class="diagram-node diagram-node--decision" x="525" y="75" width="150" height="85" rx="13"></rect>
+              <text class="diagram-title" x="600" y="107" text-anchor="middle">Planner / selector</text>
+              <text class="diagram-detail" x="600" y="134" text-anchor="middle">propose · score · select</text>
+
+              <rect class="diagram-node diagram-node--output" x="705" y="75" width="120" height="85" rx="13"></rect>
+              <text class="diagram-title" x="765" y="107" text-anchor="middle">Selected action</text>
+              <text class="diagram-detail" x="765" y="134" text-anchor="middle">a<tspan baseline-shift="sub">t</tspan> · control</text>
+
+              <rect class="diagram-node diagram-node--sensor" x="875" y="75" width="220" height="85" rx="13"></rect>
+              <text class="diagram-title" x="985" y="107" text-anchor="middle">Environment</text>
+              <text class="diagram-detail" x="985" y="134" text-anchor="middle">real transition · disturbances</text>
+
+              <rect class="diagram-node diagram-node--sensor" x="875" y="200" width="220" height="80" rx="13"></rect>
+              <text class="diagram-title" x="985" y="230" text-anchor="middle">Next observation o<tspan baseline-shift="sub">t+1</tspan></text>
+              <text class="diagram-detail" x="985" y="255" text-anchor="middle">feedback from the world</text>
+
+              <rect class="diagram-node diagram-node--decision" x="525" y="280" width="200" height="100" rx="14"></rect>
+              <text class="diagram-title" x="625" y="312" text-anchor="middle">Candidate sequences</text>
+              <text class="diagram-detail" x="625" y="338" text-anchor="middle">a<tspan baseline-shift="sub">t:t+H−1</tspan> for K plans</text>
+              <text class="diagram-detail" x="625" y="360" text-anchor="middle">constraints + exploration</text>
+
+              <rect class="diagram-node diagram-node--state" x="765" y="285" width="170" height="95" rx="13"></rect>
+              <text class="diagram-title" x="850" y="317" text-anchor="middle">Rollout dynamics</text>
+              <text class="diagram-detail" x="850" y="343" text-anchor="middle">fθ(ẑ<tspan baseline-shift="sub">t+k</tspan>, a<tspan baseline-shift="sub">t+k</tspan>)</text>
+              <text class="diagram-detail" x="850" y="363" text-anchor="middle">→ ẑ<tspan baseline-shift="sub">t+k+1</tspan> for each plan</text>
+
+              <rect class="diagram-node diagram-node--output" x="970" y="285" width="170" height="95" rx="13"></rect>
+              <text class="diagram-title" x="1055" y="317" text-anchor="middle">Predicted outcomes</text>
+              <text class="diagram-detail" x="1055" y="343" text-anchor="middle">reward · value · occupancy</text>
+              <text class="diagram-detail" x="1055" y="363" text-anchor="middle">flow · uncertainty · constraints</text>
+
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#world-training-arrow)" d="M250 545 H300"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#world-training-arrow)" d="M480 545 H530"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#world-training-arrow)" d="M1055 380 V450 H390 V500"></path>
+              <path class="diagram-edge diagram-edge--support" marker-end="url(#world-training-arrow)" d="M620 500 V450 H850 V385"></path>
+
+              <rect class="diagram-node diagram-node--sensor" x="30" y="505" width="220" height="80" rx="13"></rect>
+              <text class="diagram-title" x="140" y="535" text-anchor="middle">Observed targets</text>
+              <text class="diagram-detail" x="140" y="559" text-anchor="middle">o<tspan baseline-shift="sub">t+1</tspan> · reward · value · task labels</text>
+
+              <rect class="diagram-node diagram-node--safety" x="300" y="505" width="180" height="80" rx="13"></rect>
+              <text class="diagram-title" x="390" y="535" text-anchor="middle">Prediction error</text>
+              <text class="diagram-detail" x="390" y="559" text-anchor="middle">weighted objectives</text>
+
+              <rect class="diagram-node diagram-node--state" x="530" y="505" width="180" height="80" rx="13"></rect>
+              <text class="diagram-title" x="620" y="535" text-anchor="middle">Parameter update</text>
+              <text class="diagram-detail" x="620" y="559" text-anchor="middle">encoder · dynamics · heads</text>
+            </svg>
+          </div>
+          <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="World-model open-loop, closed-loop, and training branches for small screens">
+            <li data-relation="Runtime state path" data-mobile-branch="runtime"><strong>Encode the present</strong><small>Observation o<sub>t</sub> → encoder → latent belief z<sub>t</sub>.</small></li>
+            <li data-relation="Candidate-generation path" data-mobile-branch="candidates"><strong>Propose K action sequences</strong><small>The planner generates a<sub>t:t+H−1</sub> candidates under dynamics and safety constraints; none has executed yet.</small></li>
+            <li data-relation="Model-based rollout path" data-mobile-branch="prediction"><strong>Simulate and decode futures</strong><small>For each candidate, dynamics uses the corresponding later action a<sub>t+k</sub> to produce ẑ<sub>t+k+1</sub>; heads predict reward, value, occupancy, flow, uncertainty, or constraints.</small></li>
+            <li data-relation="Outcome-to-decision feedback" data-mobile-branch="selection"><strong>Score futures, then select</strong><small>Predicted consequences return to the planner before execution. Only the first action a<sub>t</sub> of one feasible selected sequence goes to the environment.</small></li>
+            <li class="is-support" data-relation="Open-loop branch" data-mobile-branch="open-loop"><strong>Open-loop branch</strong><small>Reuse each predicted ẑ<sub>t+k</sub> with the next candidate action a<sub>t+k</sub>; model bias can compound over the horizon.</small></li>
+            <li data-relation="Closed-loop branch" data-mobile-branch="closed-loop"><strong>Closed-loop branch</strong><small>After executing a<sub>t</sub>, the environment returns o<sub>t+1</sub>; encode it again before the next real decision.</small></li>
+            <li class="is-support" data-relation="Training-only branch" data-mobile-branch="training"><strong>Training-only error branch</strong><small>Compare prediction heads with observed targets, form weighted losses, and update model parameters; this path is not an online inference update.</small></li>
+          </ul>
+          <figcaption id="world-model-closed-loop-caption"><span><strong>Assumption:</strong> observations, actions, targets, and time steps share a valid causal contract. <strong>Failure:</strong> a visually plausible open-loop rollout can omit a small decision-critical obstacle; closed-loop tests must measure recovery, intervention response, and uncertainty.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the feedback loops →</span></figcaption>
+        </figure>
 
         <h3>The central design choice: what must the latent preserve?</h3>
         <p>Pixel prediction rewards appearance detail; feature prediction can emphasize semantics; occupancy or flow rewards geometric dynamics; reward/value prediction keeps decision-relevant information. No single target is universally sufficient. A latent that renders attractive video may ignore a small obstacle; a state optimized only for reward may be hard to audit.</p>

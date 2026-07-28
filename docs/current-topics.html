@@ -144,19 +144,131 @@
         <p><a href="https://arxiv.org/abs/2604.14141" target="_blank" rel="noreferrer">Original paper, submitted April 15, 2026 ↗</a></p>
       </div>
 
-      <div class="flow-strip wide" role="list" aria-label="LingBot-Map inference pipeline">
-        <div role="listitem"><span>1</span><strong>RGB stream</strong><small>current + past frames</small></div>
-        <div role="listitem"><span>2</span><strong>ViT tokens</strong><small>frame features</small></div>
-        <div role="listitem"><span>3</span><strong>GCA context</strong><small>anchor, local, memory</small></div>
-        <div role="listitem"><span>4</span><strong>Heads</strong><small>pose, intrinsics, depth, confidence</small></div>
-        <div role="listitem"><span>5</span><strong>Back-project</strong><small>pixels into 3D</small></div>
-        <div role="listitem"><span>6</span><strong>Transform</strong><small>camera to world</small></div>
-        <div role="listitem"><span>7</span><strong>Fuse</strong><small>colored point-cloud map</small></div>
-      </div>
+      <figure class="system-diagram system-diagram--wide" id="lingbot-streaming-figure" data-diagram="lingbot-streaming" data-diagram-kind="feedback" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable LingBot-Map streaming reconstruction and context flow">
+          <svg class="system-diagram__canvas" id="lingbot-streaming-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 700" aria-labelledby="lingbot-streaming-title" aria-describedby="lingbot-streaming-desc lingbot-streaming-caption">
+            <title id="lingbot-streaming-title">LingBot-Map streaming monocular reconstruction flow</title>
+            <desc id="lingbot-streaming-desc">RGB frames become visual tokens and combine with exactly three semantic contexts: anchor context, a local pose-reference window, and trajectory memory. Pose and depth heads estimate camera pose, dense depth, and depth uncertainty; the camera model K is supplied or preprocessed rather than predicted by the method. Valid pixels are back-projected and transformed into a shared frame before map fusion. A paged key-value cache is a storage mechanism for selected tokens, not a fourth geometric context. Direct mode does not reset and retains compact trajectory tokens as the stream grows; visual-odometry mode resets overlapping windows, bounds state, and joins windows with Sim(3) alignment at the cost of boundary drift.</desc>
+            <defs>
+              <marker id="lingbot-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="lingbot-support" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="lingbot-feedback" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="lingbot-safety" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="25" y="35">STREAMING INFERENCE · ESTIMATED GEOMETRY</text>
+            <path class="diagram-edge" marker-end="url(#lingbot-arrow)" d="M175 125 H215"></path>
+            <path class="diagram-edge" marker-end="url(#lingbot-arrow)" d="M365 125 H405"></path>
+            <path class="diagram-edge" marker-end="url(#lingbot-arrow)" d="M575 125 H615"></path>
+            <path class="diagram-edge" marker-end="url(#lingbot-arrow)" d="M795 125 H835"></path>
+            <path class="diagram-edge" marker-end="url(#lingbot-arrow)" d="M995 125 H1030"></path>
+
+            <rect class="diagram-node diagram-node--sensor" x="25" y="80" width="150" height="90" rx="13"></rect>
+            <text class="diagram-title" x="100" y="113" text-anchor="middle">RGB frame t</text>
+            <text class="diagram-detail" x="100" y="137" text-anchor="middle">ordinary camera</text>
+            <text class="diagram-detail" x="100" y="158" text-anchor="middle">timestamp + overlap</text>
+
+            <rect class="diagram-node" x="215" y="80" width="150" height="90" rx="13"></rect>
+            <text class="diagram-title" x="290" y="113" text-anchor="middle">ViT tokens</text>
+            <text class="diagram-detail" x="290" y="137" text-anchor="middle">current-frame features</text>
+            <text class="diagram-detail" x="290" y="158" text-anchor="middle">not metric range</text>
+
+            <rect class="diagram-node diagram-node--state" x="405" y="70" width="170" height="110" rx="13"></rect>
+            <text class="diagram-title" x="490" y="105" text-anchor="middle">GCA context</text>
+            <text class="diagram-detail" x="490" y="130" text-anchor="middle">anchor context</text>
+            <text class="diagram-detail" x="490" y="152" text-anchor="middle">pose-reference window</text>
+            <text class="diagram-detail" x="490" y="172" text-anchor="middle">trajectory memory</text>
+
+            <rect class="diagram-node diagram-node--state" x="615" y="65" width="180" height="120" rx="13"></rect>
+            <text class="diagram-title" x="705" y="99" text-anchor="middle">Pose + depth heads</text>
+            <text class="diagram-detail" x="705" y="125" text-anchor="middle">pose P̂t</text>
+            <text class="diagram-detail" x="705" y="147" text-anchor="middle">depth D̂t(u,v)</text>
+            <text class="diagram-detail" x="705" y="169" text-anchor="middle">depth uncertainty ΣD</text>
+
+            <rect class="diagram-node diagram-node--decision" x="835" y="65" width="160" height="120" rx="13"></rect>
+            <text class="diagram-title" x="915" y="98" text-anchor="middle">Geometry gate</text>
+            <text class="diagram-detail" x="915" y="124" text-anchor="middle">supplied K⁻¹ back-project</text>
+            <text class="diagram-detail" x="915" y="146" text-anchor="middle">camera → world pose</text>
+            <text class="diagram-detail" x="915" y="168" text-anchor="middle">uncertainty + sky mask</text>
+
+            <rect class="diagram-node diagram-node--output" x="1030" y="80" width="125" height="90" rx="13"></rect>
+            <text class="diagram-title" x="1092" y="111" text-anchor="middle">Map update</text>
+            <text class="diagram-detail" x="1092" y="136" text-anchor="middle">fuse colored</text>
+            <text class="diagram-detail" x="1092" y="157" text-anchor="middle">3D points</text>
+
+            <text class="diagram-lane-label" x="25" y="225">THREE SEMANTIC CONTEXTS + ONE SEPARATE CACHE IMPLEMENTATION</text>
+            <rect class="diagram-node diagram-node--state" x="55" y="285" width="205" height="90" rx="13"></rect>
+            <text class="diagram-title" x="157" y="318" text-anchor="middle">Anchor context</text>
+            <text class="diagram-detail" x="157" y="343" text-anchor="middle">reference coordinates</text>
+            <text class="diagram-detail" x="157" y="364" text-anchor="middle">scale convention</text>
+
+            <rect class="diagram-node diagram-node--state" x="315" y="285" width="205" height="90" rx="13"></rect>
+            <text class="diagram-title" x="417" y="318" text-anchor="middle">Pose window</text>
+            <text class="diagram-detail" x="417" y="343" text-anchor="middle">nearby overlapping frames</text>
+            <text class="diagram-detail" x="417" y="364" text-anchor="middle">local parallax</text>
+
+            <rect class="diagram-node diagram-node--state" x="575" y="285" width="205" height="90" rx="13"></rect>
+            <text class="diagram-title" x="677" y="318" text-anchor="middle">Trajectory memory</text>
+            <text class="diagram-detail" x="677" y="343" text-anchor="middle">compressed history</text>
+            <text class="diagram-detail" x="677" y="364" text-anchor="middle">long-range correction cues</text>
+
+            <rect class="diagram-node diagram-node--runtime" x="835" y="285" width="205" height="90" rx="13"></rect>
+            <text class="diagram-title" x="937" y="318" text-anchor="middle">Paged KV cache</text>
+            <text class="diagram-detail" x="937" y="343" text-anchor="middle">storage / eviction runtime</text>
+            <text class="diagram-detail" x="937" y="364" text-anchor="middle">not geometric context</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#lingbot-support)" d="M157 285 V250 H430 V185"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#lingbot-support)" d="M417 285 V240 H470 V185"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#lingbot-support)" d="M677 285 V230 H510 V185"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#lingbot-support)" d="M937 285 V220 H550 V185"></path>
+
+            <rect class="diagram-node diagram-node--safety" x="835" y="405" width="305" height="75" rx="13"></rect>
+            <text class="diagram-title" x="987.5" y="434" text-anchor="middle">Reject unreliable map evidence</text>
+            <text class="diagram-detail" x="987.5" y="458" text-anchor="middle">uncertainty · dynamics · sky · pose collapse</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#lingbot-safety)" d="M835 170 H820 V442 H830"></path>
+
+            <text class="diagram-lane-label" x="25" y="520">LONG-STREAM MODE CHOICE</text>
+            <rect class="diagram-node diagram-node--state" x="40" y="550" width="300" height="105" rx="13"></rect>
+            <text class="diagram-title" x="190" y="582" text-anchor="middle">Direct mode</text>
+            <text class="diagram-detail" x="190" y="607" text-anchor="middle">no state reset</text>
+            <text class="diagram-detail" x="190" y="629" text-anchor="middle">compact trajectory tokens still accumulate</text>
+            <text class="diagram-detail" x="190" y="649" text-anchor="middle">keyframes control cache growth</text>
+
+            <rect class="diagram-node diagram-node--state" x="440" y="550" width="340" height="105" rx="13"></rect>
+            <text class="diagram-title" x="610" y="582" text-anchor="middle">VO / windowed mode</text>
+            <text class="diagram-detail" x="610" y="607" text-anchor="middle">reset state for each overlapping window</text>
+            <text class="diagram-detail" x="610" y="629" text-anchor="middle">align windows with Sim(3)</text>
+            <text class="diagram-detail" x="610" y="649" text-anchor="middle">bounded state for very long sequences</text>
+
+            <rect class="diagram-node diagram-node--safety" x="880" y="550" width="260" height="105" rx="13"></rect>
+            <text class="diagram-title" x="1010" y="582" text-anchor="middle">Window-boundary cost</text>
+            <text class="diagram-detail" x="1010" y="607" text-anchor="middle">scale / rotation / translation join</text>
+            <text class="diagram-detail" x="1010" y="629" text-anchor="middle">alignment drift can compound</text>
+            <text class="diagram-detail" x="1010" y="649" text-anchor="middle">validate seams and trajectory error</text>
+
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#lingbot-feedback)" d="M340 602 H435"></path>
+            <text class="diagram-edge-label" x="387" y="590" text-anchor="middle">reset needed</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#lingbot-safety)" d="M780 602 H875"></path>
+            <text class="diagram-edge-label" x="827" y="590" text-anchor="middle">each Sim(3) join</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="LingBot-Map streaming reconstruction logic for small screens">
+          <li><span class="diagram-mobile-transition">Evidence → features</span><strong>RGB frame → ViT tokens</strong><small>The camera supplies images and timestamps, not direct laser range.</small></li>
+          <li><span class="diagram-mobile-transition">Three semantic contexts → current inference</span><strong>GCA combines anchor, pose-reference window, and trajectory memory</strong><small>These three roles provide coordinate grounding, dense local overlap, and compact long-range cues.</small></li>
+          <li class="is-support"><span class="diagram-mobile-transition">Runtime mechanism, not a fourth context</span><strong>Paged KV cache stores and evicts selected tokens</strong><small>It reduces repeated attention/reallocation work; it does not add geometric evidence.</small></li>
+          <li><span class="diagram-mobile-transition">Learned estimates</span><strong>Heads predict camera pose, depth, and depth uncertainty</strong><small>The method does not claim an intrinsics-prediction head; back-projection uses supplied or preprocessed K.</small></li>
+          <li><span class="diagram-mobile-transition">Valid estimate → map candidate</span><strong>Back-project with supplied K⁻¹, transform camera → world, then filter</strong><small>Depth uncertainty, sky, dynamic-scene, scale, and context-range checks decide which points survive.</small></li>
+          <li><span class="diagram-mobile-transition">Accepted candidate → output</span><strong>Fuse a colored point-cloud map</strong><small>Its LiDAR-like appearance does not change the monocular measurement source.</small></li>
+          <li class="is-support"><span class="diagram-mobile-transition">Direct-mode feedback for frame t+1</span><strong>Update the three contexts and cache without resetting state</strong><small>Compact per-frame trajectory tokens still accumulate; keyframe selection controls cache growth but does not make the semantic history fixed-size.</small></li>
+          <li><span class="diagram-mobile-transition">If direct-mode range or quality is exceeded</span><strong>Switch to VO / windowed mode</strong><small>Reset each overlapping window and align adjacent windows with Sim(3) for bounded state.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">Windowed-mode trade-off</span><strong>Validate boundary drift</strong><small>Each Sim(3) alignment can add scale, rotation, and translation error that compounds across windows.</small></li>
+        </ul>
+        <figcaption id="lingbot-streaming-caption"><span><strong>The map is inferred, not directly ranged:</strong> metric validity depends on learned depth/pose, supplied camera calibration, the three semantic contexts, uncertainty filters, and any external scale evidence. Paged KV is an implementation mechanism; Direct and VO modes make different memory-versus-drift trades.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the streaming loop →</span></figcaption>
+      </figure>
 
       <div class="content-card prose">
         <h3>The geometric bridge</h3>
-        <p>For pixel <code>(u,v)</code>, predicted depth <code>D(u,v)</code>, intrinsics <code>K</code>, and world-from-camera pose <code>[R|t]</code>:</p>
+        <p>For pixel <code>(u,v)</code>, predicted depth <code>D(u,v)</code>, supplied or preprocessed intrinsics <code>K</code>, and predicted world-from-camera pose <code>[R|t]</code>:</p>
         <div class="equation-block">
           <span>p<sub>camera</sub> = D(u,v) K<sup>−1</sup>[u,v,1]<sup>T</sup></span>
           <span>p<sub>world</sub> = R p<sub>camera</sub> + t</span>
@@ -168,7 +280,7 @@
         <article class="algorithm-card"><span>Anchor context</span><h3>Coordinate grounding</h3><p>Preserves a reference frame and helps stabilize coordinate and scale conventions across the stream.</p></article>
         <article class="algorithm-card"><span>Pose window</span><h3>Dense local geometry</h3><p>Keeps selected nearby reference frames so current depth and pose can use strong local overlap.</p></article>
         <article class="algorithm-card"><span>Trajectory memory</span><h3>Long-range correction</h3><p>Compresses useful historical context for drift correction without attending to every old frame.</p></article>
-        <article class="algorithm-card"><span>Paged cache</span><h3>Streaming efficiency</h3><p>Keyframes and paged KV attention bound repeated work; the cache policy becomes part of reconstruction quality.</p></article>
+        <article class="algorithm-card"><span>Runtime only</span><h3>Paged KV cache</h3><p>Stores and evicts selected keys/values efficiently. It serves the three semantic contexts but is not itself a fourth geometric context.</p></article>
       </div>
 
       <div class="split-section">
@@ -177,7 +289,7 @@
           <h3>Learned monocular streaming reconstruction</h3>
           <ul>
             <li>One ordinary RGB camera provides a sequence of overlapping views.</li>
-            <li>A feed-forward transformer estimates camera pose, intrinsics, dense depth, and confidence.</li>
+            <li>A feed-forward transformer estimates camera pose, dense depth, and depth uncertainty; camera intrinsics are supplied or preprocessed for geometric back-projection.</li>
             <li>Multiple frames provide parallax and temporal context that one still image lacks.</li>
             <li>The authors report about 20 FPS at <code>518×378</code> and sequences beyond 10,000 frames; treat this as author-reported and hardware-dependent. <a href="https://github.com/Robbyant/lingbot-map" target="_blank" rel="noreferrer">Official repository ↗</a></li>
           </ul>
@@ -196,7 +308,7 @@
 
       <aside class="callout warning" aria-labelledby="lingbot-limit-heading">
         <div><p class="eyebrow">Operational boundary</p><h3 id="lingbot-limit-heading">Memory policy and training range affect long trajectories</h3></div>
-        <p>The official repository notes that cached context beyond the roughly 320-view video-RoPE training range can degrade quality, recommends keyframing for longer streams, and provides overlapping windowed inference for very long sequences. It also warns that travel beyond distances represented in training may require state reset and that pose collapse can occur. Sky points are filtered by a separate sky mask. Because depth and pose are jointly inferred, their errors can correlate: test dynamic actors, low/repeated texture, motion blur, lighting change, and scenes outside the training domain. Unmodeled motion can be fused into ghost geometry rather than a clean static map. <a href="https://github.com/Robbyant/lingbot-map#streaming-with-keyframe-interval" target="_blank" rel="noreferrer">Implementation notes ↗</a></p>
+        <p><strong>Direct mode</strong> keeps the anchor, pose-reference window, and compact per-frame trajectory tokens without resetting; keyframe selection controls KV-cache growth, but trajectory memory still grows with sequence length. The paper reports gradual degradation beyond roughly 3,000 frames in this mode. <strong>VO/windowed mode</strong> is for much longer streams: it resets state per overlapping window and uses Sim(3) alignment to join windows, bounding state while adding boundary drift that can compound. The repository also warns that travel beyond distances represented in training may require a reset and that pose collapse can occur. Sky points are filtered separately. Because depth and pose are jointly inferred, test dynamic actors, low/repeated texture, motion blur, lighting change, and scenes outside the training domain; unmodeled motion can become ghost geometry. <a href="https://arxiv.org/html/2604.14141v2#S4.SS4" target="_blank" rel="noreferrer">Inference-mode details ↗</a></p>
       </aside>
     </section>
 

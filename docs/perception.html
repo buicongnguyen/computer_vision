@@ -276,6 +276,105 @@
           </ul>
         </article>
       </div>
+
+      <figure class="system-diagram system-diagram--wide" id="tracking-lifecycle-figure" data-diagram="tracking-lifecycle" data-diagram-kind="state" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable multi-object tracking lifecycle state machine">
+          <svg class="system-diagram__canvas" id="tracking-lifecycle-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 620" aria-labelledby="tracking-lifecycle-title" aria-describedby="tracking-lifecycle-desc tracking-lifecycle-caption">
+            <title id="tracking-lifecycle-title">Tracking lifecycle with guarded update, prediction, reacquisition, rejection, and deletion transitions</title>
+            <desc id="tracking-lifecycle-desc">A valid new detection initializes a tentative track. Enough gated hits confirm it. Matched confirmed tracks update their state; a miss moves them to coasting where predict-only steps preserve identity for a bounded time. A gated association enters a transient reacquired state and consistent matches return it to confirmed. Rejected, duplicate, stale, or inconsistent measurements follow a safety path: an existing valid track continues by prediction, while an invalid birth is suppressed. Excess age or uncertainty deletes a coasting track.</desc>
+            <defs>
+              <marker id="tracking-transition-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="tracking-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="tracking-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="45" width="1140" height="275" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="375" width="1140" height="200" rx="16"></rect>
+            <text class="diagram-lane-label" x="35" y="34">TRACK LIFECYCLE · GUARD / ACTION</text>
+            <text class="diagram-lane-label" x="35" y="364">REJECTION + DELETION SAFETY PATH</text>
+
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M145 152 H180"></path>
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M335 152 H390"></path>
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M550 152 H605"></path>
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M765 152 H795"></path>
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M915 152 H960"></path>
+            <text class="diagram-edge-label" x="162" y="101" text-anchor="middle">[valid birth]</text>
+            <text class="diagram-edge-label" x="362" y="86" text-anchor="middle">[hits ≥ N]</text>
+            <text class="diagram-edge-label" x="362" y="101" text-anchor="middle">/ update</text>
+            <text class="diagram-edge-label" x="577" y="86" text-anchor="middle">[miss]</text>
+            <text class="diagram-edge-label" x="577" y="101" text-anchor="middle">/ predict</text>
+            <text class="diagram-edge-label" x="780" y="101" text-anchor="middle">candidate</text>
+            <text class="diagram-edge-label" x="938" y="101" text-anchor="middle">yes / update</text>
+
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M430 110 V72 H510 V105"></path>
+            <path class="diagram-edge" marker-end="url(#tracking-transition-arrow)" d="M645 110 V72 H725 V105"></path>
+            <text class="diagram-edge-label" x="470" y="64" text-anchor="middle">[matched + gated] / update</text>
+            <text class="diagram-edge-label" x="685" y="64" text-anchor="middle">[no match, age &lt; max] / predict</text>
+
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#tracking-feedback-arrow)" d="M1050 195 V275 H470 V200"></path>
+            <text class="diagram-edge-label" x="750" y="267" text-anchor="middle">[K consistent matches] / update → preserve identity</text>
+
+            <rect class="diagram-node diagram-node--sensor" x="25" y="110" width="120" height="85" rx="13"></rect>
+            <text class="diagram-title" x="85" y="141" text-anchor="middle">Detection</text>
+            <text class="diagram-detail" x="85" y="167" text-anchor="middle">time + frame</text>
+
+            <rect class="diagram-node diagram-node--state" x="180" y="110" width="155" height="85" rx="13"></rect>
+            <text class="diagram-title" x="257" y="141" text-anchor="middle">Tentative</text>
+            <text class="diagram-detail" x="257" y="167" text-anchor="middle">untrusted birth</text>
+
+            <rect class="diagram-node diagram-node--output" x="390" y="110" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="470" y="141" text-anchor="middle">Confirmed</text>
+            <text class="diagram-detail" x="470" y="167" text-anchor="middle">publishable identity</text>
+            <text class="diagram-detail" x="470" y="187" text-anchor="middle">matched → update</text>
+
+            <rect class="diagram-node diagram-node--state" x="605" y="110" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="685" y="141" text-anchor="middle">Coasting</text>
+            <text class="diagram-detail" x="685" y="167" text-anchor="middle">predict-only state</text>
+            <text class="diagram-detail" x="685" y="187" text-anchor="middle">bounded miss budget</text>
+
+            <path class="diagram-node diagram-node--decision" d="M855 95 L915 152 L855 209 L795 152 Z"></path>
+            <text class="diagram-title" x="855" y="143" text-anchor="middle">Pass gates?</text>
+            <text class="diagram-detail" x="855" y="164" text-anchor="middle">motion · appearance</text>
+
+            <rect class="diagram-node diagram-node--output" x="960" y="110" width="180" height="85" rx="13"></rect>
+            <text class="diagram-title" x="1050" y="141" text-anchor="middle">Reacquired</text>
+            <text class="diagram-detail" x="1050" y="167" text-anchor="middle">transient validation</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#tracking-safety-arrow)" d="M855 209 V405"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#tracking-safety-arrow)" d="M257 195 V555 H1060 V500"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#tracking-safety-arrow)" d="M1050 195 V345 H920 V405"></path>
+            <text class="diagram-edge-label" x="868" y="300">no</text>
+            <text class="diagram-edge-label" x="520" y="548">[duplicate | invalid birth | confirmation timeout] / suppress tentative ID</text>
+            <text class="diagram-edge-label" x="982" y="337">[consistency fails]</text>
+
+            <rect class="diagram-node diagram-node--safety" x="720" y="405" width="200" height="90" rx="13"></rect>
+            <text class="diagram-title" x="820" y="436" text-anchor="middle">Reject measurement</text>
+            <text class="diagram-detail" x="820" y="462" text-anchor="middle">do not update existing track</text>
+            <text class="diagram-detail" x="820" y="482" text-anchor="middle">stale · inconsistent · outside gate</text>
+
+            <rect class="diagram-node diagram-node--safety" x="980" y="405" width="160" height="90" rx="13"></rect>
+            <text class="diagram-title" x="1060" y="436" text-anchor="middle">Deleted</text>
+            <text class="diagram-detail" x="1060" y="462" text-anchor="middle">terminal state</text>
+            <text class="diagram-detail" x="1060" y="482" text-anchor="middle">suppress output</text>
+
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#tracking-feedback-arrow)" d="M820 405 V350 H650 V215 H685 V205"></path>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#tracking-safety-arrow)" d="M710 200 V520 H1060 V500"></path>
+            <text class="diagram-edge-label" x="690" y="342">existing track / keep coasting, predict only</text>
+            <text class="diagram-edge-label" x="790" y="512">[age &gt; max_age | uncertainty &gt; limit]</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Tracking lifecycle states and guarded branches for small screens">
+          <li data-relation="Birth transition" data-mobile-branch="birth"><strong>Detection → tentative</strong><small>[Valid birth] / initialize state. A tentative track is not yet trusted for downstream use.</small></li>
+          <li data-relation="Confirmation transition" data-mobile-branch="confirmation"><strong>Tentative → confirmed</strong><small>[At least N gated hits] / update.</small></li>
+          <li class="is-safety" data-relation="Invalid tentative birth" data-mobile-branch="invalid-birth"><strong>Tentative → deleted / suppressed</strong><small>A duplicate, invalid, or timed-out birth never inherits the identity or state of another track.</small></li>
+          <li data-relation="Matched self-transition" data-mobile-branch="matched"><strong>Confirmed → confirmed</strong><small>[Measurement matches and passes gates] / update state and covariance.</small></li>
+          <li data-relation="Miss transition" data-mobile-branch="miss"><strong>Confirmed → coasting</strong><small>[Measurement missing] / predict. While age remains below max_age, repeat predict-only steps.</small></li>
+          <li data-relation="Reacquisition branch" data-mobile-branch="reacquisition"><strong>Coasting → gate → reacquired</strong><small>[Candidate passes motion and appearance gates] / update; after K consistent matches, return to confirmed with the same identity.</small></li>
+          <li class="is-safety" data-relation="Rejected measurement for existing track" data-mobile-branch="rejection"><strong>Existing track → reject measurement → coasting</strong><small>Stale, outside-gate, or inconsistent evidence does not update the filter; preserve that same existing identity with predict-only state.</small></li>
+          <li class="is-safety" data-relation="Deletion transition" data-mobile-branch="deletion"><strong>Coasting → deleted</strong><small>[Age exceeds max_age or uncertainty exceeds its limit] / stop publishing the track.</small></li>
+        </ul>
+        <figcaption id="tracking-lifecycle-caption"><span><strong>Assumption:</strong> timestamps, coordinate frames, uncertainty, and association gates are valid before an update. <strong>Failure:</strong> loose gates merge identities, tight gates fragment them, and a deletion budget that is too long creates ghost tracks; tune lifecycle guards by safety-relevant sequence slices.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the state machine →</span></figcaption>
+      </figure>
     </section>
 
     <section class="section" aria-labelledby="metrics-title">

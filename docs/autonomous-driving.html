@@ -50,7 +50,7 @@
 
     <section id="master-flow" aria-labelledby="master-flow-heading">
       <div class="section-heading"><div><p class="eyebrow">Fourteen-stage dependency map</p><h2 id="master-flow-heading">Follow evidence from photons and returns to actuation</h2></div><p>Arrows show prerequisites, not one mandatory software decomposition. Shared or end-to-end models may learn across several stages, but the contracts remain testable.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="autonomy-closed-loop-figure" data-diagram="closed-loop">
+      <figure class="system-diagram system-diagram--wide" id="autonomy-closed-loop-figure" data-diagram="closed-loop" data-diagram-kind="flow" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable autonomous-driving closed-loop data-flow graph">
           <svg class="system-diagram__canvas" id="autonomy-closed-loop-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 640" aria-labelledby="autonomy-closed-loop-title" aria-describedby="autonomy-closed-loop-desc autonomy-closed-loop-caption">
             <title id="autonomy-closed-loop-title">Autonomous-driving closed-loop dependency graph</title>
@@ -159,16 +159,16 @@
             <path class="diagram-edge diagram-edge--feedback" marker-end="url(#closed-loop-feedback-arrow)" d="M1005 530 V485 H1100 Q1130 485 1130 455 V185 Q1130 155 1080 120"></path>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Autonomous-driving closed-loop flow for small screens">
-          <li><strong>1 · Physical world and ODD</strong><small>Road, agents, weather, mission, route and rules.</small></li>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Autonomous-driving closed-loop flow for small screens">
+          <li data-relation="Main closed loop"><strong>1 · Physical world and ODD</strong><small>Road, agents, weather, mission, route and rules.</small></li>
           <li><strong>2 · Sensor evidence</strong><small>Camera, LiDAR, radar, IMU, GNSS and wheels with timestamps.</small></li>
           <li><strong>3 · Prepare and localize</strong><small>Synchronize, calibrate, decode, estimate ego pose and covariance.</small></li>
           <li><strong>4 · Align and represent</strong><small>Deskew into one time/frame; build points, BEV, objects or occupancy.</small></li>
           <li><strong>5 · Perceive and predict</strong><small>Estimate tracked state, uncertainty and several plausible futures.</small></li>
           <li><strong>6 · Plan and control</strong><small>Select behavior and a feasible trajectory; issue steering, brake and torque.</small></li>
           <li><strong>7 · Vehicle changes the world</strong><small>The chosen action changes pose, interaction and the next observation.</small></li>
-          <li class="is-safety"><strong>Independent safety path</strong><small>Monitor data age, uncertainty, feasibility and latency; degrade, limit or stop.</small></li>
-          <li class="is-support"><strong>Learning path</strong><small>Logs, replay and simulation turn faults and outcomes into new tests and training data.</small></li>
+          <li class="is-safety" data-relation="Safety branch"><strong>Independent safety path</strong><small>Monitor data age, uncertainty, feasibility and latency; degrade, limit or stop.</small></li>
+          <li class="is-support" data-relation="Learning feedback"><strong>Learning path</strong><small>Logs, replay and simulation turn faults and outcomes into new tests and training data.</small></li>
         </ol>
         <figcaption id="autonomy-closed-loop-caption"><span><strong>Read the loop clockwise:</strong> solid arrows carry evidence and action; dashed arrows carry context, safety intervention, and learning feedback.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the graph →</span></figcaption>
       </figure>
@@ -188,7 +188,7 @@
         <div class="evolution-row" role="row"><span role="cell">Radar</span><span role="cell">Range, radial velocity and weather tolerance</span><span role="cell">Detection/cube processing, clutter and ambiguity handling, calibration and time</span><span role="cell">Lower angular resolution and multipath; fuse camera/LiDAR geometry.</span></div>
         <div class="evolution-row" role="row"><span role="cell">GNSS / IMU / wheels</span><span role="cell">Global reference and high-rate ego dynamics</span><span role="cell">Bias/noise models, time base, lever arms, preintegration and outage flags</span><span role="cell">Drift, multipath and slip; combine through a state estimator.</span></div>
       </div>
-      <figure class="system-diagram system-diagram--wide" id="sensor-alignment-flow-figure" data-diagram="sensor-alignment">
+      <figure class="system-diagram system-diagram--wide" id="sensor-alignment-flow-figure" data-diagram="sensor-alignment" data-diagram-kind="flow" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable multi-sensor preparation and fusion data-flow diagram">
           <svg class="system-diagram__canvas" id="sensor-alignment-flow-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 650" aria-labelledby="sensor-alignment-flow-title" aria-describedby="sensor-alignment-flow-desc sensor-alignment-flow-caption">
             <title id="sensor-alignment-flow-title">Multi-sensor preparation, alignment and fusion choices</title>
@@ -290,12 +290,12 @@
             <path class="diagram-edge" marker-end="url(#sensor-flow-arrow)" d="M1087 360 V400"></path>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Multi-sensor fusion flow for small screens">
-          <li><strong>1 · Preserve sensor evidence</strong><small>Images, ranges, velocity, motion, timestamps and validity metadata.</small></li>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Multi-sensor fusion flow for small screens">
+          <li data-relation="Evidence path"><strong>1 · Preserve sensor evidence</strong><small>Images, ranges, velocity, motion, timestamps and validity metadata.</small></li>
           <li><strong>2 · Run the correct front end</strong><small>Undistort images; decode and deskew LiDAR; process radar; integrate inertial state.</small></li>
           <li><strong>3 · Pass the alignment gate</strong><small>Common time, calibrated frames, ego motion, quality and availability.</small></li>
-          <li><strong>4 · Choose the fusion location</strong><small>Early for defensible raw correspondence; shared BEV for metric features; late for modular objects/tracks.</small></li>
-          <li class="is-safety"><strong>5 · Handle missing sensors explicitly</strong><small>Mask, gate, reweight or enter a documented degraded mode.</small></li>
+          <li data-relation="Fusion alternatives"><strong>4 · Choose the fusion location</strong><small>Early for defensible raw correspondence; shared BEV for metric features; late for modular objects/tracks.</small></li>
+          <li class="is-safety" data-relation="Degraded branch"><strong>5 · Handle missing sensors explicitly</strong><small>Mask, gate, reweight or enter a documented degraded mode.</small></li>
           <li><strong>6 · Publish a world-state contract</strong><small>Objects, tracks, maps, occupancy, flow, pose and uncertainty with one timestamp.</small></li>
         </ol>
         <figcaption id="sensor-alignment-flow-caption"><span><strong>Fusion starts after alignment:</strong> early, shared-BEV, and late fusion are different choices with different observability and fallback requirements.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the graph →</span></figcaption>
@@ -325,7 +325,7 @@
         </div>
         <p>For camera–LiDAR projection use <code>λp̃ = K · T(camera←LiDAR) · p(LiDAR)</code>, then require positive camera depth, correct distortion state, image bounds, aligned acquisition time, and an occlusion-aware depth buffer.</p>
       </div>
-      <figure class="system-diagram system-diagram--wide" id="geometry-transform-figure" data-diagram="geometry-transform">
+      <figure class="system-diagram system-diagram--wide" id="geometry-transform-figure" data-diagram="geometry-transform" data-diagram-kind="geometry" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable deskew, coordinate-transform, projection and frame-tree diagram">
           <svg class="system-diagram__canvas" id="geometry-transform-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 610" aria-labelledby="geometry-transform-title" aria-describedby="geometry-transform-desc geometry-transform-caption">
             <title id="geometry-transform-title">LiDAR-to-camera projection, back-projection, planar IPM and coordinate frames</title>
@@ -418,14 +418,14 @@
             <text class="diagram-detail" x="1020" y="518" text-anchor="middle">calibrated lever arms</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Coordinate-transform and projection flow for small screens">
-          <li><strong>1 · Preserve LiDAR point time</strong><small>Each return begins in the LiDAR frame at its own acquisition time.</small></li>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Coordinate-transform and projection flow for small screens">
+          <li data-relation="LiDAR → camera path"><strong>1 · Preserve LiDAR point time</strong><small>Each return begins in the LiDAR frame at its own acquisition time.</small></li>
           <li><strong>2 · Deskew to one reference time</strong><small>Use the time-varying ego trajectory before treating the scan as rigid.</small></li>
           <li><strong>3 · Apply the calibrated extrinsic</strong><small>Transform LiDAR geometry into the camera or ego frame with a named direction.</small></li>
           <li class="is-safety"><strong>4 · Pass visibility gates</strong><small>Require positive depth, image bounds, the correct distortion state and occlusion handling.</small></li>
           <li><strong>5 · Project or back-project</strong><small>Use K for 3D-to-pixel projection; use metric depth with K⁻¹ for pixel-to-3D.</small></li>
-          <li class="is-support"><strong>6 · Treat planar IPM separately</strong><small>A ground homography is valid only on its assumed plane, not for general 3D objects.</small></li>
-          <li><strong>Frame contract</strong><small>earth → map → odom → ego(t) → sensors separates global correction, local motion and fixed extrinsics.</small></li>
+          <li class="is-support" data-relation="Planar branch"><strong>6 · Treat planar IPM separately</strong><small>A ground homography is valid only on its assumed plane, not for general 3D objects.</small></li>
+          <li data-relation="Frame tree"><strong>Frame contract</strong><small>earth → map → odom → ego(t) → sensors separates global correction, local motion and fixed extrinsics.</small></li>
         </ol>
         <figcaption id="geometry-transform-caption"><span><strong>Different arrows mean different quantities:</strong> fixed sensor calibration, time-varying pose, deskew, projection, and planar homography are not interchangeable.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the graph →</span></figcaption>
       </figure>
@@ -462,7 +462,7 @@
         <div class="equation-block"><span>i = floor((x − x<sub>min</sub>) / v<sub>x</sub>) &nbsp; · &nbsp; j = floor((y − y<sub>min</sub>) / v<sub>y</sub>) &nbsp; · &nbsp; k = floor((z − z<sub>min</sub>) / v<sub>z</sub>)</span></div>
         <p>Halving all three voxel dimensions can create eight times as many dense cells. Sparse storage removes empty computation, not coordinate construction, hashing, feature-density, or accelerator costs.</p>
       </div>
-      <figure class="system-diagram system-diagram--wide" id="representation-choice-figure" data-diagram="representation-choice">
+      <figure class="system-diagram system-diagram--wide" id="representation-choice-figure" data-diagram="representation-choice" data-diagram-kind="decision" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable spatial-representation decision tree and voxel-cost graph">
           <svg class="system-diagram__canvas" id="representation-choice-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 660" aria-labelledby="representation-choice-title" aria-describedby="representation-choice-desc representation-choice-caption">
             <title id="representation-choice-title">Spatial representation decision tree and relative dense voxel cost</title>
@@ -567,8 +567,8 @@
             <text class="diagram-detail" x="975" y="600" text-anchor="middle">Sparse storage skips empty cells, not indexing or feature cost.</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Spatial representation decision flow for small screens">
-          <li><strong>Range image</strong><small>Choose when native LiDAR beam topology is the important neighborhood.</small></li>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Spatial representation decision flow for small screens">
+          <li data-relation="Representation alternatives"><strong>Range image</strong><small>Choose when native LiDAR beam topology is the important neighborhood.</small></li>
           <li><strong>Raw points</strong><small>Choose when exact point-local geometry matters more than regular memory access.</small></li>
           <li><strong>Pillars</strong><small>Choose for fast road-scene detection when vertical compression is acceptable.</small></li>
           <li><strong>2D BEV</strong><small>Choose for shared ground-aligned fusion, maps, tracking and planning.</small></li>
@@ -597,7 +597,7 @@
 
     <section id="localization-slam" aria-labelledby="localization-slam-heading">
       <div class="section-heading"><div><p class="eyebrow">State estimation</p><h2 id="localization-slam-heading">Registration becomes odometry; global constraints make localization and SLAM</h2></div><p>Keep locally continuous control coordinates separate from globally corrected map coordinates.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="slam-factor-graph-figure" data-diagram="slam-factor-graph">
+      <figure class="system-diagram system-diagram--wide" id="slam-factor-graph-figure" data-diagram="slam-factor-graph" data-diagram-kind="graph" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable SLAM factor graph and local-global output diagram">
           <svg class="system-diagram__canvas" id="slam-factor-graph-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 560" aria-labelledby="slam-factor-graph-title" aria-describedby="slam-factor-graph-desc slam-factor-graph-caption">
             <title id="slam-factor-graph-title">SLAM factor graph with verified loop closure and separate local and global outputs</title>
@@ -678,17 +678,17 @@
             <text class="diagram-detail" x="1080" y="441" text-anchor="middle">corrected → map users</text>
             <path class="diagram-edge" marker-end="url(#slam-arrow)" d="M960 275 H995"></path>
             <path class="diagram-edge diagram-edge--support" marker-end="url(#slam-support-arrow)" d="M870 335 V412 H995"></path>
-            <text class="diagram-edge-label" x="1075" y="500" text-anchor="middle">Never inject an unexplained global jump into control.</text>
+            <text class="diagram-edge-label" x="1140" y="500" text-anchor="end">Never inject an unexplained global jump into control.</text>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Localization and SLAM graph flow for small screens">
-          <li><strong>1 · Front-end associations</strong><small>Feature tracks, scan matches and sensor observations create candidate constraints.</small></li>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Localization and SLAM graph flow for small screens">
+          <li data-relation="Accepted-factor path"><strong>1 · Front-end associations</strong><small>Feature tracks, scan matches and sensor observations create candidate constraints.</small></li>
           <li><strong>2 · Local odometry</strong><small>Relative vision/LiDAR, IMU and wheel factors produce a continuous but drifting pose.</small></li>
           <li><strong>3 · Global priors</strong><small>Gate GNSS, mapped landmarks and other absolute constraints before fusion.</small></li>
-          <li class="is-support"><strong>4 · Loop retrieval proposes</strong><small>Appearance similarity creates a candidate revisit; it does not create a graph edge.</small></li>
+          <li class="is-support" data-relation="Candidate loop"><strong>4 · Loop retrieval proposes</strong><small>Appearance similarity creates a candidate revisit; it does not create a graph edge.</small></li>
           <li class="is-safety"><strong>5 · Geometry verifies or rejects</strong><small>Check inliers, pose observability, degeneracy and covariance before accepting a loop.</small></li>
           <li><strong>6 · Robust graph optimization</strong><small>Optimize accepted constraints with realistic uncertainty and rejectable loop factors.</small></li>
-          <li><strong>7 · Publish two contracts</strong><small>Continuous odom pose for control; globally corrected map relationship for localization and mapping.</small></li>
+          <li data-relation="Output contracts"><strong>7 · Publish two contracts</strong><small>Continuous odom pose for control; globally corrected map relationship for localization and mapping.</small></li>
         </ol>
         <figcaption id="slam-factor-graph-caption"><span><strong>Retrieval is not loop closure:</strong> geometric verification decides whether a candidate becomes a factor; local control and global map outputs remain distinct.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the factor graph →</span></figcaption>
       </figure>
@@ -708,7 +708,7 @@
 
     <section id="prediction-planning" aria-labelledby="prediction-planning-heading">
       <div class="section-heading"><div><p class="eyebrow">From state to action</p><h2 id="prediction-planning-heading">Prediction models possibilities; planning chooses one safe ego future</h2></div><p>“Planning” is a hierarchy, not a single steering output.</p></div>
-      <figure class="system-diagram system-diagram--wide" id="planning-feedback-figure" data-diagram="planning-feedback">
+      <figure class="system-diagram system-diagram--wide" id="planning-feedback-figure" data-diagram="planning-feedback" data-diagram-kind="flow" data-print-view="summary">
         <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable prediction, planning, safety and closed-loop feedback diagram">
           <svg class="system-diagram__canvas" id="planning-feedback-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 630" aria-labelledby="planning-feedback-title" aria-describedby="planning-feedback-desc planning-feedback-caption">
             <title id="planning-feedback-title">Multimodal prediction, behavior planning, trajectory scoring, control and safety feedback</title>
@@ -813,15 +813,15 @@
             <path class="diagram-edge diagram-edge--safety" marker-end="url(#planning-safety-arrow)" d="M992 132 V500 H650"></path>
           </svg>
         </div>
-        <ol class="diagram-mobile-flow" aria-label="Prediction, planning and feedback flow for small screens">
-          <li><strong>1 · Timestamped world state</strong><small>Tracks, map, occupancy, unknown space, ego covariance and data age.</small></li>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Prediction, planning and feedback flow for small screens">
+          <li data-relation="Planning loop"><strong>1 · Timestamped world state</strong><small>Tracks, map, occupancy, unknown space, ego covariance and data age.</small></li>
           <li><strong>2 · Multimodal prediction</strong><small>Preserve several calibrated futures such as wait/cross and yield/merge.</small></li>
           <li><strong>3 · Behavior choices</strong><small>Keep, yield, merge, stop, pass or reroute under route, ODD and traffic rules.</small></li>
           <li><strong>4 · Time-parameterized trajectories</strong><small>Propose paths with yaw, speed, acceleration and time—not geometry alone.</small></li>
           <li class="is-safety"><strong>5 · Constraint and risk scoring</strong><small>Check collision, dynamics, rules, comfort, progress, uncertainty and unknown space.</small></li>
           <li><strong>6 · Control and actuation</strong><small>Track the selected feasible trajectory under delay, saturation and model mismatch.</small></li>
           <li><strong>7 · Closed-loop feedback</strong><small>The action changes vehicle pose, other agents and the next sensor distribution.</small></li>
-          <li class="is-safety"><strong>Independent safety path</strong><small>Monitor data age, feasibility, tracking error and latency; limit speed, stop or enter a minimal-risk maneuver.</small></li>
+          <li class="is-safety" data-relation="Safety branch"><strong>Independent safety path</strong><small>Monitor data age, feasibility, tracking error and latency; limit speed, stop or enter a minimal-risk maneuver.</small></li>
         </ol>
         <figcaption id="planning-feedback-caption"><span><strong>Prediction preserves possibilities; planning commits to action:</strong> only the returning feedback edge exposes compounding error, interaction and recovery.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the loop →</span></figcaption>
       </figure>

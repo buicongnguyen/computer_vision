@@ -53,10 +53,97 @@
       <p class="section-note">If an overlay is wrong, do not tune the detector first. Determine which contract—frame, units, timing, projection, distortion, or parameter version—is violated.</p>
     </section>
 
-    <section class="split-section" aria-labelledby="projection-heading">
+    <section aria-labelledby="projection-heading">
+      <div class="section-heading"><div><p class="eyebrow">Core theory</p><h2 id="projection-heading">From a world point to a pixel</h2></div><p>Projection is valid only when its frame, capture time, and calibration version describe the same observation.</p></div>
+      <figure class="system-diagram system-diagram--wide" id="calibration-projection-figure" data-diagram="calibration-projection" data-diagram-kind="data-flow" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable world-point to pixel projection data-flow graph">
+          <svg class="system-diagram__canvas" id="calibration-projection-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 500" aria-labelledby="calibration-projection-title" aria-describedby="calibration-projection-desc calibration-projection-caption">
+            <title id="calibration-projection-title">World-point to pixel projection with frame, time, and version contracts</title>
+            <desc id="calibration-projection-desc">A world-frame point is transformed by T camera from world, rejected unless its camera-frame depth is positive, normalized to a ray, distorted with the declared camera model, mapped through the intrinsic matrix, and checked against image bounds. Frame, time, and calibration-version contracts support the main path; invalid geometry is rejected. A global-shutter frame uses one capture time, while a rolling-shutter image requires a known row timestamp or a coupled or iterative pose-and-row projection.</desc>
+            <defs>
+              <marker id="calibration-projection-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="calibration-projection-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="calibration-projection-reject-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="20" width="1140" height="130" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="175" width="1140" height="155" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="355" width="1140" height="120" rx="16"></rect>
+            <text class="diagram-lane-label" x="42" y="48">SIDE CONTRACTS</text>
+            <text class="diagram-lane-label" x="42" y="203">GEOMETRY PATH</text>
+            <text class="diagram-lane-label" x="42" y="383">INVALID BRANCH</text>
+
+            <rect class="diagram-node diagram-node--state" x="55" y="67" width="300" height="62" rx="12"></rect>
+            <text class="diagram-title" x="205" y="92" text-anchor="middle">Frame contract</text>
+            <text class="diagram-detail" x="205" y="114" text-anchor="middle">axes · units · transform direction</text>
+            <rect class="diagram-node diagram-node--state" x="440" y="67" width="300" height="62" rx="12"></rect>
+            <text class="diagram-title" x="590" y="92" text-anchor="middle">Time contract</text>
+            <text class="diagram-detail" x="590" y="114" text-anchor="middle">global frame time or known row time</text>
+            <rect class="diagram-node diagram-node--state" x="825" y="67" width="300" height="62" rx="12"></rect>
+            <text class="diagram-title" x="975" y="92" text-anchor="middle">Version contract</text>
+            <text class="diagram-detail" x="975" y="114" text-anchor="middle">calibration ID · resolution · crop</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#calibration-projection-support-arrow)" d="M205 129 V170 H252 V215"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#calibration-projection-support-arrow)" d="M590 129 V160 H252 V215"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#calibration-projection-support-arrow)" d="M975 129 V160 H757 V215"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#calibration-projection-support-arrow)" d="M1020 129 V215"></path>
+
+            <path class="diagram-edge" marker-end="url(#calibration-projection-arrow)" d="M155 260 H185"></path>
+            <path class="diagram-edge" marker-end="url(#calibration-projection-arrow)" d="M320 260 H350"></path>
+            <path class="diagram-edge" marker-end="url(#calibration-projection-arrow)" d="M485 260 H515"></path>
+            <path class="diagram-edge" marker-end="url(#calibration-projection-arrow)" d="M650 260 H680"></path>
+            <path class="diagram-edge" marker-end="url(#calibration-projection-arrow)" d="M815 260 H845"></path>
+            <path class="diagram-edge" marker-end="url(#calibration-projection-arrow)" d="M980 260 H1010"></path>
+
+            <rect class="diagram-node diagram-node--sensor" x="20" y="215" width="135" height="90" rx="12"></rect>
+            <text class="diagram-title" x="87.5" y="248" text-anchor="middle">P_world</text>
+            <text class="diagram-detail" x="87.5" y="273" text-anchor="middle">[Xw, Yw, Zw, 1]</text>
+            <rect class="diagram-node diagram-node--state" x="185" y="215" width="135" height="90" rx="12"></rect>
+            <text class="diagram-title" x="252.5" y="244" text-anchor="middle">T_camera←world</text>
+            <text class="diagram-detail" x="252.5" y="269" text-anchor="middle">[R | t] at sample time</text>
+            <text class="diagram-detail" x="252.5" y="288" text-anchor="middle">→ P_camera</text>
+            <rect class="diagram-node diagram-node--decision" x="350" y="215" width="135" height="90" rx="12"></rect>
+            <text class="diagram-title" x="417.5" y="244" text-anchor="middle">Positive-Z gate</text>
+            <text class="diagram-detail" x="417.5" y="269" text-anchor="middle">finite and Zc &gt; 0?</text>
+            <rect class="diagram-node" x="515" y="215" width="135" height="90" rx="12"></rect>
+            <text class="diagram-title" x="582.5" y="244" text-anchor="middle">Normalized ray</text>
+            <text class="diagram-detail" x="582.5" y="269" text-anchor="middle">x = Xc / Zc</text>
+            <text class="diagram-detail" x="582.5" y="288" text-anchor="middle">y = Yc / Zc</text>
+            <rect class="diagram-node" x="680" y="215" width="135" height="90" rx="12"></rect>
+            <text class="diagram-title" x="747.5" y="244" text-anchor="middle">Distortion</text>
+            <text class="diagram-detail" x="747.5" y="269" text-anchor="middle">(x, y) → (x′, y′)</text>
+            <text class="diagram-detail" x="747.5" y="288" text-anchor="middle">declared lens model</text>
+            <rect class="diagram-node" x="845" y="215" width="135" height="90" rx="12"></rect>
+            <text class="diagram-title" x="912.5" y="244" text-anchor="middle">Intrinsics K</text>
+            <text class="diagram-detail" x="912.5" y="269" text-anchor="middle">fx · fy · skew</text>
+            <text class="diagram-detail" x="912.5" y="288" text-anchor="middle">principal point</text>
+            <rect class="diagram-node diagram-node--output" x="1010" y="215" width="150" height="90" rx="12"></rect>
+            <text class="diagram-title" x="1085" y="244" text-anchor="middle">Pixel / bounds</text>
+            <text class="diagram-detail" x="1085" y="269" text-anchor="middle">(u, v), 0 ≤ u &lt; W</text>
+            <text class="diagram-detail" x="1085" y="288" text-anchor="middle">0 ≤ v &lt; H</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#calibration-projection-reject-arrow)" d="M417.5 305 V419 H455"></path>
+            <text class="diagram-edge-label" x="430" y="342">no / non-finite</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#calibration-projection-reject-arrow)" d="M1085 305 V419 H725"></path>
+            <text class="diagram-edge-label" x="920" y="405">outside image</text>
+            <rect class="diagram-node diagram-node--safety" x="455" y="390" width="270" height="58" rx="12"></rect>
+            <text class="diagram-title" x="590" y="415" text-anchor="middle">Reject or mark invalid</text>
+            <text class="diagram-detail" x="590" y="437" text-anchor="middle">do not manufacture a usable pixel</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="World-point to pixel projection graph for small screens">
+          <li class="is-support" data-relation="Input contracts" data-mobile-branch="contracts"><strong>Side contracts</strong><small>Declare axes, units, T_camera←world direction, calibration ID, resolution, crop, and either one global-frame time or a known rolling-shutter row time.</small></li>
+          <li data-relation="Transform at sample time" data-mobile-branch="transform"><strong>P_world → T_camera←world</strong><small>Transform the homogeneous world point into P_camera with the pose valid at the sample time.</small></li>
+          <li data-relation="If finite and Zc > 0" data-mobile-branch="positive-depth"><strong>Positive-Z branch</strong><small>Continue only for finite camera coordinates with Zc &gt; 0.</small></li>
+          <li class="is-safety" data-relation="If Zc ≤ 0 or non-finite" data-mobile-branch="invalid-depth"><strong>Reject invalid geometry</strong><small>Return an invalid result; do not manufacture a usable ray or pixel.</small></li>
+          <li data-relation="Else continue projection" data-mobile-branch="projection"><strong>Normalize → distort → apply K</strong><small>Divide by Zc, apply the declared lens model in normalized coordinates, then use matching intrinsics.</small></li>
+          <li data-relation="Pixel and bounds gate" data-mobile-branch="bounds"><strong>Pixel bounds branch</strong><small>Emit (u, v) only inside the declared image; preserve an invalid/out-of-view result otherwise.</small></li>
+          <li class="is-safety" data-relation="Rolling-shutter timing rule" data-mobile-branch="rolling-shutter"><strong>Do not guess row time</strong><small>If row time depends on the projected v coordinate, use a supplied row timestamp or solve pose and row time together; a single t_obs pose is only a declared approximation.</small></li>
+        </ul>
+        <figcaption id="calibration-projection-caption"><span><strong>Assumption:</strong> a central camera model and matching frame/time/version contracts; rolling shutter additionally needs a known row timestamp or a coupled/iterative projection. <strong>Failure:</strong> reject non-finite, behind-camera, or out-of-bounds samples instead of clipping them into valid evidence.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the data flow →</span></figcaption>
+      </figure>
+      <div class="split-section">
       <article class="content-card prose">
-        <p class="eyebrow">Core theory</p>
-        <h2 id="projection-heading">From a world point to a pixel</h2>
         <p>Use the convention <code>T_camera_world</code>: it maps a homogeneous point from the world frame into the camera frame.</p>
         <div class="equation-block" aria-label="Camera projection equations">
           <span>P<sub>c</sub> = R P<sub>w</sub> + t = [X, Y, Z]<sup>T</sup></span>
@@ -64,7 +151,7 @@
           <span>[u, v, 1]<sup>T</sup> ∼ K [x, y, 1]<sup>T</sup></span>
           <span>K = [[f<sub>x</sub>, s, c<sub>x</sub>], [0, f<sub>y</sub>, c<sub>y</sub>], [0, 0, 1]]</span>
         </div>
-        <p><strong>Checks before projection:</strong> units agree; the frame direction is correct; <code>Z &gt; 0</code> under the chosen camera convention; the calibration version matches the image; and the timestamp is meaningful for a moving rig.</p>
+        <p><strong>Checks before projection:</strong> units agree; the frame direction is correct; <code>Z &gt; 0</code> under the chosen camera convention; the calibration version matches the image; and the timestamp is meaningful for a moving rig. For a rolling-shutter camera, pixel row <code>v</code> and exposure time are coupled: use a supplied row timestamp, iterate projection and pose lookup, or explicitly document a global-shutter approximation.</p>
       </article>
       <article class="content-card prose">
         <p class="eyebrow">Worked example</p>
@@ -77,6 +164,7 @@
         </ol>
         <p>The pixel is <code>(680, 376)</code>. Doubling every 3D coordinate leaves the pixel unchanged; doubling only depth moves it toward the principal point.</p>
       </article>
+      </div>
     </section>
 
     <section aria-labelledby="distortion-heading">
@@ -133,14 +221,102 @@
 
     <section aria-labelledby="online-calibration-heading">
       <div class="section-heading"><div><p class="eyebrow">Dynamic and online calibration</p><h2 id="online-calibration-heading">Monitor continuously; update only when the geometry is observable</h2></div><p>A moving rig needs a trusted offline baseline, independent health signals, and a bounded correction policy—not an unconstrained six-degree-of-freedom optimizer on every frame.</p></div>
-      <div class="flow-strip wide" role="list" aria-label="Online calibration control flow">
-        <div role="listitem"><span>1</span><strong>Baseline</strong><small>target-based nominal</small></div>
-        <div role="listitem"><span>2</span><strong>Monitor</strong><small>time + residual health</small></div>
-        <div role="listitem"><span>3</span><strong>Gate</strong><small>motion/scene observability</small></div>
-        <div role="listitem"><span>4</span><strong>Refine</strong><small>bounded spatial/time delta</small></div>
-        <div role="listitem"><span>5</span><strong>Validate</strong><small>held-out/downstream checks</small></div>
-        <div role="listitem"><span>6</span><strong>Commit</strong><small>accept, freeze, or rollback</small></div>
-      </div>
+      <figure class="system-diagram system-diagram--wide" id="online-calibration-state-figure" data-diagram="online-calibration-state" data-diagram-kind="state" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable guarded online calibration state machine">
+          <svg class="system-diagram__canvas" id="online-calibration-state-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 590" aria-labelledby="online-calibration-state-title" aria-describedby="online-calibration-state-desc online-calibration-state-caption">
+            <title id="online-calibration-state-title">Guarded state machine for online calibration updates</title>
+            <desc id="online-calibration-state-desc">A last-known-good calibration is monitored in the healthy state. Persistent anomalies create a suspect state, but refinement begins only after an observability gate. A bounded shadow candidate must pass held-out and downstream validation before a new immutable version is committed. Failed gates freeze the last-known-good state, and post-commit regression triggers rollback.</desc>
+            <defs>
+              <marker id="online-calibration-state-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="online-calibration-state-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="online-calibration-state-feedback-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="online-calibration-state-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="20" width="1140" height="245" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="290" width="1140" height="275" rx="16"></rect>
+            <text class="diagram-lane-label" x="42" y="48">CANDIDATE UPDATE PATH</text>
+            <text class="diagram-lane-label" x="42" y="318">GUARDED FALLBACK &amp; RECOVERY</text>
+
+            <path class="diagram-edge" marker-end="url(#online-calibration-state-arrow)" d="M190 145 H220"></path>
+            <text class="diagram-edge-label" x="205" y="130" text-anchor="middle">alarm</text>
+            <path class="diagram-edge" marker-end="url(#online-calibration-state-arrow)" d="M380 145 H410"></path>
+            <text class="diagram-edge-label" x="395" y="130" text-anchor="middle">window</text>
+            <path class="diagram-edge" marker-end="url(#online-calibration-state-arrow)" d="M570 145 H600"></path>
+            <text class="diagram-edge-label" x="585" y="130" text-anchor="middle">yes</text>
+            <path class="diagram-edge" marker-end="url(#online-calibration-state-arrow)" d="M760 145 H790"></path>
+            <text class="diagram-edge-label" x="775" y="130" text-anchor="middle">bounded</text>
+            <path class="diagram-edge" marker-end="url(#online-calibration-state-arrow)" d="M950 145 H980"></path>
+            <text class="diagram-edge-label" x="965" y="130" text-anchor="middle">pass</text>
+
+            <rect class="diagram-node diagram-node--state" x="30" y="95" width="160" height="100" rx="13"></rect>
+            <text class="diagram-title" x="110" y="127" text-anchor="middle">HEALTHY</text>
+            <text class="diagram-detail" x="110" y="151" text-anchor="middle">monitor last-known-good</text>
+            <text class="diagram-detail" x="110" y="172" text-anchor="middle">immutable version</text>
+            <rect class="diagram-node diagram-node--state" x="220" y="95" width="160" height="100" rx="13"></rect>
+            <text class="diagram-title" x="300" y="127" text-anchor="middle">SUSPECT</text>
+            <text class="diagram-detail" x="300" y="151" text-anchor="middle">persist + localize fault</text>
+            <text class="diagram-detail" x="300" y="172" text-anchor="middle">do not update yet</text>
+            <rect class="diagram-node diagram-node--decision" x="410" y="95" width="160" height="100" rx="13"></rect>
+            <text class="diagram-title" x="490" y="127" text-anchor="middle">Observable?</text>
+            <text class="diagram-detail" x="490" y="151" text-anchor="middle">motion · static geometry</text>
+            <text class="diagram-detail" x="490" y="172" text-anchor="middle">overlap · depth diversity</text>
+            <rect class="diagram-node diagram-node--state" x="600" y="95" width="160" height="100" rx="13"></rect>
+            <text class="diagram-title" x="680" y="127" text-anchor="middle">SHADOW REFINE</text>
+            <text class="diagram-detail" x="680" y="151" text-anchor="middle">bounded δξ and Δt</text>
+            <text class="diagram-detail" x="680" y="172" text-anchor="middle">nominal stays active</text>
+            <rect class="diagram-node diagram-node--decision" x="790" y="95" width="160" height="100" rx="13"></rect>
+            <text class="diagram-title" x="870" y="127" text-anchor="middle">VALIDATE</text>
+            <text class="diagram-detail" x="870" y="151" text-anchor="middle">held-out geometry</text>
+            <text class="diagram-detail" x="870" y="172" text-anchor="middle">downstream non-regression</text>
+            <rect class="diagram-node diagram-node--output" x="980" y="95" width="170" height="100" rx="13"></rect>
+            <text class="diagram-title" x="1065" y="127" text-anchor="middle">COMMIT VERSION</text>
+            <text class="diagram-detail" x="1065" y="151" text-anchor="middle">publish new ID</text>
+            <text class="diagram-detail" x="1065" y="172" text-anchor="middle">retain prior rollback target</text>
+
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#online-calibration-state-feedback-arrow)" d="M1065 95 V65 H110 Q65 65 65 90"></path>
+            <text class="diagram-edge-label" x="590" y="57" text-anchor="middle">new version becomes monitored last-known-good</text>
+
+            <rect class="diagram-node diagram-node--safety" x="390" y="370" width="220" height="90" rx="13"></rect>
+            <text class="diagram-title" x="500" y="402" text-anchor="middle">FREEZE</text>
+            <text class="diagram-detail" x="500" y="426" text-anchor="middle">keep last-known-good active</text>
+            <text class="diagram-detail" x="500" y="447" text-anchor="middle">retain evidence; keep monitoring</text>
+            <rect class="diagram-node diagram-node--safety" x="875" y="370" width="220" height="90" rx="13"></rect>
+            <text class="diagram-title" x="985" y="402" text-anchor="middle">ROLLBACK</text>
+            <text class="diagram-detail" x="985" y="426" text-anchor="middle">restore prior immutable ID</text>
+            <text class="diagram-detail" x="985" y="447" text-anchor="middle">latch regression evidence</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#online-calibration-state-safety-arrow)" d="M490 195 V365"></path>
+            <text class="diagram-edge-label" x="505" y="250">no / weak excitation</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#online-calibration-state-safety-arrow)" d="M680 195 V335 H560 V365"></path>
+            <text class="diagram-edge-label" x="630" y="327" text-anchor="middle">bounds fail</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#online-calibration-state-safety-arrow)" d="M870 195 V335 H605 V382"></path>
+            <text class="diagram-edge-label" x="745" y="327" text-anchor="middle">checks fail</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#online-calibration-state-support-arrow)" d="M390 415 H300 Q270 415 270 205"></path>
+            <text class="diagram-edge-label" x="280" y="365">new observable window</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#online-calibration-state-safety-arrow)" d="M1065 195 V365"></path>
+            <text class="diagram-edge-label" x="1140" y="275" text-anchor="end">post-commit regression</text>
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#online-calibration-state-feedback-arrow)" d="M875 415 V472 H150 Q65 472 65 200"></path>
+            <text class="diagram-edge-label" x="315" y="466" text-anchor="middle">restore previous ID, then monitor</text>
+
+            <rect class="diagram-node" x="40" y="490" width="1080" height="48" rx="12"></rect>
+            <text class="diagram-title" x="580" y="512" text-anchor="middle">Update guards are conjunctive, not advisory</text>
+            <text class="diagram-detail" x="580" y="531" text-anchor="middle">observability ∧ bounded correction ∧ held-out improvement ∧ downstream non-regression</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Guarded online calibration state machine for small screens">
+          <li data-relation="Initial monitored state" data-mobile-branch="healthy"><strong>HEALTHY</strong><small>Run the immutable last-known-good calibration and monitor independent residuals.</small></li>
+          <li data-relation="If alarm persists" data-mobile-branch="suspect"><strong>HEALTHY → SUSPECT</strong><small>Transition only after a persistent, localized anomaly; do not update from one noisy residual.</small></li>
+          <li data-relation="If not observable" data-mobile-branch="weak-observability" class="is-safety"><strong>Observability gate → FREEZE</strong><small>Keep the baseline when excitation, static geometry, overlap, or depth diversity is insufficient.</small></li>
+          <li data-relation="If observable" data-mobile-branch="shadow"><strong>Observable → SHADOW REFINE</strong><small>Estimate bounded spatial/time corrections while the nominal calibration remains active.</small></li>
+          <li data-relation="If bounds or validation fail" data-mobile-branch="validation-fail" class="is-safety"><strong>Candidate → FREEZE</strong><small>Reject a correction that exceeds bounds or fails held-out geometry/downstream checks.</small></li>
+          <li data-relation="If all checks pass" data-mobile-branch="commit"><strong>VALIDATE → COMMIT</strong><small>Publish a new immutable ID and retain the prior version as a rollback target.</small></li>
+          <li class="is-safety" data-relation="If downstream regresses" data-mobile-branch="rollback"><strong>Post-commit regression → ROLLBACK</strong><small>Restore the prior version and latch the evidence.</small></li>
+          <li class="is-support" data-relation="Recovery transition" data-mobile-branch="recovery"><strong>FREEZE / ROLLBACK → monitor</strong><small>Wait for a new observable window, then restart from the trusted version.</small></li>
+        </ul>
+        <figcaption id="online-calibration-state-caption"><span><strong>Assumption:</strong> the candidate correction is observable and bounded. <strong>Failure:</strong> weak excitation, failed validation, or downstream regression must freeze or rollback—not silently rewrite the active calibration.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the state machine →</span></figcaption>
+      </figure>
       <div class="split-section">
         <article class="content-card prose">
           <h3>Separate the operating modes</h3>

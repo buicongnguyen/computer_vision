@@ -97,6 +97,97 @@
 
     <section aria-labelledby="lift-heading">
       <div class="section-heading"><div><p class="eyebrow">Stage 2 · Learned geometry</p><h2 id="lift-heading">Lift image features through depth</h2></div></div>
+      <figure class="system-diagram system-diagram--wide" id="bev-lift-splat-figure" data-diagram="bev-lift-splat" data-diagram-kind="data-flow" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable camera lift-splat data-flow graph">
+          <svg class="system-diagram__canvas" id="bev-lift-splat-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 555" aria-labelledby="bev-lift-splat-title" aria-describedby="bev-lift-splat-desc bev-lift-splat-caption">
+            <title id="bev-lift-splat-title">Camera feature lift and splat into a bird's-eye-view grid</title>
+            <desc id="bev-lift-splat-desc">Multi-camera images produce feature tensors and per-pixel depth distributions. Their outer product forms frustum feature mass. Pixel rays and depth-bin centers are unprojected by inverse intrinsics, transformed from camera to ego coordinates, indexed into a bounded grid, and paired with the frustum features for scatter aggregation. The output is a BEV tensor with validity and density evidence.</desc>
+            <defs>
+              <marker id="bev-lift-splat-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="bev-lift-splat-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="20" width="1140" height="240" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="285" width="1140" height="245" rx="16"></rect>
+            <text class="diagram-lane-label" x="42" y="48">LEARNED FEATURE MASS</text>
+            <text class="diagram-lane-label" x="42" y="313">GEOMETRY, INDEXING &amp; AGGREGATION</text>
+
+            <rect class="diagram-node diagram-node--sensor" x="30" y="95" width="165" height="90" rx="12"></rect>
+            <text class="diagram-title" x="112.5" y="126" text-anchor="middle">Camera images</text>
+            <text class="diagram-detail" x="112.5" y="151" text-anchor="middle">I: B×N×3×H×W</text>
+            <text class="diagram-detail" x="112.5" y="171" text-anchor="middle">N calibrated views</text>
+            <rect class="diagram-node diagram-node--state" x="225" y="55" width="165" height="80" rx="12"></rect>
+            <text class="diagram-title" x="307.5" y="87" text-anchor="middle">Image encoder</text>
+            <text class="diagram-detail" x="307.5" y="112" text-anchor="middle">shared or per-view</text>
+            <rect class="diagram-node diagram-node--state" x="225" y="155" width="165" height="80" rx="12"></rect>
+            <text class="diagram-title" x="307.5" y="187" text-anchor="middle">Depth head</text>
+            <text class="diagram-detail" x="307.5" y="212" text-anchor="middle">D normalized weights</text>
+            <rect class="diagram-node" x="420" y="55" width="180" height="80" rx="12"></rect>
+            <text class="diagram-title" x="510" y="87" text-anchor="middle">Feature tensor F</text>
+            <text class="diagram-detail" x="510" y="112" text-anchor="middle">B×N×C×Hf×Wf</text>
+            <rect class="diagram-node" x="420" y="155" width="180" height="80" rx="12"></rect>
+            <text class="diagram-title" x="510" y="187" text-anchor="middle">Depth weights p</text>
+            <text class="diagram-detail" x="510" y="212" text-anchor="middle">B×N×D×Hf×Wf</text>
+            <rect class="diagram-node diagram-node--state" x="665" y="92" width="190" height="110" rx="13"></rect>
+            <text class="diagram-title" x="760" y="125" text-anchor="middle">Lift / outer product</text>
+            <text class="diagram-detail" x="760" y="150" text-anchor="middle">G(u,v,d)=p·F</text>
+            <text class="diagram-detail" x="760" y="172" text-anchor="middle">B×N×D×Hf×Wf×C</text>
+
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M195 120 H220"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M195 160 H210 V195 H220"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M390 95 H415"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M390 195 H415"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M600 95 H630 Q650 95 660 122"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M600 195 H630 Q650 195 660 172"></path>
+
+            <rect class="diagram-node diagram-node--sensor" x="30" y="350" width="165" height="105" rx="12"></rect>
+            <text class="diagram-title" x="112.5" y="382" text-anchor="middle">Pixel + depth grid</text>
+            <text class="diagram-detail" x="112.5" y="407" text-anchor="middle">(u,v,1) and d₁…dD</text>
+            <text class="diagram-detail" x="112.5" y="429" text-anchor="middle">feature resolution</text>
+            <rect class="diagram-node diagram-node--state" x="225" y="350" width="165" height="105" rx="12"></rect>
+            <text class="diagram-title" x="307.5" y="382" text-anchor="middle">K⁻¹ unproject</text>
+            <text class="diagram-detail" x="307.5" y="407" text-anchor="middle">Pc=d K⁻¹[u,v,1]ᵀ</text>
+            <text class="diagram-detail" x="307.5" y="429" text-anchor="middle">d = optical-axis depth</text>
+            <rect class="diagram-node diagram-node--state" x="420" y="350" width="165" height="105" rx="12"></rect>
+            <text class="diagram-title" x="502.5" y="382" text-anchor="middle">Camera → ego</text>
+            <text class="diagram-detail" x="502.5" y="407" text-anchor="middle">Pe=T_ego←camera Pc</text>
+            <text class="diagram-detail" x="502.5" y="429" text-anchor="middle">at reference time</text>
+            <rect class="diagram-node diagram-node--decision" x="615" y="350" width="165" height="105" rx="12"></rect>
+            <text class="diagram-title" x="697.5" y="382" text-anchor="middle">Grid / bounds</text>
+            <text class="diagram-detail" x="697.5" y="407" text-anchor="middle">metric (X,Y) → (i,j)</text>
+            <text class="diagram-detail" x="697.5" y="429" text-anchor="middle">in-range validity mask</text>
+            <rect class="diagram-node diagram-node--state" x="810" y="350" width="165" height="105" rx="12"></rect>
+            <text class="diagram-title" x="892.5" y="382" text-anchor="middle">Scatter / pool</text>
+            <text class="diagram-detail" x="892.5" y="407" text-anchor="middle">G + cell index</text>
+            <text class="diagram-detail" x="892.5" y="429" text-anchor="middle">sum · mean · max · learned</text>
+            <rect class="diagram-node diagram-node--output" x="1005" y="350" width="155" height="105" rx="12"></rect>
+            <text class="diagram-title" x="1082.5" y="382" text-anchor="middle">BEV tensor</text>
+            <text class="diagram-detail" x="1082.5" y="407" text-anchor="middle">B×C×Hbev×Wbev</text>
+            <text class="diagram-detail" x="1082.5" y="429" text-anchor="middle">+ validity / density</text>
+
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M195 402 H220"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M390 402 H415"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M585 402 H610"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M780 402 H805"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M975 402 H1000"></path>
+            <path class="diagram-edge" marker-end="url(#bev-lift-splat-arrow)" d="M760 202 V270 H892.5 V345"></path>
+            <text class="diagram-edge-label" x="805" y="260">frustum feature G</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-lift-splat-support-arrow)" d="M697.5 455 V495 H1082.5 V460"></path>
+            <text class="diagram-edge-label" x="850" y="490">in-grid coverage and contribution count</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Camera lift-splat graph for small screens">
+          <li data-relation="Learned feature branch" data-mobile-branch="feature"><strong>Images → encoder → F</strong><small>Encode F with shape B×N×C×Hf×Wf.</small></li>
+          <li data-relation="Learned depth branch" data-mobile-branch="depth"><strong>Images → depth head → p</strong><small>Predict normalized depth weights p with shape B×N×D×Hf×Wf.</small></li>
+          <li data-relation="Feature-depth join" data-mobile-branch="lift"><strong>Lift feature mass</strong><small>Form G(u,v,d)=p(d|u,v)F(u,v), conceptually B×N×D×Hf×Wf×C.</small></li>
+          <li data-relation="Geometry branch" data-mobile-branch="geometry"><strong>Pixel-depth grid → ego points</strong><small>Unproject with K⁻¹, then transform camera points into ego at the reference time.</small></li>
+          <li data-relation="Index and validity gate" data-mobile-branch="index"><strong>Metric point → bounded cell</strong><small>Map (X,Y) to (i,j), reject out-of-range samples, and preserve an explicit validity mask.</small></li>
+          <li data-relation="Join feature mass with cell index" data-mobile-branch="aggregate"><strong>Scatter / pool</strong><small>Aggregate frustum feature mass by cell using the declared reducer.</small></li>
+          <li data-relation="Output contract" data-mobile-branch="output"><strong>Emit BEV tensor</strong><small>Return B×C×Hbev×Wbev plus density and validity evidence.</small></li>
+          <li class="is-safety" data-relation="Failure branch" data-mobile-branch="failure"><strong>Reject a broken geometry contract</strong><small>Wrong depth semantics, calibration, reference time, or silent out-of-bounds handling smears feature mass into the wrong cells.</small></li>
+        </ul>
+        <figcaption id="bev-lift-splat-caption"><span><strong>Assumption:</strong> d is optical-axis depth and K/extrinsics match each source image and reference time. <strong>Failure:</strong> preserve bounds, validity, and density so incorrect geometry cannot look like confident BEV evidence.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the data flow →</span></figcaption>
+      </figure>
       <div class="split-section">
         <article class="content-card prose">
           <h3>Lift</h3>
@@ -132,6 +223,118 @@
         </div>
         <p>Halving all three cell dimensions creates up to eight times as many cells in the same dense volume. Sparse tensors avoid computing empty cells, but coordinate construction, hashing, feature density, and accelerator support still have costs.</p>
       </div>
+      <figure class="system-diagram system-diagram--wide" id="bev-representation-decision-figure" data-diagram="bev-representation-decision" data-diagram-kind="decision" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable BEV and point-cloud representation decision graph">
+          <svg class="system-diagram__canvas" id="bev-representation-decision-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 720" aria-labelledby="bev-representation-decision-title" aria-describedby="bev-representation-decision-desc bev-representation-decision-caption">
+            <title id="bev-representation-decision-title">Decision graph for spatial representation selection</title>
+            <desc id="bev-representation-decision-desc">A branch graph selects range images when native LiDAR beam topology matters, raw points when exact point coordinates and modest point counts matter, pillars or 2D BEV when height collapse is acceptable, 3D occupancy for explicit free occupied and unknown state, dense voxels for small genuinely dense volumes, and sparse voxels for large sparse 3D scenes. Each leaf names the principal switch trigger.</desc>
+            <defs>
+              <marker id="bev-representation-decision-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="bev-representation-decision-yes-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <text class="diagram-lane-label" x="30" y="28">REJECT OPTIONS WITH THE DOWNSTREAM CONTRACT</text>
+            <rect class="diagram-node diagram-node--decision" x="20" y="45" width="205" height="86" rx="13"></rect>
+            <text class="diagram-title" x="122.5" y="77" text-anchor="middle">What must survive?</text>
+            <text class="diagram-detail" x="122.5" y="102" text-anchor="middle">topology · detail · state</text>
+            <text class="diagram-detail" x="122.5" y="121" text-anchor="middle">latency · memory · kernels</text>
+            <path class="diagram-edge" marker-end="url(#bev-representation-decision-arrow)" d="M225 88 H265"></path>
+
+            <rect class="diagram-node diagram-node--decision" x="270" y="45" width="230" height="86" rx="13"></rect>
+            <text class="diagram-title" x="385" y="77" text-anchor="middle">Native beam topology?</text>
+            <text class="diagram-detail" x="385" y="102" text-anchor="middle">rings · azimuth adjacency</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M500 88 H845"></path>
+            <text class="diagram-edge-label" x="525" y="77">yes</text>
+            <path class="diagram-edge" marker-end="url(#bev-representation-decision-arrow)" d="M385 131 V150"></path>
+            <text class="diagram-edge-label" x="397" y="144">no</text>
+
+            <rect class="diagram-node diagram-node--decision" x="270" y="150" width="230" height="86" rx="13"></rect>
+            <text class="diagram-title" x="385" y="182" text-anchor="middle">Exact point-local geometry?</text>
+            <text class="diagram-detail" x="385" y="207" text-anchor="middle">modest N · avoid quantization</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M500 193 H845"></path>
+            <text class="diagram-edge-label" x="525" y="182">yes</text>
+            <path class="diagram-edge" marker-end="url(#bev-representation-decision-arrow)" d="M385 236 V255"></path>
+            <text class="diagram-edge-label" x="397" y="249">no</text>
+
+            <rect class="diagram-node diagram-node--decision" x="270" y="255" width="230" height="96" rx="13"></rect>
+            <text class="diagram-title" x="385" y="287" text-anchor="middle">Can height be collapsed?</text>
+            <text class="diagram-detail" x="385" y="312" text-anchor="middle">ground-aligned output is enough</text>
+            <text class="diagram-detail" x="385" y="332" text-anchor="middle">for the consumer</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M500 303 H540"></path>
+            <text class="diagram-edge-label" x="512" y="292">yes</text>
+            <path class="diagram-edge" marker-end="url(#bev-representation-decision-arrow)" d="M385 351 V420"></path>
+            <text class="diagram-edge-label" x="397" y="375">no</text>
+
+            <rect class="diagram-node diagram-node--decision" x="545" y="255" width="250" height="96" rx="13"></rect>
+            <text class="diagram-title" x="670" y="287" text-anchor="middle">Which ground-plane contract?</text>
+            <text class="diagram-detail" x="670" y="312" text-anchor="middle">fast column encoder</text>
+            <text class="diagram-detail" x="670" y="332" text-anchor="middle">or shared metric state</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M795 285 H825 Q845 285 845 278"></path>
+            <text class="diagram-edge-label" x="807" y="273">latency</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M795 325 H825 Q845 325 845 373"></path>
+            <text class="diagram-edge-label" x="807" y="346">shared state</text>
+
+            <rect class="diagram-node diagram-node--decision" x="270" y="420" width="230" height="96" rx="13"></rect>
+            <text class="diagram-title" x="385" y="452" text-anchor="middle">Explicit unknown space?</text>
+            <text class="diagram-detail" x="385" y="477" text-anchor="middle">free / occupied / unknown</text>
+            <text class="diagram-detail" x="385" y="497" text-anchor="middle">scene completion or flow</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M500 468 H845"></path>
+            <text class="diagram-edge-label" x="525" y="457">yes</text>
+            <path class="diagram-edge" marker-end="url(#bev-representation-decision-arrow)" d="M385 516 V545"></path>
+            <text class="diagram-edge-label" x="397" y="538">no</text>
+
+            <rect class="diagram-node diagram-node--decision" x="270" y="545" width="230" height="96" rx="13"></rect>
+            <text class="diagram-title" x="385" y="577" text-anchor="middle">Bounded dense volume?</text>
+            <text class="diagram-detail" x="385" y="602" text-anchor="middle">regular 3D neighborhoods</text>
+            <text class="diagram-detail" x="385" y="622" text-anchor="middle">fit the memory budget</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#bev-representation-decision-yes-arrow)" d="M500 575 H700 Q735 575 735 563 H845"></path>
+            <text class="diagram-edge-label" x="525" y="564">yes</text>
+            <path class="diagram-edge" marker-end="url(#bev-representation-decision-arrow)" d="M500 615 H700 Q735 615 735 658 H845"></path>
+            <text class="diagram-edge-label" x="525" y="634">no · large sparse scene</text>
+
+            <rect class="diagram-node diagram-node--output" x="850" y="45" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="76" text-anchor="middle">Range image</text>
+            <text class="diagram-detail" x="1000" y="101" text-anchor="middle">preserves scan topology</text>
+            <text class="diagram-detail" x="1000" y="121" text-anchor="middle">switch: seam/collisions or shared metric frame</text>
+            <rect class="diagram-node diagram-node--output" x="850" y="150" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="181" text-anchor="middle">Raw points</text>
+            <text class="diagram-detail" x="1000" y="206" text-anchor="middle">preserves original coordinates</text>
+            <text class="diagram-detail" x="1000" y="226" text-anchor="middle">switch: neighborhood / memory cost dominates</text>
+            <rect class="diagram-node diagram-node--output" x="850" y="245" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="276" text-anchor="middle">Pillars</text>
+            <text class="diagram-detail" x="1000" y="301" text-anchor="middle">fast 2D road-scene detection</text>
+            <text class="diagram-detail" x="1000" y="321" text-anchor="middle">switch: vertical separation becomes material</text>
+            <rect class="diagram-node diagram-node--output" x="850" y="340" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="371" text-anchor="middle">2D BEV</text>
+            <text class="diagram-detail" x="1000" y="396" text-anchor="middle">fusion · maps · tracking · planning</text>
+            <text class="diagram-detail" x="1000" y="416" text-anchor="middle">switch: height or unknown-space loss matters</text>
+            <rect class="diagram-node diagram-node--output" x="850" y="435" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="466" text-anchor="middle">3D occupancy</text>
+            <text class="diagram-detail" x="1000" y="491" text-anchor="middle">volumetric free / occupied / unknown</text>
+            <text class="diagram-detail" x="1000" y="511" text-anchor="middle">switch: memory or occlusion hallucination</text>
+            <rect class="diagram-node diagram-node--output" x="850" y="530" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="561" text-anchor="middle">Dense voxels</text>
+            <text class="diagram-detail" x="1000" y="586" text-anchor="middle">simple regular 3D neighborhoods</text>
+            <text class="diagram-detail" x="1000" y="606" text-anchor="middle">switch: cubic memory / compute growth</text>
+            <rect class="diagram-node diagram-node--output" x="850" y="625" width="300" height="86" rx="12"></rect>
+            <text class="diagram-title" x="1000" y="656" text-anchor="middle">Sparse voxels</text>
+            <text class="diagram-detail" x="1000" y="681" text-anchor="middle">occupied 3D locality at driving range</text>
+            <text class="diagram-detail" x="1000" y="701" text-anchor="middle">switch: quantization / kernel overhead dominates</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Spatial representation decision graph for small screens">
+          <li data-relation="Question root" data-mobile-branch="root"><strong>What must survive?</strong><small>Declare topology, coordinate detail, vertical state, free/occupied/unknown semantics, latency, memory, and target kernels.</small></li>
+          <li data-relation="If native beam topology matters" data-mobile-branch="range-image"><strong>Choose a range image</strong><small>Switch when seams, projection collisions, or a shared metric frame dominate.</small></li>
+          <li data-relation="If exact point geometry matters" data-mobile-branch="raw-points"><strong>Choose raw points</strong><small>Use for modest N and minimal quantization; switch when irregular neighborhoods and memory access dominate.</small></li>
+          <li data-relation="If ground-aligned 2D is sufficient" data-mobile-branch="height-collapse"><strong>Choose pillars or 2D BEV</strong><small>Pillars favor fast column encoding; 2D BEV favors a shared fusion/map/tracking/planning interface.</small></li>
+          <li data-relation="If vertical state is required" data-mobile-branch="vertical"><strong>Preserve 3D structure</strong><small>Continue to occupancy or voxel choices instead of silently collapsing height.</small></li>
+          <li data-relation="If free / occupied / unknown is the output" data-mobile-branch="occupancy"><strong>Choose 3D occupancy</strong><small>Use when arbitrary geometry, scene completion, or future flow is required.</small></li>
+          <li data-relation="If the 3D volume is bounded and dense" data-mobile-branch="dense"><strong>Choose dense voxels</strong><small>Regular 3D neighborhoods are simple, but cubic memory and compute growth set the limit.</small></li>
+          <li data-relation="Else the driving scene is large and sparse" data-mobile-branch="sparse"><strong>Choose sparse voxels</strong><small>Compute mainly occupied coordinates; measure quantization and sparse-kernel overhead.</small></li>
+          <li class="is-safety" data-relation="Switch or reject when the contract fails" data-mobile-branch="switch"><strong>Validate the choice</strong><small>Measure information loss, quantization, memory, latency, kernel support, and uncertainty on target hardware and downstream tasks.</small></li>
+        </ul>
+        <figcaption id="bev-representation-decision-caption"><span><strong>Assumption:</strong> the downstream query and target hardware contract are known. <strong>Failure:</strong> every discretization either loses geometry/topology or spends memory/latency, so switch when its measured rejection trigger becomes material.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the decision graph →</span></figcaption>
+      </figure>
       <div class="evolution-table" role="table" aria-label="Point cloud and spatial representation comparison">
         <div class="evolution-row evolution-head" role="row"><span role="columnheader">Representation</span><span role="columnheader">Choose when</span><span role="columnheader">What it preserves</span><span role="columnheader">Failure / switch trigger</span></div>
         <div class="evolution-row" role="row"><span role="cell">Raw points</span><span role="cell">Local geometry, modest point count, point-wise labels</span><span role="cell">Original coordinates and per-return attributes without grid quantization</span><span role="cell">Irregular memory access/neighborhood cost grows; switch to sparse voxels or native range view for large scenes</span></div>
@@ -141,11 +344,6 @@
         <div class="evolution-row" role="row"><span role="cell">Range image</span><span role="cell">LiDAR segmentation and fast processing in native scan topology</span><span role="cell">Beam/ring adjacency, return layers, and efficient 2D convolution</span><span role="cell">Azimuth seam, projection collisions, occlusion, and sensor-specific layout; switch when a shared metric frame is required</span></div>
         <div class="evolution-row" role="row"><span role="cell">2D BEV raster/features</span><span role="cell">Detection, mapping, tracking, fusion, and planning share a ground-aligned metric interface</span><span role="cell">Horizontal position, footprint, free-space/map context, multi-sensor alignment</span><span role="cell">Vertical collapse and unknown-space overconfidence; retain height channels or move to 3D occupancy</span></div>
         <div class="evolution-row" role="row"><span role="cell">3D occupancy</span><span role="cell">Arbitrary obstacles, free/occupied/unknown space, scene completion, future flow</span><span role="cell">Volumetric structure beyond a fixed object vocabulary</span><span role="cell">Memory, label ambiguity, occlusion hallucination, class imbalance; use sparse/multi-resolution grids and calibrated unknown state</span></div>
-      </div>
-      <div class="card-grid">
-        <article class="content-card prose"><h3>Fast detection default</h3><p>Begin with pillars or a compact BEV encoder. Move to sparse 3D voxels only when vertical/detail gains justify measured latency and memory.</p></article>
-        <article class="content-card prose"><h3>Native LiDAR segmentation</h3><p>Begin with a range image when beam topology is stable. Audit seam, collision, dropped-return, and cross-sensor transfer behavior.</p></article>
-        <article class="content-card prose"><h3>Planning-facing world state</h3><p>Use BEV boxes/maps for compact known-agent reasoning; add observed/free/occupied/unknown 3D occupancy when unusual geometry and occlusion matter.</p></article>
       </div>
       <p class="section-note">Follow the complete sensor-to-control dependency chain on the <a href="autonomous-driving.html">autonomous-driving page</a>; representation quality must ultimately be judged at perception, prediction, planning, and closed-loop boundaries.</p>
     </section>
