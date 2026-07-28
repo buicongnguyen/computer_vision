@@ -79,6 +79,36 @@ def test_all_javascript_files_parse() -> None:
     _assert_clean(validate_javascript_syntax())
 
 
+def test_book_reader_covers_the_complete_course_path() -> None:
+    script = (DOCS_DIR / "site.js").read_text(encoding="utf-8")
+    styles = (DOCS_DIR / "styles.css").read_text(encoding="utf-8")
+    chapter_config = script.split("var BOOK_CHAPTERS =", maxsplit=1)[1].split(
+        "var BOOK_PAGES =", maxsplit=1
+    )[0]
+
+    for page_name in ("index.html", *REQUIRED_PAGE_NAMES):
+        assert chapter_config.count(f'href: "{page_name}"') == 1
+
+    for behavior in (
+        "initializeReaderNavigation",
+        "initializePageContents",
+        "initializeBookPagination",
+        "initializeReadingProgress",
+        "BOOKMARK_STORAGE_KEY",
+    ):
+        assert behavior in script
+
+    for selector in (
+        ".reader-sidebar",
+        ".reader-page-toc",
+        ".reader-bookmark",
+        ".reader-progress",
+        "@media (max-width: 1180px)",
+        "@media (prefers-reduced-motion: reduce)",
+    ):
+        assert selector in styles
+
+
 def test_autonomous_driving_learning_flow_is_integrated() -> None:
     page = DOCS_DIR / "autonomous-driving.html"
     source = page.read_text(encoding="utf-8")

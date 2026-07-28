@@ -15,12 +15,11 @@ import shutil
 import subprocess
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Iterable, Sequence
 from urllib.parse import unquote, urlsplit
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = REPO_ROOT / "docs"
@@ -621,7 +620,7 @@ def load_javascript_array(
             f"{path.name} did not produce valid JSON: {error}"
         ) from error
     if not isinstance(value, list):
-        raise RuntimeError(f"{global_name} in {path.name} is not an array")
+        raise TypeError(f"{global_name} in {path.name} is not an array")
     return value
 
 
