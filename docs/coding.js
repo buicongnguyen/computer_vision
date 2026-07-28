@@ -188,6 +188,12 @@
   });
   elements.search.addEventListener("input", render);
   elements.clearFilters.addEventListener("click", clearFilters);
+  window.addEventListener("storage", (event) => {
+    if (event.key === storageKey) {
+      progress = loadProgress();
+      render();
+    }
+  });
   render();
   syncSharedProgress();
 })();

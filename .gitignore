@@ -11,6 +11,9 @@ dist/
 *.egg-info/
 .idea/
 .vscode/
+node_modules/
+playwright-report/
+test-results/
 data/
 artifacts/
 checkpoints/

@@ -1,0 +1,13 @@
+{
+  "name": "computer-vision-course",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser regression tests for the CV Systems Lab course reader.",
+  "scripts": {
+    "test": "npm run test:reader",
+    "test:reader": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0"
+  }
+}

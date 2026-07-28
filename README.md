@@ -28,6 +28,8 @@ skills self-assessment, or private information.
   with data-flow, code-trace, sequence, state-machine, logic-decision, and
   fault-propagation diagrams.
 - 80 explained multiple-choice questions and 36 progressive coding exercises.
+- Thirteen numbered course chapters plus a study hub, with 11 completion
+  checkpoints that track progress through the core learning path.
 - Six applied projects with baselines, comparison gates, failure tests, and
   reproducibility requirements.
 - Official university course references and primary research sources.
@@ -85,6 +87,9 @@ python -m pip install --upgrade pip
 pip install -e ".[dev]"
 python tools/check_env.py
 pytest -q
+npm ci --ignore-scripts
+npx --no-install playwright install chromium
+npm test
 ```
 
 For one-command setup and validation:
@@ -117,9 +122,11 @@ The site links to official course pages and primary papers instead of copying
 their slides, assignments, recordings, or solutions. Site explanations, MCQs,
 diagrams, labs, and solution code are original unless a file states otherwise.
 
-## GitHub Pages
+## Tests and GitHub Pages
 
-The static site is served from `docs/` on the `main` branch:
+The dependency-free site source lives in `docs/`. GitHub Pages receives that
+directory through the gated workflow in `.github/workflows/pages.yml`; it is
+not published directly from the branch before validation.
 
 - Repository: <https://github.com/buicongnguyen/computer_vision>
 - Course: <https://buicongnguyen.github.io/computer_vision/>
@@ -133,7 +140,19 @@ chapter links, persistent bookmarks, reading progress, and a persistent
 dark/light theme. The lesson HTML remains dependency-free and readable without
 the enhanced shell.
 
-Pull requests and pushes to `main` run the `Course quality` workflow. It checks
-the static-site structure and local links, parses every JavaScript file, runs
-the Python test suite, and lints the Python source before GitHub Pages publishes
-the `docs/` directory.
+The reader contains 13 numbered chapters and the progress model exposes 11
+completion checkpoints. Pull requests run the reusable `Course quality`
+workflow, which:
+
+- validates workflow syntax, site structure, local links, learning materials,
+  JavaScript, 80 MCQs, and 36 coding tasks;
+- runs the Python suite through both `pytest` and `python -m pytest`, then runs
+  Ruff;
+- installs the lockfile-pinned browser tooling and exercises the reader in a
+  real Chromium browser at desktop and mobile sizes.
+
+A push to `main` starts `Deploy GitHub Pages`. That workflow calls the same
+quality gate against the exact pushed revision. Only after it succeeds does a
+separate job package the exact `docs/` tree, including `.nojekyll`; deployment
+starts only after that artifact is ready. This dependency chain prevents a
+failed validation run from publishing a new site.
