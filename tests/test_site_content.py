@@ -109,6 +109,23 @@ def test_book_reader_covers_the_complete_course_path() -> None:
         assert selector in styles
 
 
+def test_reader_drawer_keeps_keyboard_focus_in_a_visible_control() -> None:
+    script = (DOCS_DIR / "site.js").read_text(encoding="utf-8")
+    compact = re.sub(r"\s+", " ", script)
+
+    for behavior in (
+        'if (event.key !== "Tab" || !menuOpen)',
+        'sidebar.querySelectorAll( \'a[href], button:not([disabled]), input:not([disabled])\' )',
+        "if (!sidebar.contains(document.activeElement))",
+        "event.shiftKey && document.activeElement === first",
+        "!event.shiftKey && document.activeElement === last",
+        "closeSidebar(true);",
+        'document.activeElement.classList.contains("reader-bookmark")',
+        "button.offsetParent !== null",
+    ):
+        assert behavior in compact, behavior
+
+
 def test_autonomous_driving_learning_flow_is_integrated() -> None:
     page = DOCS_DIR / "autonomous-driving.html"
     source = page.read_text(encoding="utf-8")
