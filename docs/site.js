@@ -413,6 +413,8 @@
     sidebar.appendChild(nav);
 
     function toggleBookmark(href) {
+      var restoreFocus = document.activeElement
+        && document.activeElement.classList.contains("reader-bookmark");
       var index = bookmarks.indexOf(href);
       if (index === -1) {
         bookmarks.push(href);
@@ -421,6 +423,21 @@
       }
       writeBookmarks(bookmarks);
       renderNavigation();
+      if (restoreFocus) {
+        window.requestAnimationFrame(function () {
+          var row = Array.from(nav.querySelectorAll("[data-reader-row]")).find(
+            function (candidate) {
+              return candidate.getAttribute("data-page-href") === href;
+            }
+          );
+          var button = row && row.querySelector(".reader-bookmark");
+          if (button && button.offsetParent !== null) {
+            button.focus();
+          } else {
+            search.focus();
+          }
+        });
+      }
     }
 
     function renderSavedPages() {
@@ -536,15 +553,42 @@
     overlay.addEventListener("click", function () { closeSidebar(true); });
     sidebar.addEventListener("click", function (event) {
       if (event.target.closest("a") && window.innerWidth <= 1180) {
-        closeSidebar(false);
+        closeSidebar(true);
       }
     });
     search.addEventListener("input", function () {
       filterNavigation(search.value);
     });
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && document.body.classList.contains("reader-menu-open")) {
+      var menuOpen = document.body.classList.contains("reader-menu-open");
+      if (event.key === "Escape" && menuOpen) {
         closeSidebar(true);
+        return;
+      }
+      if (event.key !== "Tab" || !menuOpen) {
+        return;
+      }
+
+      var focusable = Array.from(sidebar.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled])'
+      )).filter(function (element) {
+        return element.offsetParent !== null;
+      });
+      if (!focusable.length) {
+        return;
+      }
+
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (!sidebar.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     });
     window.addEventListener("resize", function () {
