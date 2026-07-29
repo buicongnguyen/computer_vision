@@ -40,7 +40,6 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: docs
-          include-hidden-files: "true"
 
   deploy:
     needs: package

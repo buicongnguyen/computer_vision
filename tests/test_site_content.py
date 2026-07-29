@@ -128,6 +128,7 @@ def test_ci_and_pages_workflows_use_resolvable_documented_action_majors() -> Non
     assert "uses: ./.github/workflows/quality.yml" in pages
     assert "needs: quality" in pages
     assert "needs: package" in pages
+    assert "include-hidden-files:" not in pages
 
 
 def test_every_html_page_has_valid_structure_and_local_targets() -> None:
