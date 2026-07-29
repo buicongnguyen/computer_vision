@@ -8,6 +8,7 @@ objects to the project script.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import re
@@ -39,6 +40,7 @@ REQUIRED_PAGE_NAMES = (
     *EXPECTED_NAV_LINKS,
     "yolo-evolution.html",
     "current-topics.html",
+    "sensor-fusion.html",
     "autonomous-driving.html",
     "autonomy-reasoning.html",
 )
@@ -52,7 +54,7 @@ QUIZ_REQUIRED_FIELDS = frozenset(
 
 CODING_DATA_FILE = "coding-data.js"
 CODING_GLOBAL = "CV_CODING_TASKS"
-CODING_EXPECTED_COUNT = 36
+CODING_EXPECTED_COUNT = 38
 CODING_REQUIRED_FIELDS = frozenset(
     {
         "id",
@@ -68,6 +70,12 @@ CODING_REQUIRED_FIELDS = frozenset(
         "evidence",
     }
 )
+CODING_SOLUTION_FILES = (
+    "coding-solutions-foundations.js",
+    "coding-solutions-systems.js",
+    "coding-solutions-3d.js",
+)
+CODING_SOLUTIONS_GLOBAL = "CV_CODING_SOLUTIONS"
 
 EXTERNAL_SCHEMES = frozenset({"http", "https", "mailto", "tel"})
 SITE_PREFIX = "/computer_vision"
@@ -89,6 +97,29 @@ new vm.Script(source, { filename: file }).runInContext(
   sandbox,
   { timeout: 1500 }
 );
+const value = sandbox.window[globalName];
+if (!Array.isArray(value)) {
+  process.stderr.write(globalName + " is not an array");
+  process.exit(3);
+}
+process.stdout.write(JSON.stringify(value));
+"""
+
+NODE_MULTI_ARRAY_EXTRACTOR = r"""
+const fs = require("fs");
+const vm = require("vm");
+const globalName = process.argv[1];
+const files = process.argv.slice(2);
+const sandbox = Object.create(null);
+sandbox.window = Object.create(null);
+vm.createContext(sandbox);
+for (const file of files) {
+  const source = fs.readFileSync(file, "utf8");
+  new vm.Script(source, { filename: file }).runInContext(
+    sandbox,
+    { timeout: 1500 }
+  );
+}
 const value = sandbox.window[globalName];
 if (!Array.isArray(value)) {
   process.stderr.write(globalName + " is not an array");
@@ -624,6 +655,63 @@ def load_javascript_array(
     return value
 
 
+def load_javascript_array_sequence(
+    paths: Sequence[Path],
+    global_name: str,
+    node_executable: str | None = None,
+) -> list[object]:
+    """Load scripts in order and return the final global array."""
+
+    node = node_executable or find_node()
+    if not node:
+        raise RuntimeError(
+            "Node.js is required to validate JavaScript data arrays"
+        )
+    missing = [path for path in paths if not path.is_file()]
+    if missing:
+        raise RuntimeError(
+            "JavaScript data file is missing: "
+            + ", ".join(str(path) for path in missing)
+        )
+    try:
+        result = subprocess.run(
+            [
+                node,
+                "-e",
+                NODE_MULTI_ARRAY_EXTRACTOR,
+                global_name,
+                *(str(path.resolve()) for path in paths),
+            ],
+            cwd=paths[0].parent,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+            check=False,
+            env={**os.environ, "NODE_NO_WARNINGS": "1"},
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError(
+            f"could not evaluate {len(paths)} JavaScript files: {error}"
+        ) from error
+    if result.returncode:
+        detail = (result.stderr or result.stdout).strip()
+        suffix = f": {detail}" if detail else ""
+        raise RuntimeError(
+            f"could not load {global_name} from solution files" + suffix
+        )
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(
+            f"solution files did not produce valid JSON: {error}"
+        ) from error
+    if not isinstance(value, list):
+        raise TypeError(f"{global_name} in solution files is not an array")
+    return value
+
+
 def load_quiz_questions(
     docs_dir: Path = DOCS_DIR,
     node_executable: str | None = None,
@@ -639,6 +727,17 @@ def load_coding_tasks(
 ) -> list[object]:
     return load_javascript_array(
         docs_dir / CODING_DATA_FILE, CODING_GLOBAL, node_executable
+    )
+
+
+def load_coding_solutions(
+    docs_dir: Path = DOCS_DIR,
+    node_executable: str | None = None,
+) -> list[object]:
+    return load_javascript_array_sequence(
+        [docs_dir / name for name in CODING_SOLUTION_FILES],
+        CODING_SOLUTIONS_GLOBAL,
+        node_executable,
     )
 
 
@@ -742,7 +841,7 @@ def validate_coding_tasks(
     tasks: Sequence[object],
     source: Path = DOCS_DIR / CODING_DATA_FILE,
 ) -> list[ValidationIssue]:
-    """Validate the 36-exercise coding contract."""
+    """Validate the coding-exercise contract."""
 
     issues: list[ValidationIssue] = []
     if len(tasks) != CODING_EXPECTED_COUNT:
@@ -833,6 +932,174 @@ def validate_coding_tasks(
     return sorted(issues)
 
 
+def validate_coding_solutions(
+    solutions: Sequence[object],
+    tasks: Sequence[object],
+    source: Path = DOCS_DIR / CODING_SOLUTION_FILES[0],
+) -> list[ValidationIssue]:
+    """Require one commented Python/C++ reference answer per coding task."""
+
+    issues: list[ValidationIssue] = []
+    task_ids = [
+        str(task["id"])
+        for task in tasks
+        if isinstance(task, dict) and _nonempty_string(task.get("id"))
+    ]
+    solution_ids: list[str] = []
+
+    for index, raw in enumerate(solutions):
+        label = f"coding solution {index + 1}"
+        if not isinstance(raw, dict):
+            issues.append(
+                ValidationIssue(
+                    source, f"{label} is not an object", code="solution-schema"
+                )
+            )
+            continue
+
+        solution_id = raw.get("id")
+        if _nonempty_string(solution_id):
+            solution_ids.append(str(solution_id))
+            label = f'coding solution "{solution_id}"'
+        else:
+            issues.append(
+                ValidationIssue(
+                    source, f"{label} has an invalid id", code="solution-schema"
+                )
+            )
+
+        extra_fields = set(raw).difference({"id", "python", "cpp"})
+        missing_fields = {"id", "python", "cpp"}.difference(raw)
+        if missing_fields or extra_fields:
+            detail = []
+            if missing_fields:
+                detail.append("missing " + ", ".join(sorted(missing_fields)))
+            if extra_fields:
+                detail.append("unexpected " + ", ".join(sorted(extra_fields)))
+            issues.append(
+                ValidationIssue(
+                    source,
+                    f"{label} has invalid fields: {'; '.join(detail)}",
+                    code="solution-schema",
+                )
+            )
+
+        for language, marker in (("python", "#"), ("cpp", "//")):
+            answer = raw.get(language)
+            if not isinstance(answer, dict):
+                issues.append(
+                    ValidationIssue(
+                        source,
+                        f"{label} {language} answer is not an object",
+                        code="solution-schema",
+                    )
+                )
+                continue
+            if set(answer) != {"code", "walkthrough"}:
+                issues.append(
+                    ValidationIssue(
+                        source,
+                        f"{label} {language} must contain only code and walkthrough",
+                        code="solution-schema",
+                    )
+                )
+            code = answer.get("code")
+            if not _nonempty_string(code):
+                issues.append(
+                    ValidationIssue(
+                        source,
+                        f"{label} {language} code is empty",
+                        code="solution-code",
+                    )
+                )
+            elif str(code).count(marker) < 2:
+                issues.append(
+                    ValidationIssue(
+                        source,
+                        f"{label} {language} needs at least two explanatory comments",
+                        code="solution-comments",
+                    )
+                )
+            elif re.search(
+                r"\b(?:TODO|FIXME|placeholder)\b", str(code), re.IGNORECASE
+            ):
+                issues.append(
+                    ValidationIssue(
+                        source,
+                        f"{label} {language} contains unfinished placeholder text",
+                        code="solution-code",
+                    )
+                )
+            if language == "python" and _nonempty_string(code):
+                try:
+                    ast.parse(str(code), filename=f"{solution_id or index}.py")
+                except SyntaxError as error:
+                    location = (
+                        f"line {error.lineno}, column {error.offset}"
+                        if error.lineno
+                        else "unknown location"
+                    )
+                    issues.append(
+                        ValidationIssue(
+                            source,
+                            f"{label} Python syntax error at {location}: {error.msg}",
+                            code="solution-syntax",
+                        )
+                    )
+
+            walkthrough = answer.get("walkthrough")
+            if (
+                not isinstance(walkthrough, list)
+                or not 2 <= len(walkthrough) <= 4
+                or not all(_nonempty_string(step) for step in walkthrough)
+            ):
+                issues.append(
+                    ValidationIssue(
+                        source,
+                        f"{label} {language} walkthrough needs two to four steps",
+                        code="solution-walkthrough",
+                    )
+                )
+
+    for duplicate_id, count in Counter(solution_ids).items():
+        if count > 1:
+            issues.append(
+                ValidationIssue(
+                    source,
+                    f'coding solution id "{duplicate_id}" appears {count} times',
+                    code="solution-id",
+                )
+            )
+
+    missing = sorted(set(task_ids).difference(solution_ids))
+    extra = sorted(set(solution_ids).difference(task_ids))
+    if missing:
+        issues.append(
+            ValidationIssue(
+                source,
+                "coding tasks missing reference answers: " + ", ".join(missing),
+                code="solution-coverage",
+            )
+        )
+    if extra:
+        issues.append(
+            ValidationIssue(
+                source,
+                "reference answers without coding tasks: " + ", ".join(extra),
+                code="solution-coverage",
+            )
+        )
+    if len(solutions) != len(tasks):
+        issues.append(
+            ValidationIssue(
+                source,
+                f"expected {len(tasks)} coding solutions, found {len(solutions)}",
+                code="solution-count",
+            )
+        )
+    return sorted(issues)
+
+
 def validate_data_files(
     docs_dir: Path = DOCS_DIR,
     node_executable: str | None = None,
@@ -842,6 +1109,8 @@ def validate_data_files(
     issues: list[ValidationIssue] = []
     quiz_path = docs_dir / QUIZ_DATA_FILE
     coding_path = docs_dir / CODING_DATA_FILE
+    solution_path = docs_dir / CODING_SOLUTION_FILES[0]
+    tasks: list[object] | None = None
     try:
         questions = load_quiz_questions(docs_dir, node_executable)
     except RuntimeError as error:
@@ -858,6 +1127,17 @@ def validate_data_files(
         )
     else:
         issues.extend(validate_coding_tasks(tasks, coding_path))
+    try:
+        solutions = load_coding_solutions(docs_dir, node_executable)
+    except RuntimeError as error:
+        issues.append(
+            ValidationIssue(solution_path, str(error), code="solution-load")
+        )
+    else:
+        if tasks is not None:
+            issues.extend(
+                validate_coding_solutions(solutions, tasks, solution_path)
+            )
     return sorted(issues)
 
 

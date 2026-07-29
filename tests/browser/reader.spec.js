@@ -29,6 +29,7 @@ const ALL_CHAPTERS = [
   "modern-cv.html",
   "yolo-evolution.html",
   "current-topics.html",
+  "sensor-fusion.html",
   "autonomous-driving.html",
   "autonomy-reasoning.html",
   "practice.html",
@@ -46,6 +47,7 @@ const DIAGRAM_PAGES = {
   "modern-cv.html": 2,
   "perception.html": 1,
   "practice.html": 1,
+  "sensor-fusion.html": 2,
   "yolo-evolution.html": 1
 };
 let staticServer;
@@ -87,7 +89,7 @@ test("migrates legacy progress and exposes the canonical checkpoint contract", a
     version: 1,
     completed: ["theory", "autonomy", "autonomy", "unknown"],
     quiz: { correct: 17, total: 80 },
-    coding: { solved: 4, total: 36 },
+    coding: { solved: 4, total: 38 },
     lastActivity: "2026-07-01T12:34:56.000Z"
   };
   await page.addInitScript(
@@ -124,13 +126,16 @@ test("migrates legacy progress and exposes the canonical checkpoint contract", a
     publicState.chapters.find((item) => item.id === "current-topics").status
   ).toBe("Optional");
   expect(
+    publicState.chapters.find((item) => item.id === "sensor-fusion").status
+  ).toBe("Deep dive");
+  expect(
     publicState.chapters.find((item) => item.id === "sources").status
   ).toBe("Reference");
   expect(publicState.progress).toEqual({
-    version: 2,
+    version: 3,
     completed: ["theory", "autonomous-driving"],
     quiz: { correct: 17, total: 80 },
-    coding: { solved: 4, total: 36 },
+    coding: { solved: 4, total: 38 },
     lastActivity: legacy.lastActivity
   });
   expect(persisted).toEqual(publicState.progress);
@@ -141,6 +146,30 @@ test("migrates legacy progress and exposes the canonical checkpoint contract", a
   );
   await expect(page.locator("[data-progress-count]").first()).toHaveText("2 / 11");
   expect(failures).toEqual([]);
+});
+
+test("new coding exercises reopen an older completed coding gate", async ({
+  page
+}) => {
+  await page.addInitScript(
+    ({ key, value }) => localStorage.setItem(key, JSON.stringify(value)),
+    {
+      key: PROGRESS_KEY,
+      value: {
+        version: 2,
+        completed: ["coding"],
+        quiz: { correct: 0, total: 0 },
+        coding: { solved: 36, total: 36 },
+        lastActivity: "2026-07-01T12:34:56.000Z"
+      }
+    }
+  );
+  await page.goto("/docs/index.html");
+  const state = await page.evaluate(() => window.CVStudyProgress.read());
+  expect(state.version).toBe(3);
+  expect(state.completed).toEqual([]);
+  expect(state.coding).toEqual({ solved: 36, total: 38 });
+  await expect(page.locator('[data-milestone="coding"]')).not.toBeChecked();
 });
 
 test("reset removes summary plus authoritative quiz and coding progress", async ({
@@ -156,7 +185,7 @@ test("reset removes summary plus authoritative quiz and coding progress", async 
           version: 2,
           completed: ["practice", "coding"],
           quiz: { correct: 64, total: 80 },
-          coding: { solved: 36, total: 36 },
+          coding: { solved: 38, total: 38 },
           lastActivity: "2026-07-01T12:34:56.000Z"
         })
       );
@@ -192,6 +221,92 @@ test("reset removes summary plus authoritative quiz and coding progress", async 
   expect(
     await page.evaluate(() => window.CVStudyProgress.read().completed)
   ).toEqual([]);
+  expect(failures).toEqual([]);
+});
+
+test("coding answers provide accessible Python and C++ tabs for every task", async ({
+  page
+}) => {
+  const failures = monitorFirstPartyFailures(page);
+  await page.goto("/docs/coding.html");
+
+  await expect(page.locator(".task-card")).toHaveCount(38);
+  await expect(page.locator(".task-solution")).toHaveCount(38);
+
+  const task = page.locator('[data-task-id="img-convolution"]');
+  await task.locator(".task-solution > summary").click();
+  const pythonTab = task.locator('[role="tab"][data-language="python"]');
+  const cppTab = task.locator('[role="tab"][data-language="cpp"]');
+  const pythonPanel = task.locator('[role="tabpanel"][data-language="python"]');
+  const cppPanel = task.locator('[role="tabpanel"][data-language="cpp"]');
+
+  await expect(pythonTab).toHaveAttribute("aria-selected", "true");
+  await expect(pythonTab).toHaveAttribute("tabindex", "0");
+  await expect(cppTab).toHaveAttribute("aria-selected", "false");
+  await expect(pythonPanel).toBeVisible();
+  await expect(cppPanel).toBeHidden();
+  await expect(pythonPanel.locator("code")).toContainText("#");
+
+  await cppTab.click();
+  await expect(cppTab).toHaveAttribute("aria-selected", "true");
+  await expect(cppPanel).toBeVisible();
+  await expect(cppPanel.locator("code")).toContainText("//");
+
+  await cppTab.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(pythonTab).toHaveAttribute("aria-selected", "true");
+  await expect(pythonTab).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(cppTab).toHaveAttribute("aria-selected", "true");
+  await expect(cppTab).toBeFocused();
+
+  await page.locator("#coding-search").fill("2D Convolution");
+  await expect(page.locator("#coding-count")).toHaveText("1 of 38 exercises");
+  const rerendered = page.locator('[data-task-id="img-convolution"]');
+  await expect(
+    rerendered.locator('[role="tab"][data-language="cpp"]')
+  ).toHaveAttribute("aria-selected", "true");
+
+  await page.goto(
+    "/docs/coding.html?search=auto-stereo-cloud#auto-stereo-cloud"
+  );
+  await expect(page.locator("#coding-search")).toHaveValue("auto-stereo-cloud");
+  await expect(page.locator("#coding-count")).toHaveText("1 of 38 exercises");
+  await expect(
+    page.locator('[data-task-id="auto-stereo-cloud"]')
+  ).toHaveCount(1);
+
+  await page.goto("/docs/coding.html#%ZZ");
+  await expect(page.locator(".task-card")).toHaveCount(38);
+  await expect(page.locator("#coding-progress")).toContainText("38 complete");
+  expect(failures).toEqual([]);
+});
+
+test("mobile comparison tables expose their hidden columns", async ({ page }) => {
+  const failures = monitorFirstPartyFailures(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/docs/sensor-fusion.html");
+
+  const tables = page.locator(".evolution-table");
+  const hints = page.locator(".comparison-scroll-hint");
+  expect(await tables.count()).toBeGreaterThan(4);
+  await expect(hints).toHaveCount(await tables.count());
+  await expect(hints.first()).toBeVisible();
+  await expect(tables.first()).toHaveAttribute("tabindex", "0");
+  await expect(tables.first()).toHaveAttribute(
+    "aria-describedby",
+    /^comparison-scroll-hint-/
+  );
+
+  const scrollable = tables.first();
+  expect(
+    await scrollable.evaluate((table) => table.scrollWidth > table.clientWidth)
+  ).toBe(true);
+  await scrollable.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(() => scrollable.evaluate((table) => table.scrollLeft))
+    .toBeGreaterThan(0);
   expect(failures).toEqual([]);
 });
 

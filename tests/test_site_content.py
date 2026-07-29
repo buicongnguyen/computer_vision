@@ -2,14 +2,17 @@ import re
 
 from tools.validate_site import (
     CODING_EXPECTED_COUNT,
+    CODING_SOLUTION_FILES,
     DOCS_DIR,
     EXPECTED_NAV_LINKS,
     QUIZ_EXPECTED_COUNT,
     REPO_ROOT,
     REQUIRED_PAGE_NAMES,
     format_issues,
+    load_coding_solutions,
     load_coding_tasks,
     load_quiz_questions,
+    validate_coding_solutions,
     validate_coding_tasks,
     validate_html_pages,
     validate_javascript_syntax,
@@ -39,6 +42,7 @@ READER_ORDER = (
     "modern-cv.html",
     "yolo-evolution.html",
     "current-topics.html",
+    "sensor-fusion.html",
     "autonomous-driving.html",
     "autonomy-reasoning.html",
     "practice.html",
@@ -55,7 +59,7 @@ def _assert_clean(issues: list[object]) -> None:
 def test_all_required_course_pages_exist() -> None:
     _assert_clean(validate_required_pages())
     required = {DOCS_DIR / name for name in REQUIRED_PAGE_NAMES}
-    assert len(required) == 13
+    assert len(required) == 14
     assert all(path.is_file() for path in required)
     assert set(EXPECTED_NAV_LINKS).issubset(REQUIRED_PAGE_NAMES)
 
@@ -75,6 +79,7 @@ def test_public_course_copy_is_subject_first() -> None:
             *DOCS_DIR.glob("*.html"),
             DOCS_DIR / "quiz-data.js",
             DOCS_DIR / "coding-data.js",
+            *(DOCS_DIR / name for name in CODING_SOLUTION_FILES),
         )
     )
     banned_phrases += ("senior",)
@@ -96,6 +101,33 @@ def test_public_entry_guides_are_subject_first() -> None:
         for name in ("README.md", "START_HERE.md", "ROADMAP.md")
     )
     assert not [phrase for phrase in banned_phrases if phrase in combined]
+
+
+def test_ci_and_pages_workflows_use_resolvable_documented_action_majors() -> None:
+    workflows = REPO_ROOT / ".github" / "workflows"
+    quality = (workflows / "quality.yml").read_text(encoding="utf-8")
+    pages = (workflows / "pages.yml").read_text(encoding="utf-8")
+
+    for action in (
+        "actions/checkout@v6",
+        "actions/setup-python@v6",
+        "actions/setup-node@v6",
+        "actions/setup-go@v6",
+        "actions/upload-artifact@v7",
+    ):
+        assert f"uses: {action}" in quality
+
+    for action in (
+        "actions/checkout@v6",
+        "actions/configure-pages@v5",
+        "actions/upload-pages-artifact@v4",
+        "actions/deploy-pages@v4",
+    ):
+        assert f"uses: {action}" in pages
+
+    assert "uses: ./.github/workflows/quality.yml" in pages
+    assert "needs: quality" in pages
+    assert "needs: package" in pages
 
 
 def test_every_html_page_has_valid_structure_and_local_targets() -> None:
@@ -164,6 +196,7 @@ def test_checkpoint_controls_match_the_canonical_mastery_path() -> None:
     assert found_ids == expected_set
     assert "autonomy" not in found_ids
     assert all_controls["current-topics.html"] == []
+    assert all_controls["sensor-fusion.html"] == []
     assert all_controls["sources.html"] == []
 
     manual_routes = dict(CHECKPOINTS)
@@ -197,13 +230,15 @@ def test_study_hub_cards_follow_reader_order_and_label_non_checkpoints() -> None
 
     assert card_routes == READER_ORDER[1:]
     assert tuple(re.findall(r'<span class="card-index">(\d+)</span>', curriculum)) == tuple(
-        f"{number:02d}" for number in range(1, 14)
+        f"{number:02d}" for number in range(1, 15)
     )
     assert "<h3>Current 3D topics</h3>" in curriculum
     assert '<span class="tag">optional</span>' in curriculum
+    assert "<h3>Sensor-to-world fusion</h3>" in curriculum
+    assert '<span class="tag">deep dive</span>' in curriculum
     assert "<h3>Sources and attribution</h3>" in curriculum
     assert '<span class="tag">reference</span>' in curriculum
-    assert "13 chapters" in index
+    assert "14 chapters" in index
     assert "six system studies" in index.lower()
 
 
@@ -249,6 +284,41 @@ def test_autonomous_driving_learning_flow_is_integrated() -> None:
     for page_name in ("index.html", "bev.html", "modern-cv.html"):
         referring_source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
         assert 'href="autonomous-driving.html' in referring_source
+
+
+def test_sensor_fusion_learning_flow_is_integrated() -> None:
+    source = (DOCS_DIR / "sensor-fusion.html").read_text(encoding="utf-8")
+    required_ids = {
+        "study-map",
+        "data-flow",
+        "lidar-contract",
+        "stereo",
+        "geometry-terms",
+        "fusion-choice",
+        "representation-choice",
+        "runtime",
+        "sensor-choice",
+        "paper-flow",
+        "e2e-bridge",
+        "comparability",
+        "practice",
+        "sources",
+    }
+    missing_ids = {
+        element_id
+        for element_id in required_ids
+        if f'id="{element_id}"' not in source
+    }
+    assert not missing_ids
+
+    for page_name in (
+        "index.html",
+        "coding.html",
+        "autonomous-driving.html",
+        "sources.html",
+    ):
+        referring_source = (DOCS_DIR / page_name).read_text(encoding="utf-8")
+        assert 'href="sensor-fusion.html' in referring_source
 
 
 def test_autonomy_reasoning_learning_flow_is_integrated() -> None:
@@ -318,6 +388,10 @@ DIAGRAM_MANIFEST = {
     },
     "perception.html": {"tracking-lifecycle": "state"},
     "practice.html": {"mcq-reasoning": "decision"},
+    "sensor-fusion.html": {
+        "sensor-world-flow": "data-flow",
+        "fusion-health-state": "state",
+    },
     "yolo-evolution.html": {"yolo-selection": "decision"},
 }
 
@@ -471,7 +545,7 @@ def test_all_diagrams_match_the_accessible_responsive_manifest() -> None:
         if 'data-diagram="' in path.read_text(encoding="utf-8")
     }
     assert pages_with_diagrams == set(DIAGRAM_MANIFEST)
-    assert sum(len(diagrams) for diagrams in DIAGRAM_MANIFEST.values()) == 25
+    assert sum(len(diagrams) for diagrams in DIAGRAM_MANIFEST.values()) == 27
     for page_name, expected_diagrams in DIAGRAM_MANIFEST.items():
         _assert_diagrams_are_accessible_and_responsive(
             page_name,
@@ -509,12 +583,41 @@ def test_quiz_bank_has_80_unique_well_formed_questions() -> None:
     _assert_clean(validate_quiz_questions(questions))
 
 
-def test_coding_bank_has_36_unique_well_formed_tasks() -> None:
+def test_coding_bank_has_38_unique_well_formed_tasks() -> None:
     tasks = load_coding_tasks()
-    assert len(tasks) == CODING_EXPECTED_COUNT == 36
-    assert len({task["id"] for task in tasks}) == 36
+    assert len(tasks) == CODING_EXPECTED_COUNT == 38
+    assert len({task["id"] for task in tasks}) == 38
     autonomy_tasks = [
         task for task in tasks if task["track"] == "Autonomous Driving"
     ]
-    assert len(autonomy_tasks) == 6
+    assert len(autonomy_tasks) == 8
     _assert_clean(validate_coding_tasks(tasks))
+
+
+def test_every_coding_task_has_commented_python_and_cpp_answers() -> None:
+    tasks = load_coding_tasks()
+    solutions = load_coding_solutions()
+    assert len(solutions) == len(tasks) == 38
+    assert {solution["id"] for solution in solutions} == {
+        task["id"] for task in tasks
+    }
+    _assert_clean(validate_coding_solutions(solutions, tasks))
+
+
+def test_solution_validator_rejects_invalid_python_syntax() -> None:
+    tasks = [{"id": "syntax-probe"}]
+    solutions = [
+        {
+            "id": "syntax-probe",
+            "python": {
+                "code": "# Explain the contract.\n# Keep the failure visible.\nif (:\n    pass",
+                "walkthrough": ["Parse the answer.", "Report the exact syntax failure."],
+            },
+            "cpp": {
+                "code": "// Explain the contract.\n// Keep the core valid.\nint main() {}",
+                "walkthrough": ["Read the code.", "Preserve the language pair."],
+            },
+        }
+    ]
+    issues = validate_coding_solutions(solutions, tasks)
+    assert any(issue.code == "solution-syntax" for issue in issues)

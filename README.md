@@ -22,13 +22,17 @@ skills self-assessment, or private information.
   Ultralytics releases, and independent research branches.
 - A current-topics lesson on LingBot-Map, monocular streaming reconstruction,
   3D detection, 3D Gaussian Splatting, and recent NVIDIA reconstruction work.
+- A sensor-to-world fusion lesson covering decoded LiDAR returns, stereo depth,
+  point-cloud representations, camera–LiDAR registration, fusion-stage choices,
+  degraded sensor states, and the camera-only/LiDAR/fusion research progression.
 - An autonomous-driving systems lesson with six responsive system graphs for
   the closed loop, sensor fusion, frame transforms, representation choice,
   SLAM, and prediction-to-control feedback, plus a visual reasoning companion
   with data-flow, code-trace, sequence, state-machine, logic-decision, and
   fault-propagation diagrams.
-- 80 explained multiple-choice questions and 36 progressive coding exercises.
-- Thirteen numbered course chapters plus a study hub, with 11 completion
+- 80 explained multiple-choice questions and 38 progressive coding exercises,
+  each with commented Python and C++ reference answers.
+- Fourteen numbered course chapters plus a study hub, with 11 completion
   checkpoints that track progress through the core learning path.
 - Six applied projects with baselines, comparison gates, failure tests, and
   reproducibility requirements.
@@ -140,12 +144,12 @@ chapter links, persistent bookmarks, reading progress, and a persistent
 dark/light theme. The lesson HTML remains dependency-free and readable without
 the enhanced shell.
 
-The reader contains 13 numbered chapters and the progress model exposes 11
+The reader contains 14 numbered chapters and the progress model exposes 11
 completion checkpoints. Pull requests run the reusable `Course quality`
 workflow, which:
 
 - validates workflow syntax, site structure, local links, learning materials,
-  JavaScript, 80 MCQs, and 36 coding tasks;
+  JavaScript, 80 MCQs, 38 coding tasks, and dual-language answer coverage;
 - runs the Python suite through both `pytest` and `python -m pytest`, then runs
   Ruff;
 - installs the lockfile-pinned browser tooling and exercises the reader in a

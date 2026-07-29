@@ -2,11 +2,11 @@
   "use strict";
 
   var STORAGE_KEY = "computer-vision-study-progress-v1";
-  var PROGRESS_VERSION = 2;
+  var PROGRESS_VERSION = 3;
   var BOOKMARK_STORAGE_KEY = "computer-vision-bookmarks-v1";
   var PRACTICE_STORAGE_KEY = "cv-academy-progress-v1";
   var QUIZ_QUESTION_COUNT = 80;
-  var CODING_TASK_COUNT = 36;
+  var CODING_TASK_COUNT = 38;
   var MOBILE_READER_QUERY = "(max-width: 1180px)";
   var COURSE_CHAPTERS = [
     {
@@ -41,22 +41,23 @@
     {
       title: "Part III · Autonomous systems",
       pages: [
-        { id: "autonomous-driving", label: "Autonomous-driving systems", href: "autonomous-driving.html", number: "08", checkpoint: true },
-        { id: "autonomy-reasoning", label: "Autonomy reasoning and code flow", href: "autonomy-reasoning.html", number: "09", checkpoint: true }
+        { id: "sensor-fusion", label: "Sensor-to-world fusion", href: "sensor-fusion.html", number: "08", checkpoint: false, status: "Deep dive" },
+        { id: "autonomous-driving", label: "Autonomous-driving systems", href: "autonomous-driving.html", number: "09", checkpoint: true },
+        { id: "autonomy-reasoning", label: "Autonomy reasoning and code flow", href: "autonomy-reasoning.html", number: "10", checkpoint: true }
       ]
     },
     {
       title: "Part IV · Practice & evidence",
       pages: [
-        { id: "practice", label: "MCQ practice", href: "practice.html", number: "10", checkpoint: true },
-        { id: "coding", label: "Coding practice", href: "coding.html", number: "11", checkpoint: true },
-        { id: "projects", label: "Applied projects", href: "projects.html", number: "12", checkpoint: true }
+        { id: "practice", label: "MCQ practice", href: "practice.html", number: "11", checkpoint: true },
+        { id: "coding", label: "Coding practice", href: "coding.html", number: "12", checkpoint: true },
+        { id: "projects", label: "Applied projects", href: "projects.html", number: "13", checkpoint: true }
       ]
     },
     {
       title: "References",
       pages: [
-        { id: "sources", label: "Sources & attribution", href: "sources.html", number: "13", checkpoint: false, status: "Reference" }
+        { id: "sources", label: "Sources & attribution", href: "sources.html", number: "14", checkpoint: false, status: "Reference" }
       ]
     }
   ];
@@ -112,9 +113,15 @@
       integer(source.coding && source.coding.total, 0),
       CODING_TASK_COUNT
     );
+    var codingSolved = Math.min(
+      integer(source.coding && source.coding.solved, 0),
+      codingTotal
+    );
     var completed = Array.isArray(source.completed)
       ? source.completed.filter(function (id, index, values) {
-          return allowed.indexOf(id) !== -1 && values.indexOf(id) === index;
+          return allowed.indexOf(id) !== -1
+            && values.indexOf(id) === index
+            && (id !== "coding" || codingSolved === codingTotal);
         })
       : [];
 
@@ -129,10 +136,7 @@
         total: quizTotal
       },
       coding: {
-        solved: Math.min(
-          integer(source.coding && source.coding.solved, 0),
-          codingTotal
-        ),
+        solved: codingSolved,
         total: codingTotal
       },
       lastActivity: typeof source.lastActivity === "string" ? source.lastActivity : null
@@ -1063,6 +1067,20 @@
     return true;
   }
 
+  function initializeScrollableComparisons() {
+    document.querySelectorAll(".evolution-table").forEach(function (table, index) {
+      var hint = document.createElement("p");
+      var hintId = "comparison-scroll-hint-" + String(index + 1);
+      hint.id = hintId;
+      hint.className = "comparison-scroll-hint";
+      hint.textContent =
+        "Swipe horizontally, or focus the comparison and use arrow keys, to read every column.";
+      table.tabIndex = 0;
+      table.setAttribute("aria-describedby", hintId);
+      table.insertAdjacentElement("beforebegin", hint);
+    });
+  }
+
   window.CVStudyProgress = {
     read: readProgress,
     markComplete: markComplete,
@@ -1086,6 +1104,7 @@
   if (!bookReaderInitialized) {
     initializeNavigation();
   }
+  initializeScrollableComparisons();
   initializeDiagrams();
   setCurrentNavigation();
   initializeProgress();

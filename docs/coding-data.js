@@ -284,6 +284,15 @@ window.CV_CODING_TASKS = [
     evidence: "Round-trip angle/range checks, a colored point-cloud plot, and a metadata-loss audit."
   },
   {
+    id: "auto-stereo-cloud", title: "Rectified Stereo to a Confidence-Aware Point Cloud",
+    track: "Autonomous Driving", difficulty: "Intermediate", minutes: 110, language: "Python/NumPy or C++",
+    prompt: "Convert rectified left/right disparity into metric depth and a camera-frame point cloud while preserving invalid, occluded, and uncertain evidence instead of turning every pixel into a trusted 3D point.",
+    contract: ["Declare focal length, baseline, principal point, disparity units, and camera-frame axes", "Use Z = fB/d only for finite positive disparity and return validity separately", "Apply a left-right consistency or confidence gate and propagate disparity uncertainty to depth uncertainty", "Preserve source pixels or color so every point can be audited back in the image"],
+    tests: ["Hand-computed constant-disparity plane", "Zero, negative, non-finite, and sub-pixel disparity", "Left-right mismatch at an occlusion boundary", "Depth uncertainty increasing quadratically with range for fixed disparity noise"],
+    hints: ["Rectification reduces correspondence to one scanline; it does not remove occlusion or repeated-texture ambiguity", "Differentiate Z = fB/d to obtain the first-order depth uncertainty"],
+    evidence: "Disparity, validity, depth, and colored-cloud views plus an error-versus-range plot."
+  },
+  {
     id: "auto-lidar-deskew", title: "Per-Point LiDAR Motion Deskew",
     track: "Autonomous Driving", difficulty: "Advanced", minutes: 120, language: "Python/NumPy or C++",
     prompt: "Transform every point in a moving LiDAR sweep from its acquisition pose to one declared reference time using an interpolated ego-pose trajectory.",
@@ -311,6 +320,15 @@ window.CV_CODING_TASKS = [
     evidence: "Colored overlay, z-buffer collision audit, and residual-versus-range plots under independent time and extrinsic perturbations."
   },
   {
+    id: "auto-object-fusion", title: "Camera–LiDAR Object Association and Fusion",
+    track: "Autonomous Driving", difficulty: "Advanced", minutes: 135, language: "Python/NumPy or C++",
+    prompt: "Associate timestamped 2D camera detections with projected 3D LiDAR objects, fuse compatible class and geometry evidence, and retain unmatched or ambiguous observations for tracking instead of forcing a match.",
+    contract: ["Project 3D box corners with frame-labeled calibration and a declared time-alignment policy", "Build a gated cost from image overlap, center distance, class compatibility, depth ordering, and uncertainty", "Solve one-to-one assignment with explicit unmatched costs and deterministic tie handling", "Return fused objects plus unmatched camera, unmatched LiDAR, ambiguity, and calibration-health diagnostics"],
+    tests: ["One exact camera/LiDAR match", "Two crossing candidates that require global one-to-one assignment", "Occluded object, behind-camera box, and duplicate 2D detection", "Extrinsic or clock perturbation that exceeds the association gate without inventing a match"],
+    hints: ["Registration makes evidence comparable; association decides whether two measurements describe the same object", "Late fusion is debuggable, while point/feature/BEV fusion can retain more information but couples the model to calibration and timing"],
+    evidence: "Projected-box overlay, association matrix, unmatched audit, and robustness curves versus time and extrinsic error."
+  },
+  {
     id: "auto-trajectory-collision", title: "Occupancy–Trajectory Collision Checker",
     track: "Autonomous Driving", difficulty: "Intermediate", minutes: 100, language: "Python/NumPy or C++",
     prompt: "Check a timestamped ego trajectory and oriented vehicle footprint against static or time-indexed occupancy while reporting first contact, clearance, unknown-space exposure, and out-of-grid state.",
@@ -321,7 +339,7 @@ window.CV_CODING_TASKS = [
   },
   {
     id: "auto-closed-loop-eval", title: "Replayable Closed-Loop Scenario Evaluator",
-    track: "Autonomous Driving", difficulty: "Advanced", minutes: 150, language: "Python",
+    track: "Autonomous Driving", difficulty: "Advanced", minutes: 150, language: "Python/NumPy or C++",
     prompt: "Build a deterministic closed-loop simulator harness that repeatedly observes, invokes a policy, advances a simple vehicle/world model, injects configured perception faults, and scores behavior until termination.",
     contract: ["Version scenario initial state, variation axes, random seed, policy, and dynamics", "Separate collision, progress, rule, comfort, intervention, fallback, and timeout metrics", "Record observations, actions, states, faults, and termination cause for replay", "Compare closed-loop outcomes with an open-loop action or trajectory metric on the same scenarios"],
     tests: ["Nominal route completion", "Delayed obstacle observation with recovery or collision", "Seeded stochastic actor with exact replay", "Timeout, invalid action, and fallback termination"],

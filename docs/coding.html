@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Thirty-six progressive computer vision coding exercises across image operations, geometry, tracking, BEV, autonomous-driving systems, production systems, C++, and CUDA.">
+  <meta name="description" content="Thirty-eight progressive computer vision coding exercises with commented Python and C++ reference answers across image operations, geometry, tracking, BEV, sensor fusion, autonomy, production, and CUDA.">
   <title>Coding practice | CV Systems Lab</title>
   <link rel="stylesheet" href="styles.css">
   <script src="theme-toggle.js"></script>
@@ -42,8 +42,8 @@
     <section class="page-hero">
       <p class="eyebrow">Derive · implement · test · measure</p>
       <h1>Computer vision coding practice</h1>
-      <p>Thirty-six progressive exercises move from NumPy primitives to calibrated geometry, tracking, BEV conversion, LiDAR processing, registration, closed-loop evaluation, C++ pipelines, and CUDA deployment. Each task pairs implementation with a test, comparison, measurement, or failure analysis.</p>
-      <div><span class="tag">36 exercises</span><span class="tag">Visible tests</span><span class="tag">Autonomy and production extensions</span></div>
+      <p>Thirty-eight progressive exercises move from NumPy primitives to calibrated geometry, tracking, BEV conversion, LiDAR and stereo point clouds, camera–LiDAR fusion, closed-loop evaluation, C++ pipelines, and CUDA deployment. Each task includes visible tests and an attempt-first reference answer with commented Python and C++ tabs.</p>
+      <div><span class="tag">38 exercises</span><span class="tag">Python + C++ answers</span><span class="tag">Visible tests</span><span class="tag">Autonomy and production extensions</span></div>
     </section>
 
     <aside class="callout">
@@ -77,8 +77,8 @@
 
     <aside class="callout" aria-labelledby="autonomy-code-flow-heading">
       <div><p class="eyebrow">Visual code reasoning</p><h2 id="autonomy-code-flow-heading">See the data, decisions, states, and failure paths before implementing</h2></div>
-      <p>The autonomy companion provides one detailed typed pipeline and six guided trace prompts, showing how to add synchronization, rejection branches, invariants, state transitions, and evidence before implementing each driving exercise.</p>
-      <a class="button button-secondary" href="autonomy-reasoning.html#code-traces">Open the autonomy code traces</a>
+      <p>The sensor-fusion lesson explains the measurement chain behind the stereo, point-cloud, projection, and object-association tasks. The autonomy companion then shows how synchronization, rejection branches, state transitions, and evidence enter a running driving system.</p>
+      <div class="button-row"><a class="button button-secondary" href="sensor-fusion.html">Study sensor-to-world fusion</a><a class="button button-secondary" href="autonomy-reasoning.html#code-traces">Open the autonomy code traces</a></div>
     </aside>
 
     <section aria-labelledby="workflow-heading">
@@ -203,6 +203,9 @@
   <footer class="site-footer"><div class="footer-shell"><div class="footer-brand"><strong>CV Systems Lab</strong><p>Original coding practice for computer vision and perception systems.</p></div><nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="practice.html">MCQ</a><a href="sources.html">Sources</a></nav></div></footer>
   <script src="site.js"></script>
   <script src="coding-data.js"></script>
+  <script src="coding-solutions-foundations.js"></script>
+  <script src="coding-solutions-systems.js"></script>
+  <script src="coding-solutions-3d.js"></script>
   <script src="coding.js"></script>
 </body>
 </html>

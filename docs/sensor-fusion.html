@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A study-first guide to camera, stereo, LiDAR, calibration, registration, sensor fusion, world-state construction, degraded operation, and end-to-end autonomous driving.">
+  <meta name="theme-color" content="#071019">
+  <title>Sensor-to-world fusion for autonomous driving | CV Systems Lab</title>
+  <link rel="canonical" href="https://buicongnguyen.github.io/computer_vision/sensor-fusion.html">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-toggle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-shell">
+      <a class="brand" href="index.html" aria-label="CV Systems Lab home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>CV Systems Lab</strong><small>Computer vision study guide</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" data-nav-toggle>
+        <span class="sr-only">Open navigation</span>
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary" data-primary-nav>
+        <a href="theory.html" data-nav-link>Theory</a>
+        <a href="perception.html" data-nav-link>Perception</a>
+        <a href="calibration.html" data-nav-link>Calibration</a>
+        <a href="bev.html" data-nav-link>BEV</a>
+        <a href="modern-cv.html" data-nav-link>Modern CV</a>
+        <a href="practice.html" data-nav-link>MCQ</a>
+        <a href="coding.html" data-nav-link>Coding</a>
+        <a href="projects.html" data-nav-link>Projects</a>
+        <a href="sources.html" data-nav-link>Sources</a>
+      </nav>
+      <div class="header-actions">
+        <a class="github-link" href="https://github.com/buicongnguyen/computer_vision">GitHub</a>
+        <button class="theme-toggle" type="button" data-theme-toggle><span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Home</a><span aria-hidden="true">/</span>
+      <a href="autonomous-driving.html">Autonomous driving</a><span aria-hidden="true">/</span>
+      <span aria-current="page">Sensor-to-world fusion</span>
+    </nav>
+
+    <section class="page-hero">
+      <p class="eyebrow">Measurements → aligned evidence → world state → action</p>
+      <h1>Sensor-to-world fusion for autonomous driving</h1>
+      <p>Learn what camera and LiDAR actually measure, how stereo becomes confidence-aware metric geometry, where calibration ends and registration begins, when each fusion stage is useful, and how a timestamped world state supports planning and safe degradation.</p>
+      <div>
+        <span class="tag">Stereo and point clouds</span>
+        <span class="tag">Camera–LiDAR fusion</span>
+        <span class="tag">Temporal world state</span>
+        <span class="tag">Closed-loop evidence</span>
+      </div>
+      <div>
+        <a class="button button-primary" href="#study-map">Follow the study map</a>
+        <a class="button button-secondary" href="#practice">Open practice</a>
+      </div>
+    </section>
+
+    <aside class="callout" aria-labelledby="trend-answer-heading">
+      <div>
+        <p class="eyebrow">Short answer on the trend</p>
+        <h2 id="trend-answer-heading">Autonomous-driving vision is not narrowing to 3D detection</h2>
+      </div>
+      <p>Research is moving from isolated, single-frame boxes toward temporal world state: metric geometry, semantics, tracks, maps, occupancy, motion, uncertainty, and several possible futures. Camera-only learned depth and BEV systems improve cost and data scale; LiDAR remains strong direct range evidence; fusion remains the general choice when complementary observability justifies its calibration, timing, compute, and hardware cost. End-to-end models increasingly connect this state to planning, but no one paper is “best” across different sensors, datasets, benchmark versions, latency budgets, and closed-loop protocols.</p>
+    </aside>
+
+    <section id="study-map" aria-labelledby="study-map-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Study map</p><h2 id="study-map-heading">Reason through six contracts in order</h2></div>
+        <p>If the world state is wrong, return to the first violated contract instead of tuning the final planner.</p>
+      </div>
+      <div class="flow-strip" role="list" aria-label="Sensor-fusion study sequence">
+        <div role="listitem"><span>1</span><strong>Measure</strong><small>sensor physics</small></div>
+        <div role="listitem"><span>2</span><strong>Decode</strong><small>units + validity</small></div>
+        <div role="listitem"><span>3</span><strong>Align</strong><small>time + frames</small></div>
+        <div role="listitem"><span>4</span><strong>Represent</strong><small>points to BEV</small></div>
+        <div role="listitem"><span>5</span><strong>Fuse</strong><small>evidence + uncertainty</small></div>
+        <div role="listitem"><span>6</span><strong>Operate</strong><small>plan + degrade</small></div>
+      </div>
+      <p class="section-note"><strong>Dependency rule:</strong> semantics cannot repair an incorrect transform; a learned fusion block cannot recover evidence that was discarded by decoding; a low offline error cannot prove safe closed-loop behavior.</p>
+    </section>
+
+    <section id="data-flow" aria-labelledby="data-flow-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Three-lane data flow</p><h2 id="data-flow-heading">Preserve each sensor’s evidence until it is comparable</h2></div>
+        <p>The two sensor lanes flow left to right. After their quality gate, follow the bottom lane from right to left into world state and planning.</p>
+      </div>
+      <figure class="system-diagram system-diagram--wide" id="sensor-world-flow-figure" data-diagram="sensor-world-flow" data-diagram-kind="data-flow" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable camera, LiDAR, fusion, world-state and planning data-flow diagram">
+          <svg class="system-diagram__canvas" id="sensor-world-flow-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 720" aria-labelledby="sensor-world-flow-title" aria-describedby="sensor-world-flow-desc sensor-world-flow-caption">
+            <title id="sensor-world-flow-title">Camera and LiDAR evidence converge through a quality gate into fusion, temporal world state and planning</title>
+            <desc id="sensor-world-flow-desc">The camera lane converts timestamped images through synchronization, camera models, stereo or learned geometry, and semantic features. The LiDAR lane distinguishes optical waveforms from firmware-decoded returns, then deskews and represents valid points. Both lanes converge at a common time, frame, validity and health gate. The lower lane chooses a fusion stage, updates a temporal world state, predicts futures and plans. A health branch can drop a modality, reduce the operational domain or request a minimal-risk maneuver.</desc>
+            <defs>
+              <marker id="sensor-world-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="sensor-world-support-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="sensor-world-safety-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="20" width="1140" height="175" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="215" width="1140" height="175" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="410" width="1140" height="285" rx="16"></rect>
+            <text class="diagram-lane-label" x="42" y="49">CAMERA LANE · DENSE APPEARANCE AND ANGULAR EVIDENCE</text>
+            <text class="diagram-lane-label" x="42" y="244">LIDAR LANE · DIRECT RANGE RETURNS</text>
+            <text class="diagram-lane-label" x="42" y="439">FUSION LANE · ALIGNED STATE, ACTION AND DEGRADATION</text>
+
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M185 113 H215"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M395 113 H425"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M615 113 H645"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M825 113 H855"></path>
+
+            <rect class="diagram-node diagram-node--sensor" x="35" y="70" width="150" height="86" rx="12"></rect>
+            <text class="diagram-title" x="110" y="101" text-anchor="middle">Image frames</text>
+            <text class="diagram-detail" x="110" y="125" text-anchor="middle">pixels · exposure</text>
+            <text class="diagram-detail" x="110" y="144" text-anchor="middle">row / frame time</text>
+            <rect class="diagram-node" x="215" y="70" width="180" height="86" rx="12"></rect>
+            <text class="diagram-title" x="305" y="101" text-anchor="middle">Sync + camera model</text>
+            <text class="diagram-detail" x="305" y="125" text-anchor="middle">intrinsics · distortion</text>
+            <text class="diagram-detail" x="305" y="144" text-anchor="middle">rectification · pose</text>
+            <rect class="diagram-node diagram-node--state" x="425" y="70" width="190" height="86" rx="12"></rect>
+            <text class="diagram-title" x="520" y="101" text-anchor="middle">Geometry + confidence</text>
+            <text class="diagram-detail" x="520" y="125" text-anchor="middle">stereo / temporal / learned</text>
+            <text class="diagram-detail" x="520" y="144" text-anchor="middle">depth · invalid · σZ</text>
+            <rect class="diagram-node diagram-node--state" x="645" y="70" width="180" height="86" rx="12"></rect>
+            <text class="diagram-title" x="735" y="101" text-anchor="middle">Semantic encoding</text>
+            <text class="diagram-detail" x="735" y="125" text-anchor="middle">image / query features</text>
+            <text class="diagram-detail" x="735" y="144" text-anchor="middle">objects · camera BEV</text>
+            <rect class="diagram-node diagram-node--output" x="855" y="70" width="260" height="86" rx="12"></rect>
+            <text class="diagram-title" x="985" y="101" text-anchor="middle">Camera evidence contract</text>
+            <text class="diagram-detail" x="985" y="125" text-anchor="middle">features + geometry + uncertainty</text>
+            <text class="diagram-detail" x="985" y="144" text-anchor="middle">frame · time · calibration ID</text>
+
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M185 308 H215"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M395 308 H425"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M615 308 H645"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M825 308 H855"></path>
+
+            <rect class="diagram-node diagram-node--sensor" x="35" y="265" width="150" height="86" rx="12"></rect>
+            <text class="diagram-title" x="110" y="296" text-anchor="middle">Optical waveform</text>
+            <text class="diagram-detail" x="110" y="320" text-anchor="middle">amplitude versus time</text>
+            <text class="diagram-detail" x="110" y="339" text-anchor="middle">usually not exposed</text>
+            <rect class="diagram-node" x="215" y="265" width="180" height="86" rx="12"></rect>
+            <text class="diagram-title" x="305" y="296" text-anchor="middle">Firmware extraction</text>
+            <text class="diagram-detail" x="305" y="320" text-anchor="middle">pulse / peak detection</text>
+            <text class="diagram-detail" x="305" y="339" text-anchor="middle">range + return policy</text>
+            <rect class="diagram-node diagram-node--state" x="425" y="265" width="190" height="86" rx="12"></rect>
+            <text class="diagram-title" x="520" y="296" text-anchor="middle">Decoded return</text>
+            <text class="diagram-detail" x="520" y="320" text-anchor="middle">r · azimuth · elevation</text>
+            <text class="diagram-detail" x="520" y="339" text-anchor="middle">strength · ring · t · flags</text>
+            <rect class="diagram-node diagram-node--state" x="645" y="265" width="180" height="86" rx="12"></rect>
+            <text class="diagram-title" x="735" y="296" text-anchor="middle">Deskew + represent</text>
+            <text class="diagram-detail" x="735" y="320" text-anchor="middle">points / pillars / voxels</text>
+            <text class="diagram-detail" x="735" y="339" text-anchor="middle">range view · validity</text>
+            <rect class="diagram-node diagram-node--output" x="855" y="265" width="260" height="86" rx="12"></rect>
+            <text class="diagram-title" x="985" y="296" text-anchor="middle">LiDAR evidence contract</text>
+            <text class="diagram-detail" x="985" y="320" text-anchor="middle">metric geometry + return metadata</text>
+            <text class="diagram-detail" x="985" y="339" text-anchor="middle">frame · point time · calibration ID</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#sensor-world-support-arrow)" d="M985 156 H1145 V430 H1045 V465"></path>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#sensor-world-support-arrow)" d="M985 351 V430 H1005 V465"></path>
+
+            <rect class="diagram-node diagram-node--decision" x="910" y="465" width="230" height="92" rx="13"></rect>
+            <text class="diagram-title" x="1025" y="495" text-anchor="middle">Common quality gate</text>
+            <text class="diagram-detail" x="1025" y="519" text-anchor="middle">reference time · bounded age</text>
+            <text class="diagram-detail" x="1025" y="538" text-anchor="middle">frame · units · validity · health · covariance</text>
+            <rect class="diagram-node diagram-node--decision" x="665" y="465" width="205" height="92" rx="13"></rect>
+            <text class="diagram-title" x="767.5" y="495" text-anchor="middle">Choose fusion stage</text>
+            <text class="diagram-detail" x="767.5" y="519" text-anchor="middle">point · feature · query</text>
+            <text class="diagram-detail" x="767.5" y="538" text-anchor="middle">BEV · late decision</text>
+            <rect class="diagram-node diagram-node--state" x="405" y="465" width="220" height="92" rx="13"></rect>
+            <text class="diagram-title" x="515" y="495" text-anchor="middle">Temporal world state</text>
+            <text class="diagram-detail" x="515" y="519" text-anchor="middle">tracks · map · occupancy / flow</text>
+            <text class="diagram-detail" x="515" y="538" text-anchor="middle">free · occupied · unknown · σ</text>
+            <rect class="diagram-node diagram-node--output" x="130" y="465" width="235" height="92" rx="13"></rect>
+            <text class="diagram-title" x="247.5" y="495" text-anchor="middle">Predict + plan</text>
+            <text class="diagram-detail" x="247.5" y="519" text-anchor="middle">several futures · constraints</text>
+            <text class="diagram-detail" x="247.5" y="538" text-anchor="middle">trajectory + confidence</text>
+
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M910 511 H875"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M665 511 H630"></path>
+            <path class="diagram-edge" marker-end="url(#sensor-world-arrow)" d="M405 511 H370"></path>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#sensor-world-support-arrow)" d="M1025 557 V623 H920"></path>
+            <text class="diagram-edge-label" x="972" y="613" text-anchor="middle">reduced ODD supported</text>
+            <rect class="diagram-node diagram-node--safety" x="680" y="585" width="235" height="76" rx="13"></rect>
+            <text class="diagram-title" x="797.5" y="614" text-anchor="middle">Drop / reweight modality</text>
+            <text class="diagram-detail" x="797.5" y="638" text-anchor="middle">restrict ODD · reduce speed</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#sensor-world-support-arrow)" d="M797.5 585 V570 H767.5 V562"></path>
+            <text class="diagram-edge-label" x="685" y="575">re-enter with changed uncertainty</text>
+            <rect class="diagram-node diagram-node--safety" x="390" y="585" width="235" height="76" rx="13"></rect>
+            <text class="diagram-title" x="507.5" y="614" text-anchor="middle">Minimal-risk maneuver</text>
+            <text class="diagram-detail" x="507.5" y="638" text-anchor="middle">no viable reduced ODD</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#sensor-world-safety-arrow)" d="M1025 557 V682 H507.5 V666"></path>
+            <text class="diagram-edge-label" x="790" y="675" text-anchor="middle">remaining evidence cannot support safe operation</text>
+          </svg>
+        </div>
+        <ol class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Camera, LiDAR and sensor-fusion flow for small screens">
+          <li data-relation="Camera lane"><strong>Timestamped images → camera model</strong><small>Preserve exposure or row time, intrinsics, distortion, rectification and the applicable pose.</small></li>
+          <li data-relation="Camera geometry"><strong>Depth, semantics and confidence</strong><small>Stereo, temporal or learned geometry must retain invalid regions and uncertainty beside image, query or BEV features.</small></li>
+          <li data-relation="LiDAR lane"><strong>Waveform → firmware-decoded returns</strong><small>The electrical/optical waveform is usually hidden. The downstream “raw point” has already passed pulse detection, range estimation and a return-selection policy.</small></li>
+          <li data-relation="LiDAR geometry"><strong>Decoded returns → deskewed representation</strong><small>Preserve range, angles, return strength, ring, return identity, per-point time, flags, frame and calibration version.</small></li>
+          <li class="is-support" data-relation="Comparability gate"><strong>Align time, frame, units, validity and health</strong><small>Do not fuse merely because two tensors have matching shapes.</small></li>
+          <li data-relation="Fusion choice"><strong>Point, feature, query, BEV or late fusion</strong><small>Choose the earliest stage whose calibration sensitivity, latency and coupling the system can validate.</small></li>
+          <li data-relation="Planner contract"><strong>Temporal world state → futures → trajectory</strong><small>Carry tracks, map, occupancy, unknown space, uncertainty and data age into prediction and planning.</small></li>
+          <li class="is-safety" data-relation="Health branch"><strong>Drop, restrict or stop</strong><small>Reweight or remove a failed modality only while the remaining evidence supports the declared ODD; otherwise request a minimal-risk maneuver.</small></li>
+        </ol>
+        <figcaption id="sensor-world-flow-caption"><span><strong>Key idea:</strong> fusion begins with comparable evidence contracts—not concatenation—and ends with an uncertainty-aware temporal state that a planner and safety monitor can interrogate.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the data flow →</span></figcaption>
+      </figure>
+    </section>
+
+    <section id="lidar-contract" aria-labelledby="lidar-contract-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">LiDAR front end</p><h2 id="lidar-contract-heading">A decoded return is not the raw waveform</h2></div>
+        <p>Use “raw” carefully: dataset packets and point-cloud messages normally expose firmware-processed returns, not photodetector samples.</p>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Before a point exists</h3>
+          <p>A pulsed LiDAR emits light and receives a time-varying signal. Electronics and firmware perform thresholding or pulse/peak estimation, time-of-flight conversion, multi-return selection, channel calibration, and strength encoding. Only then does a downstream record contain range and beam direction.</p>
+          <p><strong>Consequence:</strong> if only decoded returns are available, downstream software cannot faithfully redo pulse decomposition, recover a return the firmware discarded, or assume vendor “intensity” values are calibrated identically.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Processed-return contract</h3>
+          <ul>
+            <li><strong>Geometry:</strong> range, azimuth, elevation or calibrated beam ID; declared units and axes.</li>
+            <li><strong>Identity:</strong> ring/channel, return index or type, packet/frame sequence.</li>
+            <li><strong>Time:</strong> per-return acquisition time and clock domain—not only scan publication time.</li>
+            <li><strong>Signal:</strong> intensity/reflectivity-like value with its vendor definition, saturation and validity flags.</li>
+            <li><strong>Context:</strong> sensor frame, calibration/firmware ID, return mode, temperature or health metadata when available.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="equation-block" aria-label="LiDAR spherical to Cartesian equations">
+        <span>Convention: right-handed sensor frame, +z up, azimuth from +x toward +y</span>
+        <span>x = r cos(elevation) cos(azimuth)</span>
+        <span>y = r cos(elevation) sin(azimuth)</span>
+        <span>z = r sin(elevation)</span>
+        <span>point = {x, y, z, strength, ring, return_id, t_acq, validity, frame, calibration_id}</span>
+      </div>
+      <p class="section-note">This is one explicit convention, not a vendor-independent default. Apply the sensor’s calibrated beam origins, axes and azimuth/elevation definitions before transforming into the vehicle frame.</p>
+      <div class="diagnostic-grid">
+        <article class="diagnostic-card"><h3>Decode before filtering</h3><p>Reject non-finite, saturated, zero or out-of-range returns with an explicit mask. Never manufacture a valid origin point from an invalid range.</p></article>
+        <article class="diagnostic-card"><h3>Deskew before merging</h3><p>A spinning scan observes different points at different poses. Transform each valid return from its acquisition pose to one declared reference time.</p></article>
+        <article class="diagnostic-card"><h3>Preserve provenance</h3><p>A geometrically correct XYZ point without its acquisition time, frame, return identity and calibration version is incomplete fusion evidence.</p></article>
+      </div>
+    </section>
+
+    <section id="stereo" aria-labelledby="stereo-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Stereo geometry</p><h2 id="stereo-heading">Disparity becomes depth only with confidence and units</h2></div>
+        <p>Rectification reduces correspondence to a scanline. It does not remove occlusion, repeated texture, low texture, glare, calibration error, or range-dependent uncertainty.</p>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Back-project a valid match</h3>
+          <div class="equation-block" aria-label="Stereo disparity, depth and point equations">
+            <span>d = u<sub>left</sub> − u<sub>right</sub></span>
+            <span>Z = f<sub>x</sub>B / d</span>
+            <span>X = (u − c<sub>x</sub>)Z / f<sub>x</sub></span>
+            <span>Y = (v − c<sub>y</sub>)Z / f<sub>y</sub></span>
+          </div>
+          <p>Use matching units for baseline and output depth. Continue only for finite positive disparity under the declared convention. Keep the source pixel or color so every 3D point can be audited back in the image.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>Propagate uncertainty, do not hide it</h3>
+          <div class="equation-block" aria-label="First-order stereo depth uncertainty">
+            <span>|∂Z/∂d| = f<sub>x</sub>B / d²</span>
+            <span>σ<sub>Z</sub> ≈ (f<sub>x</sub>B / d²)σ<sub>d</sub></span>
+            <span>σ<sub>Z</sub> ≈ (Z² / (f<sub>x</sub>B))σ<sub>d</sub></span>
+          </div>
+          <p>For roughly constant disparity noise, depth uncertainty grows quadratically with range. A dense far-range cloud can therefore look convincing while containing weak metric evidence.</p>
+        </article>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Stereo confidence gates">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Gate</span><span role="columnheader">Question</span><span role="columnheader">Failure it catches</span><span role="columnheader">Output policy</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Numeric</span><span role="cell">Is disparity finite, positive, and above the usable minimum?</span><span role="cell">Invalid match or effectively infinite depth</span><span role="cell">Return invalid separately; do not clamp into a trusted point.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Left–right consistency</span><span role="cell">Does the reverse match return to the source pixel?</span><span role="cell">Occlusion boundary or mismatched correspondence</span><span role="cell">Invalidate or lower confidence with the residual.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Uniqueness / texture</span><span role="cell">Is the best match distinct and locally constrained?</span><span role="cell">Repeated or textureless region</span><span role="cell">Expose ambiguity; do not confuse density with certainty.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Geometry</span><span role="cell">Do rectification, epipolar residual, depth range and reprojection agree?</span><span role="cell">Calibration drift, wrong focal/baseline units, rolling-shutter motion</span><span role="cell">Reject the sample or flag calibration health.</span></div>
+      </div>
+      <p class="section-note"><strong>Current stereo trend:</strong> FoundationStereo targets strong zero-shot generalization across domains; Fast-FoundationStereo uses distillation, architecture search, pruning and additional pseudo-labeled data to report more than 10× speedup while staying close to its teacher. Those learned matchers improve the disparity proposal—not the need for metric calibration, occlusion handling, confidence gates or range-dependent uncertainty.</p>
+    </section>
+
+    <section id="geometry-terms" aria-labelledby="geometry-terms-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Do not mix the verbs</p><h2 id="geometry-terms-heading">Calibration, registration, projection, association and fusion answer different questions</h2></div>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Calibration, registration, projection, association and fusion comparison">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Operation</span><span role="columnheader">Question answered</span><span role="columnheader">Typical input → output</span><span role="columnheader">Common mistake</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Calibration</span><span role="cell">What stable sensor model, extrinsic, or clock offset describes this rig?</span><span role="cell">Many calibration observations → intrinsics, distortion, T<sub>camera←lidar</sub>, time offset + uncertainty</span><span role="cell">Treating one good overlay as proof across range, time and temperature.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Registration</span><span role="cell">What transform aligns these particular observations or maps?</span><span role="cell">Two point/image/map sets → estimated relative pose + fitness/conditioning</span><span role="cell">Accepting a low residual on degenerate geometry.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Projection</span><span role="cell">Where does a known 3D point land in a camera?</span><span role="cell">Point + transform + camera model → pixel, depth and validity</span><span role="cell">Ignoring acquisition time, distortion, positive depth, bounds or occlusion.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Association</span><span role="cell">Do two observations describe the same object?</span><span role="cell">Projected objects/features + uncertainty → matches, unmatched and ambiguity</span><span role="cell">Forcing a nearest match when evidence is incompatible.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Fusion</span><span role="cell">How should compatible evidence update one task or state?</span><span role="cell">Aligned evidence + uncertainty → feature, object, occupancy or belief update</span><span role="cell">Concatenating stale or miscalibrated evidence without a health path.</span></div>
+      </div>
+      <aside class="callout">
+        <div><p class="eyebrow">Targetless calibration trend · WACV 2026</p><h3>Learn correspondences, but guard the update</h3></div>
+        <p>UniCalib maps camera and LiDAR evidence into unified depth representations and predicts probabilistic flow plus reliability. CalibBEV instead aligns modality-specific features in a shared BEV through coarse and refined stages. Both attack the modality gap; neither removes observability, time-alignment, held-out validation, bounded-correction, versioning or rollback requirements.</p>
+      </aside>
+    </section>
+
+    <section id="representation-choice" aria-labelledby="representation-choice-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Two representation decisions</p><h2 id="representation-choice-heading">Encode sensor evidence before fusion; expose planner state after fusion</h2></div>
+        <p>These are different interfaces. An encoder should preserve what a modality measured; the fused state should preserve what prediction and planning must ask.</p>
+      </div>
+      <h3>1 · Modality encoding before or at fusion</h3>
+      <div class="evolution-table" role="table" aria-label="Point-cloud and sensor encoding choice">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Encoding</span><span role="columnheader">Preserves well</span><span role="columnheader">Best fit</span><span role="columnheader">Dominant tradeoff</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Points / sparse sets</span><span role="cell">Exact sample geometry and per-return attributes</span><span role="cell">Registration, point-level fusion and sparse point networks</span><span role="cell">Irregular neighborhoods and workload; density changes sharply with range.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Pillars</span><span role="cell">Vertical-column statistics in a fast pseudo-image</span><span role="cell">Real-time BEV detection with efficient 2D convolutions</span><span role="cell">Vertical detail is compressed; cell boundaries and point caps matter.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Voxels</span><span role="cell">Local 3D spatial structure</span><span role="cell">Sparse 3D detection, segmentation and long-range geometry</span><span role="cell">Resolution–memory tradeoff, empty space and center-feature sparsity.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Range image</span><span role="cell">Native LiDAR beam/ring topology</span><span role="cell">Fast scan-domain filtering and segmentation</span><span role="cell">Sensor-view occlusion, wraparound and nonuniform metric footprint.</span></div>
+      </div>
+      <h3>2 · Fused world state for temporal reasoning and planning</h3>
+      <div class="evolution-table" role="table" aria-label="Planner-facing fused world-state choice">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">State</span><span role="columnheader">Preserves well</span><span role="columnheader">Best fit</span><span role="columnheader">Dominant tradeoff</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Shared BEV features</span><span role="cell">Dense learned spatial context in one metric top-down frame</span><span role="cell">Joint detection, mapping, occupancy, prediction and planning heads</span><span role="cell">Grid quantization, memory, calibration coupling and limited direct interpretability.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Objects / tracks</span><span role="cell">Compact semantic identity, pose, velocity and history</span><span role="cell">Interaction prediction, rules and interpretable modular planning</span><span role="cell">Open-set obstacles and uncertain free space may disappear behind the object interface.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Occupancy / flow</span><span role="cell">Free, occupied, unknown and time-indexed motion</span><span role="cell">Open-set obstacles and planner collision/risk queries</span><span role="cell">Grid resolution, unknown-space policy and probability calibration.</span></div>
+      </div>
+      <p class="section-note"><strong>Selection rule:</strong> points preserve measurement provenance; BEV supports shared spatial computation; objects are compact and semantic; occupancy is open-set and planner-friendly. A system may retain several interfaces rather than force one universal representation.</p>
+    </section>
+
+    <section id="fusion-choice" aria-labelledby="fusion-choice-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Fusion-stage decision</p><h2 id="fusion-choice-heading">Fuse as early as useful, as late as necessary</h2></div>
+        <p>Earlier fusion can retain more cross-modal detail; later fusion usually improves modularity, fault isolation and independent validation.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Sensor fusion stage decision table">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Stage</span><span role="columnheader">Mechanism and example</span><span role="columnheader">Choose it when</span><span role="columnheader">Main cost / failure test</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Point / data</span><span role="cell">Decorate projected LiDAR points with camera scores, as in PointPainting</span><span role="cell">A LiDAR detector should reuse camera semantics with a clear geometric interface</span><span role="cell">Hard projection and sequential errors; perturb time/extrinsics and inspect missing/duplicated evidence.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Feature</span><span role="cell">Align deep camera and LiDAR features, as in DeepFusion</span><span role="cell">Local cross-modal detail matters and joint training/data are available</span><span role="cell">Augmentation and calibration coupling; ablate learned alignment under drift.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Object / query</span><span role="cell">LiDAR-seeded or shared queries softly attend to image evidence, as in TransFusion</span><span role="cell">Soft association should replace brittle one-to-one pixel projection</span><span role="cell">Query misses and opaque confidence; test camera corruption, sparse range and unmatched objects.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Common BEV</span><span role="cell">Encode each modality into one metric top-down grid, then fuse</span><span role="cell">Detection, map, occupancy and planning benefit from a shared spatial frame</span><span role="cell">Quantization, pooling, calibration and memory; report grid/latency and sensor-dropout ablations.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Late / decision</span><span role="cell">Associate boxes, tracks, scores or occupancy beliefs after separate models</span><span role="cell">Debuggability, independent redundancy and controlled degradation dominate</span><span role="cell">Information was already compressed; calibrate scores and retain unmatched/ambiguous evidence.</span></div>
+      </div>
+      <aside class="callout">
+        <div><p class="eyebrow">Two BEVFusion papers</p><h2>Same name, different work</h2></div>
+        <p>The MIT/Han Lab paper later published at ICRA 2023 uses optimized camera and LiDAR encoders with a shared BEV for task-agnostic multi-task fusion. The separate NeurIPS 2022 paper by Liang and colleagues emphasizes a camera stream independent of LiDAR and robustness when LiDAR malfunctions. Cite the authors/venue or exact link—never write “BEVFusion proves…” without identifying which paper and protocol.</p>
+      </aside>
+    </section>
+
+    <section id="runtime" aria-labelledby="runtime-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Runtime sequence</p><h2 id="runtime-heading">Every cycle has a deadline and a failure branch</h2></div>
+      </div>
+      <div class="flow-strip wide" role="list" aria-label="Sensor fusion runtime sequence">
+        <div role="listitem"><span>1</span><strong>Acquire</strong><small>timestamp at source</small></div>
+        <div role="listitem"><span>2</span><strong>Decode</strong><small>validate metadata</small></div>
+        <div role="listitem"><span>3</span><strong>Synchronize</strong><small>bounded data age</small></div>
+        <div role="listitem"><span>4</span><strong>Deskew</strong><small>one reference time</small></div>
+        <div role="listitem"><span>5</span><strong>Transform</strong><small>one world frame</small></div>
+        <div role="listitem"><span>6</span><strong>Update</strong><small>state + covariance</small></div>
+        <div role="listitem"><span>7</span><strong>Plan</strong><small>before deadline</small></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Sequence invariants</h3>
+          <ul>
+            <li>A timestamp means a declared event: exposure, row, emission/return, packet receipt, or publication.</li>
+            <li>Interpolation stays inside supported pose history; extrapolation is bounded and flagged.</li>
+            <li>Transforms name source, destination and reference time.</li>
+            <li>State updates retain data age, provenance, uncertainty and missing evidence.</li>
+            <li>Planning consumes a coherent state snapshot and a remaining latency budget.</li>
+          </ul>
+        </article>
+        <article class="content-card prose">
+          <h3>Failure ordering</h3>
+          <ol>
+            <li>Reject malformed or physically impossible samples.</li>
+            <li>Quarantine stale, mis-timed or unsupported transforms.</li>
+            <li>Compare cross-modal residuals with each modality’s own health.</li>
+            <li>Reweight or remove suspect evidence only under an explicit degraded policy.</li>
+            <li>Request a minimal-risk maneuver when the remaining state cannot support the ODD.</li>
+          </ol>
+        </article>
+      </div>
+
+      <div class="section-heading">
+        <div><p class="eyebrow">Degraded-state logic</p><h2 id="degraded-state-heading">Use hysteresis; one good frame is not recovery</h2></div>
+      </div>
+      <figure class="system-diagram system-diagram--wide" id="fusion-health-state-figure" data-diagram="fusion-health-state" data-diagram-kind="state" data-print-view="summary">
+        <div class="system-diagram__viewport" tabindex="0" role="region" aria-label="Scrollable sensor-fusion degraded-operation state machine">
+          <svg class="system-diagram__canvas" id="fusion-health-state-svg" data-diagram-svg role="img" focusable="false" viewBox="0 0 1180 590" aria-labelledby="fusion-health-state-title" aria-describedby="fusion-health-state-desc fusion-health-state-caption">
+            <title id="fusion-health-state-title">Branching state machine for nominal, suspect, degraded, minimal-risk, and recovery operation</title>
+            <desc id="fusion-health-state-desc">Nominal operation moves to suspect only after a persistent anomaly. A suspect modality can lead to degraded operation when a reduced operational design domain remains supported, or directly to minimal risk when diagnosis times out or no safe reduced domain exists. Degraded operation also moves to minimal risk when remaining evidence becomes insufficient. Stable evidence moves suspect or degraded operation to recovery validation. Recovery returns to nominal only after the complete health gate and a hysteresis interval, while relapse returns to suspect. Minimal risk is latched until an explicit authorized reset begins recovery validation.</desc>
+            <defs>
+              <marker id="fusion-health-state-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="fusion-health-state-support" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--support" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="fusion-health-state-feedback" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--feedback" d="M0 0 L10 5 L0 10 Z"></path></marker>
+              <marker id="fusion-health-state-safety" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path class="diagram-arrowhead--safety" d="M0 0 L10 5 L0 10 Z"></path></marker>
+            </defs>
+
+            <rect class="diagram-lane" x="20" y="20" width="1140" height="235" rx="16"></rect>
+            <rect class="diagram-lane" x="20" y="280" width="1140" height="285" rx="16"></rect>
+            <text class="diagram-lane-label" x="42" y="49">OPERATING PATH · PRESERVE THE BEST SAFE EVIDENCE</text>
+            <text class="diagram-lane-label" x="42" y="309">RECOVERY PATH · REQUIRE EXPLICIT EVIDENCE AND HYSTERESIS</text>
+
+            <rect class="diagram-node diagram-node--state" x="45" y="90" width="180" height="105" rx="13"></rect>
+            <text class="diagram-title" x="135" y="123" text-anchor="middle">NOMINAL</text>
+            <text class="diagram-detail" x="135" y="148" text-anchor="middle">age · sync · calibration</text>
+            <text class="diagram-detail" x="135" y="170" text-anchor="middle">availability · residuals pass</text>
+
+            <rect class="diagram-node diagram-node--decision" x="285" y="90" width="180" height="105" rx="13"></rect>
+            <text class="diagram-title" x="375" y="123" text-anchor="middle">SUSPECT</text>
+            <text class="diagram-detail" x="375" y="148" text-anchor="middle">debounce + localize</text>
+            <text class="diagram-detail" x="375" y="170" text-anchor="middle">do not blame by majority</text>
+
+            <rect class="diagram-node diagram-node--state" x="535" y="90" width="190" height="105" rx="13"></rect>
+            <text class="diagram-title" x="630" y="123" text-anchor="middle">DEGRADED</text>
+            <text class="diagram-detail" x="630" y="148" text-anchor="middle">drop / reweight modality</text>
+            <text class="diagram-detail" x="630" y="170" text-anchor="middle">restrict speed, range, ODD</text>
+
+            <rect class="diagram-node diagram-node--safety" x="825" y="90" width="230" height="105" rx="13"></rect>
+            <text class="diagram-title" x="940" y="123" text-anchor="middle">MINIMAL RISK · LATCHED</text>
+            <text class="diagram-detail" x="940" y="148" text-anchor="middle">independently monitored stop</text>
+            <text class="diagram-detail" x="940" y="170" text-anchor="middle">never auto-resume from a frame</text>
+
+            <rect class="diagram-node diagram-node--output" x="485" y="375" width="290" height="115" rx="13"></rect>
+            <text class="diagram-title" x="630" y="408" text-anchor="middle">RECOVERY VALIDATION</text>
+            <text class="diagram-detail" x="630" y="433" text-anchor="middle">stable health · current calibration</text>
+            <text class="diagram-detail" x="630" y="455" text-anchor="middle">bounded residuals · sync · hysteresis</text>
+
+            <path class="diagram-edge" marker-end="url(#fusion-health-state-arrow)" d="M225 142 H280"></path>
+            <text class="diagram-edge-label" x="252" y="128" text-anchor="middle">persistent anomaly</text>
+            <path class="diagram-edge" marker-end="url(#fusion-health-state-arrow)" d="M465 142 H530"></path>
+            <text class="diagram-edge-label" x="498" y="128" text-anchor="middle">fault isolated</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#fusion-health-state-safety)" d="M725 142 H820"></path>
+            <text class="diagram-edge-label" x="772" y="128" text-anchor="middle">reduced ODD fails</text>
+
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#fusion-health-state-safety)" d="M375 90 V65 H940 V85"></path>
+            <text class="diagram-edge-label" x="657" y="59" text-anchor="middle">diagnosis deadline or no safe reduced ODD</text>
+
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#fusion-health-state-support)" d="M330 195 V345 H515 V370"></path>
+            <text class="diagram-edge-label" x="342" y="337">stable evidence</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#fusion-health-state-support)" d="M630 195 V370"></path>
+            <text class="diagram-edge-label" x="646" y="286">modality recovers</text>
+            <path class="diagram-edge diagram-edge--support" marker-end="url(#fusion-health-state-support)" d="M940 195 V432 H780"></path>
+            <text class="diagram-edge-label" x="930" y="423" text-anchor="end">explicit authorized reset</text>
+
+            <path class="diagram-edge diagram-edge--feedback" marker-end="url(#fusion-health-state-feedback)" d="M485 420 H135 Q90 420 90 200"></path>
+            <text class="diagram-edge-label" x="285" y="412" text-anchor="middle">full gate passes for hysteresis interval</text>
+            <path class="diagram-edge diagram-edge--safety" marker-end="url(#fusion-health-state-safety)" d="M550 375 V330 H375 V200"></path>
+            <text class="diagram-edge-label" x="455" y="321" text-anchor="middle">relapse</text>
+
+            <rect class="diagram-node" x="180" y="515" width="820" height="35" rx="10"></rect>
+            <text class="diagram-detail" x="590" y="538" text-anchor="middle">Planner contract always includes current mode, missing evidence, data age, uncertainty, permitted ODD, and fallback action.</text>
+          </svg>
+        </div>
+        <ul class="diagram-mobile-flow diagram-mobile-flow--graph" aria-label="Sensor-fusion degraded-operation state logic for small screens">
+          <li><span class="diagram-mobile-transition">Persistent anomaly</span><strong>NOMINAL → SUSPECT</strong><small>Debounce the signal, localize the fault, and compare modality-local health with cross-modal disagreement.</small></li>
+          <li><span class="diagram-mobile-transition">Fault isolated; reduced ODD still supported</span><strong>SUSPECT → DEGRADED</strong><small>Drop or reweight the modality, restrict speed/range/behavior, and expose the changed uncertainty to planning.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">Diagnosis deadline or no viable reduced ODD</span><strong>SUSPECT → MINIMAL RISK</strong><small>Enter the independently monitored minimal-risk maneuver without waiting for a forced diagnosis.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">Remaining evidence becomes insufficient</span><strong>DEGRADED → MINIMAL RISK</strong><small>The reduced system cannot keep operating merely because one modality remains online.</small></li>
+          <li class="is-support"><span class="diagram-mobile-transition">Stable evidence returns</span><strong>SUSPECT / DEGRADED → RECOVERY VALIDATION</strong><small>Require current time and calibration, bounded residuals, adequate availability, and stable modality-local health.</small></li>
+          <li class="is-support"><span class="diagram-mobile-transition">Complete gate + hysteresis</span><strong>RECOVERY → NOMINAL</strong><small>One good frame cannot recover the system; a relapse returns to suspect.</small></li>
+          <li class="is-safety"><span class="diagram-mobile-transition">Latched state</span><strong>MINIMAL RISK → RECOVERY only after explicit reset</strong><small>An authorized restart begins validation; it does not bypass validation.</small></li>
+        </ul>
+        <figcaption id="fusion-health-state-caption"><span><strong>The path branches on available evidence:</strong> degraded operation is allowed only while a declared reduced ODD remains supported; minimal risk is latched; recovery requires a complete gate and hysteresis.</span><span class="system-diagram__hint" aria-hidden="true">Scroll the state machine →</span></figcaption>
+      </figure>
+    </section>
+
+    <section id="sensor-choice" aria-labelledby="sensor-choice-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">System choice</p><h2 id="sensor-choice-heading">Camera-only, LiDAR-only, or fusion: “better” depends on the ODD</h2></div>
+        <p>Compare observability and failure independence before comparing model names.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Camera-only, LiDAR-only and fusion decision table">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Choice</span><span role="columnheader">Why choose it</span><span role="columnheader">Evidence it contributes</span><span role="columnheader">Required stress tests</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Camera-only</span><span role="cell">Low sensor cost/power, dense semantics, high angular detail and scalable fleet data</span><span role="cell">Appearance, lane/sign/light semantics, learned or multiview geometry</span><span role="cell">Night, glare, rain/fog, occlusion, metric-depth calibration, viewpoint shift and causal-use ablations.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">LiDAR-only perception</span><span role="cell">Direct metric range and geometry dominate the task</span><span role="cell">3D surfaces, free-space samples and range in weak illumination</span><span role="cell">Long-range sparsity, small objects, reflectance, weather, multi-return policy and moving-scan distortion.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Camera + LiDAR fusion</span><span role="cell">Complementary semantics and metric geometry justify hardware and integration cost</span><span role="cell">Dense class/texture plus direct range, redundancy and cross-checks</span><span role="cell">Clock/extrinsic drift, sensor loss, compute/thermal overload, score calibration and safe degraded operation.</span></div>
+      </div>
+      <p class="section-note"><strong>Fair ablation:</strong> match dataset split, history, maps, labels, external pretraining, parameter/compute budget, post-processing and evaluation protocol. Otherwise the result does not isolate the value of the sensor.</p>
+    </section>
+
+    <section id="paper-flow" aria-labelledby="paper-flow-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Foundations → 2026</p><h2 id="paper-flow-heading">Follow the changing interface, not a list of acronyms</h2></div>
+        <p>“State of the art” below always means a result under the cited paper’s own benchmark, sensor and training protocol—not a universal ranking.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Sensor fusion and autonomous-driving paper progression">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Period</span><span role="columnheader">Interface that changed</span><span role="columnheader">Representative work</span><span role="columnheader">What can be claimed safely</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2017–2019 · point encoders</span><span role="cell">Unordered points → learned set, voxel or pillar features → 3D boxes</span><span role="cell">PointNet, VoxelNet, PointPillars</span><span role="cell">Foundational LiDAR perception representations; not end-to-end driving policies.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2019–2022 · camera-derived 3D</span><span role="cell">Image depth/frusta/queries → pseudo cloud or BEV → 3D state</span><span role="cell">Pseudo-LiDAR, Lift-Splat-Shoot, BEVFormer</span><span role="cell">Representation and learned lifting reduce the camera–LiDAR geometry gap, but do not make estimated depth a physical range sensor.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2020 · sequential fusion</span><span role="cell">Camera semantic scores → projected point decoration → LiDAR detector</span><span role="cell">PointPainting</span><span role="cell">A simple reusable fusion baseline whose accuracy depends on the upstream segmentation, calibration and timing contract.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2022–2024 · deep/query/BEV fusion</span><span role="cell">Aligned deep features, soft object queries or common BEV → boxes/maps/occupancy</span><span role="cell">DeepFusion, TransFusion, both BEVFusion papers, IS-Fusion</span><span role="cell">Published records are valid only on their named dataset, sensor setup, external data and latency protocol.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2022–2024 · fusion end-to-end</span><span role="cell">Camera + LiDAR evidence → fused features or shared BEV → auxiliary state → ego trajectory</span><span role="cell">TransFuser, InterFuser, Hydra-MDP</span><span role="cell">Shows that complementary sensors can train through to planning; the cited CARLA and NAVSIM-style results use different routes, inputs and evaluation contracts.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2023–2024 · camera-only joint stacks</span><span role="cell">Surround-camera features → BEV, object or vector queries → perception/prediction tasks → ego trajectory</span><span role="cell">UniAD, VAD, PARA-Drive</span><span role="cell">Shows planning-oriented joint training without LiDAR at inference; nuScenes open-loop task metrics do not establish closed-loop safety.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2024–2026 · neural simulation</span><span role="cell">Calibrated driving logs → layered static/dynamic Gaussian world → policy rollouts</span><span role="cell">SCube, NuRec, Instant NuRec</span><span role="cell">Fast scene generation can scale simulation, but photorealistic reconstruction is not automatically a current, uncertainty-aware planner state.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2025 · generative and momentum planning</span><span role="cell">Current scene + history → multimodal diffusion or momentum-conditioned trajectory queries</span><span role="cell">DiffusionDrive (camera + LiDAR in its cited NAVSIM configuration); MomAD (multi-camera)</span><span role="cell">The methods change the planner differently and use different sensor/benchmark evidence; their reported NAVSIM, nuScenes and Bench2Drive results are not a head-to-head modality ranking.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2026 · streaming monocular geometry</span><span role="cell">RGB video and temporal context → camera pose, depth and persistent point-map estimate</span><span role="cell">LingBot-Map</span><span role="cell">Useful camera-derived reconstruction; not physical LiDAR, free-space measurement, object detection or a driving policy.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">2025–2026 · reasoning, world-action and VLA</span><span role="cell">World latent or vision-language context → future video, reasoning and/or trajectory</span><span role="cell">Alpamayo-R1, DriveLaW, DriveMoE</span><span role="cell">A current research direction. Fluent reasoning, video fidelity and closed-loop planning scores measure different things and cannot be merged into one “best system” claim.</span></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>LingBot clarification</h3>
+          <p><strong>LingBot-Map</strong> processes streaming monocular images to estimate camera poses and dense scene geometry, which can be accumulated as a point cloud. It is camera-derived reconstruction, not LiDAR and not by itself a detector or driving policy. <strong>LingBot-Depth</strong> is primarily an RGB-D depth-completion/refinement model; it should not be described as a single RGB camera replacing LiDAR.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>What recent work is optimizing</h3>
+          <p>The frontier is broader than box AP: sparse or vector state, temporal stability, occupancy and flow, several trajectory modes, rule/teacher distillation, world-action latent models, reason–action consistency, sensor dropout, latency and closed-loop recovery.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="e2e-bridge" aria-labelledby="e2e-bridge-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">End-to-end bridge</p><h2 id="e2e-bridge-heading">End-to-end describes a training boundary, not the absence of structure</h2></div>
+      </div>
+      <div class="flow-strip" role="list" aria-label="Perception to end-to-end planning bridge">
+        <div role="listitem"><span>1</span><strong>Evidence</strong><small>images + returns</small></div>
+        <div role="listitem"><span>2</span><strong>Shared state</strong><small>BEV / queries</small></div>
+        <div role="listitem"><span>3</span><strong>Auxiliary tasks</strong><small>tracks + map</small></div>
+        <div role="listitem"><span>4</span><strong>Futures</strong><small>agents + occupancy</small></div>
+        <div role="listitem"><span>5</span><strong>Trajectory</strong><small>modes + score</small></div>
+        <div role="listitem"><span>6</span><strong>Safety</strong><small>constraints + fallback</small></div>
+      </div>
+      <div class="diagnostic-grid">
+        <article class="diagnostic-card"><h3>Modular</h3><p>Separate perception, prediction and planning interfaces improve fault isolation and targeted validation, but may discard useful task information.</p></article>
+        <article class="diagnostic-card"><h3>Planning-oriented joint model</h3><p>Planner loss trains shared state and explicit auxiliary heads. UniAD is end-to-end trainable even though it preserves named tracking, map, motion and occupancy tasks.</p></article>
+        <article class="diagnostic-card"><h3>Sensor-to-trajectory or action</h3><p>A shorter learned interface reduces hand-designed boundaries but increases shortcut, data-coverage, dynamics-shift and independent-safety burdens.</p></article>
+      </div>
+      <p class="section-note"><strong>Planner-facing contract:</strong> carry several plausible futures, probability or confidence, free/occupied/unknown space, data age and health—not only one deterministic box list or one visually plausible trajectory.</p>
+    </section>
+
+    <section id="comparability" aria-labelledby="comparability-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">Benchmark comparability gate</p><h2 id="comparability-heading">Ask whether two numbers are allowed to compete</h2></div>
+        <p>If any material gate differs, report complementary evidence or an ablation—not a winner.</p>
+      </div>
+      <div class="evolution-table" role="table" aria-label="Autonomous-driving benchmark comparability gate">
+        <div class="evolution-row evolution-head" role="row"><span role="columnheader">Gate</span><span role="columnheader">Must match or be disclosed</span><span role="columnheader">If it differs</span><span role="columnheader">Correct conclusion</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Data protocol</span><span role="cell">Dataset and benchmark version, train/validation/test split, scenario filters</span><span role="cell">Distribution and labels change</span><span role="cell">Do not compare headline scores directly.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Available evidence</span><span role="cell">Camera count, LiDAR/radar, temporal history, ego state, HD map and route</span><span role="cell">The observability problem is different</span><span role="cell">Describe a sensor/system tradeoff, not model superiority.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Training signal</span><span role="cell">Labels, privileged teacher, external data, pretraining, simulation and post-processing</span><span role="cell">Data/teacher advantage is confounded with architecture</span><span role="cell">Require matched ablations before causal claims.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">Evaluation mode</span><span role="cell">Perception, open-loop trajectory, NAVSIM non-reactive rollout, reactive simulator, or road ODD</span><span role="cell">The action changes future observations in only some modes</span><span role="cell">Keep separate evidence ladders.</span></div>
+        <div class="evolution-row" role="row"><span role="cell">System budget</span><span role="cell">Parameters, ensemble, image resolution, latency hardware, throughput, memory and power</span><span role="cell">A deployability claim may reverse</span><span role="cell">Use a Pareto comparison with measured uncertainty.</span></div>
+      </div>
+      <div class="split-section">
+        <article class="content-card prose">
+          <h3>Open-loop warning</h3>
+          <p>On logged nuScenes planning, ego status alone can be surprisingly competitive because the future often follows current velocity and the log does not react to policy actions. This is useful component evidence, not proof that perception is unnecessary.</p>
+        </article>
+        <article class="content-card prose">
+          <h3>NAVSIM and Bench2Drive answer different questions</h3>
+          <p>NAVSIM’s planning metric uses a non-reactive simulation of logged actors; Bench2Drive runs a reactive CARLA closed loop. NAVSIM improves on simple trajectory L2, while Bench2Drive adds policy–world interaction and simulator domain gap. Neither result alone certifies real-world safety.</p>
+        </article>
+      </div>
+      <aside class="callout">
+        <div><p class="eyebrow">SOTA claim grammar</p><h2>State the scope in the same sentence</h2></div>
+        <p>Write “the paper reports the best result on benchmark X, version Y, split Z, with sensors S and training protocol P.” Do not replace that sentence with “model A is the state of the art for autonomous driving.”</p>
+      </aside>
+    </section>
+
+    <section id="practice" class="next-actions" aria-labelledby="practice-heading">
+      <div><p class="eyebrow">Practice with commented Python and C++ answers</p><h2 id="practice-heading">Implement the two missing interfaces</h2></div>
+      <div class="action-grid">
+        <a class="action-card" href="coding.html?search=auto-stereo-cloud#coding-list">
+          <span>Coding task · auto-stereo-cloud</span>
+          <strong>Rectified stereo → confidence-aware cloud</strong>
+          <small>Derive depth and uncertainty, preserve invalid and occluded evidence, and compare the Python and C++ reference tabs after attempting the tests.</small>
+        </a>
+        <a class="action-card" href="coding.html?search=auto-object-fusion#coding-list">
+          <span>Coding task · auto-object-fusion</span>
+          <strong>Camera–LiDAR object association</strong>
+          <small>Project 3D boxes, build a gated cost, solve one-to-one assignment, retain unmatched evidence, and inspect failure under time/extrinsic perturbation.</small>
+        </a>
+        <a class="action-card" href="autonomy-reasoning.html#code-traces">
+          <span>Reasoning companion</span>
+          <strong>Trace sequence and failure branches</strong>
+          <small>Practice data contracts, invariants, rejection logic, state transitions and minimal-risk decisions before implementation.</small>
+        </a>
+      </div>
+      <p class="section-note">Each link opens the matching exercise directly. Attempt the tests before opening its Python or C++ reference-answer tabs.</p>
+    </section>
+
+    <section id="sources" class="content-card prose" aria-labelledby="sources-heading">
+      <p class="eyebrow">Primary papers and official documentation</p>
+      <h2 id="sources-heading">Sources at the end of this module</h2>
+      <p>This page is an original study synthesis. Benchmark records and “state-of-the-art” language remain scoped to each source’s dataset, sensors, training data, evaluation version and compute protocol.</p>
+      <ul class="source-list">
+        <li><a href="https://docs.ros.org/en/rolling/p/sensor_msgs/msg/PointCloud2.html">ROS 2 sensor_msgs/PointCloud2 message definition</a></li>
+        <li><a href="https://static.ouster.dev/sdk-docs/reference/lidar-scan.html">Ouster Sensor SDK: LidarScan fields, returns, units and timestamps</a></li>
+        <li><a href="https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html">OpenCV calib3d: stereo rectification and reprojectImageTo3D</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2025/html/Wen_FoundationStereo_Zero-Shot_Stereo_Matching_CVPR_2025_paper.html">FoundationStereo: Zero-Shot Stereo Matching (CVPR 2025)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2026/html/Wen_Fast-FoundationStereo_Real-Time_Zero-Shot_Stereo_Matching_CVPR_2026_paper.html">Fast-FoundationStereo: Real-Time Zero-Shot Stereo Matching (CVPR 2026)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/WACV2026/html/Han_UniCalib_Targetless_LiDAR-camera_Calibration_via_Probabilistic_Flow_on_Unified_Depth_WACV_2026_paper.html">UniCalib: Targetless LiDAR-Camera Calibration via Probabilistic Flow on Unified Depth Representations (WACV 2026)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/WACV2026/html/DAddeo_CalibBEV_LiDAR-Camera_Calibration_via_BEV_Alignment_WACV_2026_paper.html">CalibBEV: LiDAR-Camera Calibration via BEV Alignment (WACV 2026)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_cvpr_2017/html/Qi_PointNet_Deep_Learning_CVPR_2017_paper.html">PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation (CVPR 2017)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_cvpr_2018/html/Zhou_VoxelNet_End-to-End_Learning_CVPR_2018_paper.html">VoxelNet: End-to-End Learning for Point Cloud Based 3D Object Detection (CVPR 2018)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_CVPR_2019/html/Lang_PointPillars_Fast_Encoders_for_Object_Detection_From_Point_Clouds_CVPR_2019_paper.html">PointPillars: Fast Encoders for Object Detection From Point Clouds (CVPR 2019)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_CVPR_2019/html/Wang_Pseudo-LiDAR_From_Visual_Depth_Estimation_Bridging_the_Gap_in_3D_CVPR_2019_paper.html">Pseudo-LiDAR: From Visual Depth Estimation to 3D Object Detection (CVPR 2019)</a></li>
+        <li><a href="https://arxiv.org/abs/2008.05711">Lift, Splat, Shoot: Encoding Images From Arbitrary Camera Rigs by Implicitly Unprojecting to 3D (ECCV 2020)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content_CVPR_2020/html/Vora_PointPainting_Sequential_Fusion_for_3D_Object_Detection_CVPR_2020_paper.html">PointPainting: Sequential Fusion for 3D Object Detection (CVPR 2020)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2021/html/Yin_Center-Based_3D_Object_Detection_and_Tracking_CVPR_2021_paper.html">CenterPoint: Center-Based 3D Object Detection and Tracking (CVPR 2021)</a></li>
+        <li><a href="https://arxiv.org/abs/2203.17270">BEVFormer: Learning Bird’s-Eye-View Representation From Multi-Camera Images via Spatiotemporal Transformers</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2022/html/Li_DeepFusion_Lidar-Camera_Deep_Fusion_for_Multi-Modal_3D_Object_Detection_CVPR_2022_paper.html">DeepFusion: LiDAR-Camera Deep Fusion for Multi-Modal 3D Object Detection (CVPR 2022)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2022/html/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.html">TransFusion: Robust LiDAR-Camera Fusion With Transformers (CVPR 2022)</a></li>
+        <li><a href="https://arxiv.org/abs/2205.13542">BEVFusion: Multi-Task Multi-Sensor Fusion with Unified Bird’s-Eye View Representation (MIT/Han Lab; ICRA 2023)</a></li>
+        <li><a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/43d2b7fbee8431f7cef0d0afed51c691-Abstract-Conference.html">BEVFusion: A Simple and Robust LiDAR-Camera Fusion Framework (NeurIPS 2022)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2024/html/Yin_IS-Fusion_Instance-Scene_Collaborative_Fusion_for_Multimodal_3D_Object_Detection_CVPR_2024_paper.html">IS-Fusion: Instance-Scene Collaborative Fusion for Multimodal 3D Object Detection (CVPR 2024)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2023/html/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.html">VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking (CVPR 2023)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2024/html/Zhang_SAFDNet_A_Simple_and_Effective_Network_for_Fully_Sparse_3D_CVPR_2024_paper.html">SAFDNet: A Fully Sparse 3D Detection Network (CVPR 2024)</a></li>
+        <li><a href="https://arxiv.org/abs/2205.15997">TransFuser: Imitation With Transformer-Based Sensor Fusion for Autonomous Driving</a></li>
+        <li><a href="https://openreview.net/forum?id=qzMY915hCYX">InterFuser: Safety-Enhanced Autonomous Driving Using Interpretable Sensor Fusion Transformer</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2023/html/Hu_Planning-Oriented_Autonomous_Driving_CVPR_2023_paper.html">UniAD: Planning-Oriented Autonomous Driving (CVPR 2023)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/ICCV2023/html/Jiang_VAD_Vectorized_Scene_Representation_for_Efficient_Autonomous_Driving_ICCV_2023_paper.html">VAD: Vectorized Scene Representation for Efficient Autonomous Driving (ICCV 2023)</a></li>
+        <li><a href="https://research.nvidia.com/labs/avg/publication/weng.ivanovic.etal.cvpr2024/">PARA-Drive: Parallelized Architecture for Real-Time Autonomous Driving (CVPR 2024)</a></li>
+        <li><a href="https://research.nvidia.com/labs/lpr/publication/li2024hydra/">Hydra-MDP: End-to-End Multimodal Planning With Multi-Target Hydradistillation</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2025/html/Liao_DiffusionDrive_Truncated_Diffusion_Model_for_End-to-End_Autonomous_Driving_CVPR_2025_paper.html">DiffusionDrive: Truncated Diffusion for End-to-End Autonomous Driving (CVPR 2025)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2025/html/Song_Dont_Shake_the_Wheel_Momentum-Aware_Planning_in_End-to-End_Autonomous_Driving_CVPR_2025_paper.html">MomAD: Momentum-Aware Planning in End-to-End Autonomous Driving (CVPR 2025)</a></li>
+        <li><a href="https://arxiv.org/abs/2604.14141">LingBot-Map: Geometric Context Transformer for Streaming 3D Reconstruction (2026)</a></li>
+        <li><a href="https://arxiv.org/abs/2601.17895">LingBot-Depth: Masked Depth Modeling for Spatial Perception (2026 preprint)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2026/html/Xia_DriveLaW_Unifying_Planning_and_Video_Generation_in_a_Latent_Driving_CVPR_2026_paper.html">DriveLaW: Unifying Planning and Video Generation in a Latent Driving World (CVPR 2026)</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2026/html/Yang_DriveMoE_Mixture-of-Experts_for_Vision-Language-Action_Model_in_End-to-End_Autonomous_Driving_CVPR_2026_paper.html">DriveMoE: Mixture-of-Experts for a Vision-Language-Action Driving Model (CVPR 2026)</a></li>
+        <li><a href="https://research.nvidia.com/publication/2025-10_alpamayo-r1">NVIDIA Alpamayo-R1 research page</a></li>
+        <li><a href="https://openaccess.thecvf.com/content/CVPR2024/html/Li_Is_Ego_Status_All_You_Need_for_Open-Loop_End-to-End_Autonomous_CVPR_2024_paper.html">Is Ego Status All You Need for Open-Loop End-to-End Autonomous Driving? (CVPR 2024)</a></li>
+        <li><a href="https://research.nvidia.com/labs/avg/publication/dauner.hallgarten.etal.neurips2024/">NAVSIM: Data-Driven Non-Reactive Autonomous Vehicle Simulation and Benchmarking (NeurIPS 2024)</a></li>
+        <li><a href="https://papers.nips.cc/paper_files/paper/2024/hash/017761f94a1cd66d01c041aff85492c4-Abstract-Datasets_and_Benchmarks_Track.html">Bench2Drive: Towards Multi-Ability Benchmarking of Closed-Loop End-to-End Autonomous Driving (NeurIPS 2024)</a></li>
+        <li><a href="https://research.nvidia.com/labs/toronto-ai/scube/">SCube: Instant Large-Scale Scene Reconstruction using VoxSplats (NVIDIA; NeurIPS 2024)</a></li>
+        <li><a href="https://developer.nvidia.com/omniverse/nurec">NVIDIA Omniverse NuRec: neural reconstruction and 3D Gaussian simulation documentation</a></li>
+        <li><a href="https://research.nvidia.com/labs/sil/projects/instant-nurec/">Instant NuRec: Feed-Forward 3D Gaussian Reconstruction for Driving Scene Simulation (NVIDIA, 2026)</a></li>
+        <li><a href="sources.html">Complete course source map</a></li>
+      </ul>
+    </section>
+
+    <nav class="page-pagination" aria-label="Course pages">
+      <a href="current-topics.html"><span>Previous</span><strong>Current 3D topics</strong></a>
+      <a href="autonomous-driving.html"><span>Next</span><strong>Autonomous-driving systems</strong></a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-brand"><strong>CV Systems Lab</strong><p>Fuse evidence only after its time, frame, units, validity and uncertainty are explicit.</p></div>
+      <nav class="footer-links" aria-label="Footer"><a href="index.html">Study hub</a><a href="autonomous-driving.html">Autonomous driving</a><a href="sources.html">Sources</a></nav>
+    </div>
+  </footer>
+  <script src="site.js"></script>
+</body>
+</html>
